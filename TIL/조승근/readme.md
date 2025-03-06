@@ -15,4 +15,35 @@
         - 시각장애인 타겟
             - 음성으로 모든 금융 서비스를 이용할 수 있게 (STT)
             - 다크모드, 큰 글씨 모드(색 활용?)
-            - 상품 가입이 2023년부터
+## 250306
+    - 프로젝트 주제 도출 및 아이디어 회의
+    - 고민 사항
+    - 만남을 성공적으로~! → 이름 공고 중 :"페이팅(Pay+Meeting)”, 써밋 (Successful Meeting), 모지(모임의 지배자)👍, 우리모해, 오늘은 어디갈까?(오까)
+    - 소비 패턴을 분석해 최적의 장소와 코스를 추천하고, 더치페이 결제까지 지원하여 만남을 더욱 스마트하게 만들어주는 어플
+    - **마이데이터 기반** 장소, 코스 추천(소비 패턴 분석)
+        - 최적의 모임 코스 추천
+            - 먹거리 데이터
+                - [](https://www.data.go.kr/data/15083033/fileData.do)[상권 데이터](https://www.data.go.kr/data/15083033/fileData.do#layer_data_infomation)
+                - [여행 데이터 (수도권)](https://aihub.or.kr/aihubdata/data/view.do?currMenu=115&topMenu=100&aihubDataSe=data&dataSetSn=71776)
+                - [관광 음식메뉴판 데이터](https://aihub.or.kr/aihubdata/data/view.do?currMenu=115&topMenu=100&aihubDataSe=data&dataSetSn=71553)
+                - [다국어 메뉴 정보 (가격 포함)](https://www.data.go.kr/data/15097003/fileData.do)
+                - [포스트코로나 이후의 관광객에게 현행화된 정보를 제공하기 위한 음식관광 데이터베이스 OPEN API](https://seoul.openapi.redtable.global/)
+                - [서울시 가격안정 모범업소 상품목록 현황](https://data.seoul.go.kr/dataList/OA-1174/S/1/datasetView.do)
+            - 놀거리 데이터
+                - [한국문화정보원_카페가 있는 서점데이터 (ex. 놀숲)](https://www.culture.go.kr/data/openapi/openapiView.do?id=624&category=C&gubun=A)
+                - [전국 독립서점 및 운영정보](https://www.culture.go.kr/data/openapi/openapiView.do?id=623&category=C&gubun=A)
+                - [전국 가족 유아 동반 가능 문화시설](https://www.culture.go.kr/data/openapi/openapiView.do?id=592&category=C&gubun=A)
+                - [전국 문화 여가 활동 시설 (액티비티)](https://www.culture.go.kr/data/openapi/openapiView.do?id=587&category=C&gubun=A)
+                - [전국 문화 여가 활동 시설 (클래스)](https://www.culture.go.kr/data/openapi/openapiView.do?id=586&category=C&gubun=A)
+        - **사용자 맞춤 필터 제공** (예산, 이동 거리, 분위기, 별점 등)
+        - **실시간 인기 장소 AND 트렌드 반영(SNS, 리뷰 데이터 기반)**
+    - 더치페이+ 결제
+        - 영수증 ocr & 직접 입력
+        - 품목 가져가기(like 음료) or 반장이 금액 배분(1/N or 특정 금액)
+    - 일정 생성 및 관리 기능
+        - 팀 생성
+        - 일정 생성 like 달력??
+    - **"안심 모임" 인증 배지(**안심 결제/정산을 완료한 그룹에게 배지 부여→신뢰도↑)
+    - **스마트 정산 기능(**모임 장소에 도착하면 자동으로 출석 확인 by NFC/Bluetooth 기반)
+    - 모임 리워드 시스템
+    - **이동 최적화 + 모빌리티 결제 (Super App Smell)**

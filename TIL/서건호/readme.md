@@ -6,8 +6,7 @@
 
 ---
 
-<details>
-  <summary><strong>2025.03.04 TIL</strong></summary>
+## 2025.03.04 TIL
 
 ### Today's Keywords
 
@@ -30,12 +29,9 @@
      | **학습 곡선**      | Dart 언어 학습 필요, 초보자에게 쉬울 수 있음 | JavaScript 개발자에게 친숙, 기존 웹 개발자가 접근하기 쉬움 |
      | **개발 속도**      | Hot Reload 기능으로 빠른 개발 가능     | Hot Reload 지원, 빠른 개발 가능                |
 
-</details>
-
 ---
 
-<details>
-  <summary><strong>2025.03.05 TIL</strong></summary>
+## 2025.03.05 TIL
 
 ### Today's Keywords
 
@@ -44,14 +40,91 @@
 ### 오늘 배운 것
 
 1. 시각 장애인 타겟 아이디어 구체화
-2. Dart 언어 학습
+
+<details>
+  <summary><strong>2. Dart 언어 학습</strong></summary>
+
+### Dart 언어 기본 정리
+
+Dart는 Google에서 개발한 프로그래밍 언어로, 특히 Flutter 프레임워크에서 많이 사용됩니다.  
+Dart의 주요 특징 중 하나는 Null Safety이며, 정적 타입을 지원합니다.
+
+#### 1. 변수 선언하기
+
+```dart
+var name = "John"; // 타입 추론 (String)
+int age = 30; // 명시적 타입 선언
+late String address; // 나중에 값을 할당할 변수
+```
+
+#### 2. 변수 타입
+
+```dart
+int a = 10;
+double b = 5.5;
+String text = "Hello Dart";
+bool isActive = true;
+```
+
+#### 3. Nullable vs Non-nullable
+
+```dart
+String? nullableName; // null이 될 수 있음
+String nonNullableName = "John"; // null이 될 수 없음
+```
+
+#### 4. Final vs Const
+
+```dart
+final currentTime = DateTime.now(); // 런타임 상수
+const pi = 3.14; // 컴파일 타임 상수
+```
+
+#### 5. List (배열)
+
+```dart
+List<int> numbers = [1, 2, 3, 4, 5];
+numbers.add(6);
+numbers.remove(3);
+print(numbers); // [1, 2, 4, 5, 6]
+```
+
+#### 6. Map (딕셔너리)
+
+```dart
+Map<String, int> scores = {"Alice": 90, "Bob": 85};
+scores["Charlie"] = 88;
+print(scores["Alice"]); // 90
+```
+
+#### 7. if문 (조건문)
+
+```dart
+int age = 18;
+if (age >= 18) {
+  print("성인입니다.");
+} else {
+  print("미성년자입니다.");
+}
+```
+
+#### 8. 함수 (Function)
+
+```dart
+int add(int a, int b) {
+  return a + b;
+}
+
+void main() {
+  print(add(3, 5)); // 8
+}
+```
 
 </details>
 
 ---
 
-<details>
-  <summary><strong>2025.03.06 TIL</strong></summary>
+## 2025.03.06 TIL
 
 ### Today's Keywords
 
@@ -59,9 +132,12 @@
 
 ### 오늘 배운 것
 
-#### 모임 관리 서비스 아이디어 구체화
+1. 모임 관리 서비스 아이디어 구체화
 
-#### Flutter 기본 개념 정리
+<details>
+  <summary><strong>2. Flutter 기본 개념 정리</strong></summary>
+
+### Flutter 개요
 
 Flutter는 Google에서 개발한 오픈소스 UI 프레임워크로, 하나의 코드베이스로 Android, iOS, 웹, 데스크톱 앱을 개발할 수 있습니다.
 
@@ -90,28 +166,23 @@ flutter doctor
 flutter create my_app
 cd my_app
 flutter run
-3. Flutter 프로젝트 구조
-bash
-복사
-편집
-my_app/
- ├── android/         # 안드로이드 관련 코드
- ├── ios/            # iOS 관련 코드
- ├── lib/            # 메인 코드 (Dart 파일)
- │   ├── main.dart   # 진입점
- ├── pubspec.yaml    # 패키지 및 설정 파일
- ├── assets/         # 이미지, 폰트 등 리소스
-lib/main.dart: 애플리케이션의 진입점
-pubspec.yaml: 패키지 및 의존성 관리
-4. Flutter 기본 위젯
-Flutter에서는 UI를 구성하는 요소를 **위젯(Widget)**이라고 합니다.
+```
 
-주요 위젯
-기본 위젯: Text, Container, Row, Column, Stack, Image, Icon
-상태 관리 위젯: StatelessWidget, StatefulWidget
-dart
-복사
-편집
+#### 3. Flutter 프로젝트 구조
+
+```
+my_app/
+ ├── android/
+ ├── ios/
+ ├── lib/
+ │   ├── main.dart
+ ├── pubspec.yaml
+ ├── assets/
+```
+
+#### 4. Flutter 기본 위젯
+
+```dart
 import 'package:flutter/material.dart';
 
 void main() {
@@ -129,21 +200,22 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+```
+
 5. StatelessWidget vs StatefulWidget
+
 StatelessWidget: UI가 변하지 않는 정적인 화면에 사용
+
 StatefulWidget: UI가 변경될 가능성이 있는 화면에 사용 (예: 버튼 클릭 시 상태 변경)
-dart
-복사
-편집
+
+```dart
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text('나는 Stateless 위젯입니다!');
   }
 }
-dart
-복사
-편집
+
 class CounterApp extends StatefulWidget {
   @override
   _CounterAppState createState() => _CounterAppState();
@@ -163,13 +235,18 @@ class _CounterAppState extends State<CounterApp> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text('Count: $count'),
+        Text('Count: \$count'),
         ElevatedButton(onPressed: increment, child: Text('증가')),
       ],
     );
   }
 }
-6. 결론
-Flutter는 빠른 UI 개발과 크로스플랫폼 지원으로 인해 매우 강력한 프레임워크입니다. Flutter의 기초 개념을 다루었으며, 더 깊이 있는 학습을 위해 공식 문서와 다양한 튜토리얼을 참고하는 것이 좋습니다.
+```
 
-</details> ```
+6. 결론
+
+Flutter는 빠른 UI 개발과 크로스플랫폼 지원으로 인해 매우 강력한 프레임워크입니다.
+Flutter의 기초 개념을 다루었으며, 더 깊이 있는 학습을 위해 공식 문서와 다양한 튜토리얼을 참고하는 것이 좋습니다.
+
+</details>
+

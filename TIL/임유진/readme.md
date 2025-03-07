@@ -249,6 +249,7 @@ if (age >= 18) {
     ```
 
 </details>
+
 ---
 
 ## 2025.03.06 TIL
@@ -351,3 +352,5 @@ if (age >= 18) {
   - 다형성 및 느슨한 결합(Loose Coupling)을 지원
 
 </details>
+
+---

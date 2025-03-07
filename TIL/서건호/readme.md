@@ -206,93 +206,242 @@ void main() {
 1. 모임 관리 서비스 아이디어 구체화
 
 <details>
-<summary>2. Dart 언어 학습</summary>
+<summary>2. Flutter 언어 학습</summary>
 
-- 클래스 정의
-  
-  - `class 클래스명 { ... }` 형태로 선언
-  - 클래스 내부에는 변수 (속성) 및 함수 (메서드) 정의
-  - 예시:
-    - 변수: `name`, `members`
-    - 함수: `sayHello()`, `introduce()`
+# Flutter 기본 개념 정리
 
-- 인스턴스 생성
-  
-  - 클래스를 기반으로 실제 객체를 생성하는 과정
-  - `클래스명 인스턴스명 = 클래스명();`
-  - `new` 키워드는 선택 사항
-  - 각 인스턴스는 독립적인 속성 값을 가짐
+Flutter는 Google에서 개발한 오픈소스 UI 프레임워크로, 하나의 코드베이스로 Android, iOS, 웹, 데스크톱 앱을 개발할 수 있습니다. Flutter의 주요 특징과 기본 개념을 정리하였습니다.
 
-- 생성자 (Constructor)
-  
-  - 클래스 이름과 동일한 이름을 가진 메서드
-  - 인스턴스 생성 시 초기화 담당
-  - 파라미터를 사용하여 속성 값 초기화 가능
-    - 위치 기반 파라미터
-    - 이름 기반 파라미터 (`{String name, List<String> members}`)
+## 1. Flutter 개요
 
-- `this` 키워드
-  
-  - 클래스 내부에서 현재 인스턴스를 가리킴
-  - 속성에 접근할 때 사용 (`this.name`)
+- **언어**: Dart 사용
+- **특징**:
+  - 빠른 UI 렌더링을 위한 **위젯 기반 구조**
+  - **Hot Reload**를 통한 빠른 개발 속도
+  - **크로스플랫폼 지원** (iOS, Android, 웹, 데스크톱)
+  - 높은 성능 (네이티브 성능과 유사)
 
-- Named Constructor
-  
-  - 클래스 내에 여러 개의 생성자를 정의하는 방법
-  - `클래스명.생성자명()` 형태
-  - 예시: `Idol.fromList(List<String> list)`
+## 2. Flutter 설치
 
-- `final` 키워드
-  
-  - 변수를 한 번 초기화하면 변경할 수 없도록 지정
-  - 불변성을 유지하는 데 도움
+Flutter를 설치하려면 [Flutter 공식 문서](https://flutter.dev/docs/get-started/install)를 참고하세요.
 
-- `const` 키워드
-  
-  - 컴파일 시점에 값이 결정되는 상수
-  - `const` 생성자를 사용하여 불변 인스턴스 생성 가능
+### 설치 과정 (간단 요약)
+1. Flutter SDK 다운로드 및 설치
+2. `flutter doctor` 명령어로 환경 확인
+3. IDE (VS Code 또는 Android Studio) 설정
+4. Android/iOS 시뮬레이터 설정
 
-- Getter와 Setter
-  
-  - Getter: 속성 값을 가져오는 메서드 (`get firstName`)
-  - Setter: 속성 값을 설정하는 메서드 (`set firstName(String name)`)
-  - 속성 값에 접근하고 수정하는 방식을 제어
+```sh
+flutter doctor
+flutter create my_app
+cd my_app
+flutter run
+```
 
-- Private 변수
-  
-  - 클래스 외부에서 접근할 수 없는 변수
-  - 이름 앞에 `_`를 붙여서 선언 (`String _name`)
-  - 캡슐화를 통해 데이터 은닉
+## 3. Flutter 프로젝트 구조
 
-- 상속 (Inheritance)
-  
-  - 기존 클래스의 속성과 메서드를 물려받아 새로운 클래스를 정의하는 기능
-  - `extends` 키워드 사용 (`class SubClass extends SuperClass`)
-  - 코드 재사용성 및 계층 구조 생성에 유용
+```
+my_app/
+ ├── android/         # 안드로이드 관련 코드
+ ├── ios/            # iOS 관련 코드
+ ├── lib/            # 메인 코드 (Dart 파일)
+ │   ├── main.dart   # 진입점
+ ├── pubspec.yaml    # 패키지 및 설정 파일
+ ├── assets/         # 이미지, 폰트 등 리소스
+```
 
-- Override
-  
-  - 상위 클래스의 메서드를 하위 클래스에서 재정의하는 기능
-  - `@override` 어노테이션 사용 (선택적)
-  - 다형성 구현에 중요
+- `lib/main.dart`: 애플리케이션의 진입점
+- `pubspec.yaml`: 패키지 및 의존성 관리
 
-- Static
-  
-  - 클래스 레벨의 속성 및 메서드를 정의하는 키워드
-  - 인스턴스 생성 없이 클래스 이름으로 직접 접근 가능
-  - `static` 키워드 사용 (`static int count = 0;`)
+## 4. Flutter 기본 위젯
 
-- Generic
-  
-  - 클래스 또는 메서드를 정의할 때 타입 매개변수를 사용하여 다양한 타입에 대해 동작하도록 하는 기능
-  - `<T>` 와 같은 타입 매개변수 사용 (`class Data<T> { T value; }`)
-  - 타입 안정성 및 코드 재사용성 향상
+Flutter에서는 UI를 구성하는 요소를 **위젯(Widget)**이라고 합니다.
 
-- Interface
-  
-  - 클래스가 구현해야 하는 메서드 시그니처를 정의하는 추상 타입
-  - `implements` 키워드 사용 (`class MyClass implements MyInterface`)
-  - 다형성 및 느슨한 결합(Loose Coupling)을 지원
+### 주요 위젯
+- **기본 위젯**: `Text`, `Container`, `Row`, `Column`, `Stack`, `Image`, `Icon`
+- **상태 관리 위젯**: `StatelessWidget`, `StatefulWidget`
+
+```dart
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(title: Text('Flutter 기본 예제')),
+        body: Center(child: Text('Hello, Flutter!')),
+      ),
+    );
+  }
+}
+```
+
+## 5. StatelessWidget vs StatefulWidget
+
+- **StatelessWidget**: UI가 변하지 않는 정적인 화면에 사용
+- **StatefulWidget**: UI가 변경될 가능성이 있는 화면에 사용 (예: 버튼 클릭 시 상태 변경)
+
+### StatelessWidget 예제
+```dart
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Text('나는 Stateless 위젯입니다!');
+  }
+}
+```
+
+### StatefulWidget 예제
+```dart
+class CounterApp extends StatefulWidget {
+  @override
+  _CounterAppState createState() => _CounterAppState();
+}
+
+class _CounterAppState extends State<CounterApp> {
+  int count = 0;
+
+  void increment() {
+    setState(() {
+      count++;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text('Count: \$count'),
+        ElevatedButton(onPressed: increment, child: Text('증가')),
+      ],
+    );
+  }
+}
+```
+
+## 6. 레이아웃 (Row, Column, Stack)
+
+Flutter에서는 **Row, Column, Stack**을 이용하여 UI를 배치합니다.
+
+```dart
+Column(
+  children: [
+    Text('첫 번째 요소'),
+    Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        Icon(Icons.star),
+        Icon(Icons.favorite),
+      ],
+    ),
+  ],
+)
+```
+
+## 7. 네비게이션 (페이지 이동)
+
+Flutter에서 화면 간 이동은 `Navigator`를 사용합니다.
+
+```dart
+Navigator.push(
+  context,
+  MaterialPageRoute(builder: (context) => SecondPage()),
+);
+```
+
+뒤로 가기:
+```dart
+Navigator.pop(context);
+```
+
+## 8. HTTP 요청 (API 호출)
+
+Flutter에서 HTTP 요청을 보낼 때 `http` 패키지를 사용합니다.
+
+### `pubspec.yaml`에 `http` 패키지 추가
+```yaml
+dependencies:
+  http: ^0.13.3
+```
+
+### HTTP 요청 예제
+```dart
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+Future<void> fetchData() async {
+  final response = await http.get(Uri.parse('https://jsonplaceholder.typicode.com/posts/1'));
+  if (response.statusCode == 200) {
+    var data = json.decode(response.body);
+    print(data);
+  }
+}
+```
+
+## 9. 상태 관리 (State Management)
+
+Flutter에서는 상태 관리를 위해 다양한 방법을 사용할 수 있습니다.
+
+- **setState** (기본적인 방법)
+- **Provider** (공식 추천)
+- **Riverpod** (Provider 개선 버전)
+- **Bloc** (복잡한 상태 관리)
+
+```dart
+class CounterProvider with ChangeNotifier {
+  int _count = 0;
+  int get count => _count;
+
+  void increment() {
+    _count++;
+    notifyListeners();
+  }
+}
+```
+
+## 10. Flutter의 주요 패키지
+
+| 패키지 이름 | 설명 |
+|------------|------|
+| `http` | API 요청 |
+| `provider` | 상태 관리 |
+| `shared_preferences` | 간단한 로컬 저장소 |
+| `flutter_bloc` | Bloc 패턴 상태 관리 |
+| `url_launcher` | 웹사이트, 전화, 이메일 열기 |
+
+## 11. Flutter 앱 빌드 및 배포
+
+### 앱 실행
+```sh
+flutter run
+```
+
+### 안드로이드 빌드
+```sh
+flutter build apk
+```
+
+### iOS 빌드
+```sh
+flutter build ios
+```
+
+### 웹 빌드
+```sh
+flutter build web
+```
+
+## 12. 결론
+
+Flutter는 빠른 UI 개발과 크로스플랫폼 지원으로 인해 매우 강력한 프레임워크입니다.
+이 문서에서 Flutter의 기초 개념을 다루었으며, 더 깊이 있는 학습을 위해 공식 문서와 다양한 튜토리얼을 참고하는 것이 좋습니다.
+
 
 </details>
 

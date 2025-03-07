@@ -166,16 +166,16 @@
   - `add()` 메서드로 요소 추가: `colors.add('yellow');`
   - `contains()` 메서드로 요소 존재 확인: `colors.contains('red')` (결과는 true)
 
--If 문
+- If 문
 
-```dart
-int age = 20;
-if (age >= 18) {
-  print('Adult');
-} else {
-  print('Minor');
-}
-```
+  ```dart
+  int age = 20;
+  if (age >= 18) {
+    print('Adult');
+  } else {
+    print('Minor');
+  }
+  ```
 
 - 반복문
   

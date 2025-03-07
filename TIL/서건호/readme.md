@@ -48,7 +48,6 @@
 
 Dart는 Google에서 개발한 프로그래밍 언어로, 특히 Flutter 프레임워크에서 많이 사용됩니다. 
 Dart의 주요 특징 중 하나는 Null Safety이며, 정적 타입을 지원합니다.
-아래에서 Dart의 기본 개념을 정리해 보겠습니다.
 
 ## 1. 변수 선언하기
 Dart에서는 `var`, `final`, `const`, `late` 키워드를 사용하여 변수를 선언할 수 있습니다.
@@ -61,98 +60,124 @@ Dart에서는 `var`, `final`, `const`, `late` 키워드를 사용하여 변수�
 var name = "John"; // 타입 추론 (String)
 int age = 30; // 명시적 타입 선언
 late String address; // 나중에 값을 할당할 변수
-2. 변수 타입
+```
+
+## 2. 변수 타입
 Dart의 주요 데이터 타입은 다음과 같습니다:
 
-int - 정수형
-double - 실수형
-String - 문자열
-bool - 불리언 (true 또는 false)
-List - 배열 (여러 개의 요소를 저장할 때 사용)
-Map - 키-값 쌍으로 이루어진 컬렉션
-Set - 중복 없는 데이터 집합
-dynamic - 동적 타입 (모든 타입을 가질 수 있음)
+- `int` - 정수형
+- `double` - 실수형
+- `String` - 문자열
+- `bool` - 불리언 (true 또는 false)
+- `List` - 배열 (여러 개의 요소를 저장할 때 사용)
+- `Map` - 키-값 쌍으로 이루어진 컬렉션
+- `Set` - 중복 없는 데이터 집합
+- `dynamic` - 동적 타입 (모든 타입을 가질 수 있음)
+
+```dart
 int a = 10;
 double b = 5.5;
 String text = "Hello Dart";
 bool isActive = true;
-3. Nullable vs Non-nullable
+```
+
+## 3. Nullable vs Non-nullable
 Dart는 Null Safety를 지원하며, 기본적으로 모든 변수는 non-nullable입니다.
 즉, 값을 할당하지 않으면 오류가 발생합니다.
-Nullable 변수는 ?를 사용하여 선언할 수 있습니다.
+Nullable 변수는 `?`를 사용하여 선언할 수 있습니다.
 
+```dart
 String? nullableName; // null이 될 수 있음
 String nonNullableName = "John"; // null이 될 수 없음
-4. Final vs Const
-Dart에서 상수를 선언할 때 final과 const 키워드를 사용합니다.
+```
 
-final: 런타임에 값이 결정되는 상수 (한 번만 할당 가능)
-const: 컴파일 타임에 값이 결정되는 상수 (컴파일 시점에 변하지 않는 값)
+## 4. Final vs Const
+Dart에서 상수를 선언할 때 `final`과 `const` 키워드를 사용합니다.
+
+- `final`: 런타임에 값이 결정되는 상수 (한 번만 할당 가능)
+- `const`: 컴파일 타임에 값이 결정되는 상수 (컴파일 시점에 변하지 않는 값)
+
+```dart
 final currentTime = DateTime.now(); // 런타임 상수
 const pi = 3.14; // 컴파일 타임 상수
-5. Operators (연산자)
+```
+
+## 5. Operators (연산자)
 Dart에서 제공하는 주요 연산자는 다음과 같습니다.
 
-산술 연산자: +, -, *, /, %
-비교 연산자: ==, !=, >, <, >=, <=
-논리 연산자: &&, ||, !
-할당 연산자: =, +=, -=, *=, /=
+- **산술 연산자**: `+`, `-`, `*`, `/`, `%`
+- **비교 연산자**: `==`, `!=`, `>`, `<`, `>=`, `<=`
+- **논리 연산자**: `&&`, `||`, `!`
+- **할당 연산자**: `=`, `+=`, `-=`, `*=`, `/=`
+
+```dart
 int x = 10;
 x += 5; // x = 15
 bool isTrue = (x > 5) && (x < 20);
-6. List (배열)
-List는 여러 개의 값을 저장할 수 있는 자료구조입니다.
+```
 
+## 6. List (배열)
+```dart
 List<int> numbers = [1, 2, 3, 4, 5];
 numbers.add(6);
 numbers.remove(3);
 print(numbers); // [1, 2, 4, 5, 6]
-7. Map (딕셔너리)
-Map은 키와 값으로 이루어진 자료구조입니다.
+```
 
+## 7. Map (딕셔너리)
+```dart
 Map<String, int> scores = {"Alice": 90, "Bob": 85};
 scores["Charlie"] = 88;
 print(scores["Alice"]); // 90
-8. Set (중복 없는 컬렉션)
-Set은 중복을 허용하지 않는 데이터 구조입니다.
+```
 
+## 8. Set (중복 없는 컬렉션)
+```dart
 Set<int> uniqueNumbers = {1, 2, 3, 4, 5};
 uniqueNumbers.add(3); // 중복된 값 추가 불가능
 print(uniqueNumbers); // {1, 2, 3, 4, 5}
-9. if문 (조건문)
-if문을 사용하여 조건을 검사하고 특정 코드를 실행할 수 있습니다.
+```
 
+## 9. if문 (조건문)
+```dart
 int age = 18;
 if (age >= 18) {
   print("성인입니다.");
 } else {
   print("미성년자입니다.");
 }
-10. Loops (반복문)
-반복문을 사용하면 코드 실행을 여러 번 반복할 수 있습니다.
+```
 
-For Loop
+## 10. Loops (반복문)
+
+### For Loop
+```dart
 for (int i = 0; i < 5; i++) {
   print("반복 횟수: \$i");
 }
-While Loop
+```
+
+### While Loop
+```dart
 int count = 0;
 while (count < 3) {
   print("카운트: \$count");
   count++;
 }
-11. Enum (열거형)
-Enum은 여러 개의 상태를 나타낼 때 유용합니다.
+```
 
+## 11. Enum (열거형)
+```dart
 enum Status { pending, completed, failed }
 
 void main() {
   Status currentStatus = Status.completed;
   print(currentStatus);
 }
-12. 함수 (Function)
-Dart에서 함수를 선언하는 방법은 다음과 같습니다.
+```
 
+## 12. 함수 (Function)
+```dart
 int add(int a, int b) {
   return a + b;
 }
@@ -160,9 +185,10 @@ int add(int a, int b) {
 void main() {
   print(add(3, 5)); // 8
 }
-13. Typedef (별칭 타입 정의)
-Typedef를 사용하면 특정 함수 타입에 별칭을 지정할 수 있습니다.
+```
 
+## 13. Typedef (별칭 타입 정의)
+```dart
 typedef MathOperation = int Function(int, int);
 
 int multiply(int a, int b) => a * b;
@@ -171,29 +197,8 @@ void main() {
   MathOperation operation = multiply;
   print(operation(4, 5)); // 20
 }
-  
-  ```dart
-  typedef IntList = List;
-  
-  IntList numbers = [1, 2, 3, 4, 5];
-  print(numbers);
-  ```
-  
-  - 함수 타입 정의
-    
-    ```dart
-          typedef Operation = int Function(int, int);
-    
-    int add(int a, int b) => a + b;
-    int subtract(int a, int b) => a - b;
-    
-    Operation selectedOperation = add;
-    print(selectedOperation(5, 3)); // Output: 8
-    ```
+```
 
-</details>
-
----
 
 ## 2025.03.06 TIL
 
@@ -210,7 +215,7 @@ void main() {
 
 # Flutter 기본 개념 정리
 
-Flutter는 Google에서 개발한 오픈소스 UI 프레임워크로, 하나의 코드베이스로 Android, iOS, 웹, 데스크톱 앱을 개발할 수 있습니다. Flutter의 주요 특징과 기본 개념을 정리하였습니다.
+Flutter는 Google에서 개발한 오픈소스 UI 프레임워크로, 하나의 코드베이스로 Android, iOS, 웹, 데스크톱 앱을 개발할 수 있습니다.
 
 ## 1. Flutter 개요
 
@@ -440,7 +445,7 @@ flutter build web
 ## 12. 결론
 
 Flutter는 빠른 UI 개발과 크로스플랫폼 지원으로 인해 매우 강력한 프레임워크입니다.
-이 문서에서 Flutter의 기초 개념을 다루었으며, 더 깊이 있는 학습을 위해 공식 문서와 다양한 튜토리얼을 참고하는 것이 좋습니다.
+Flutter의 기초 개념을 다루었으며, 더 깊이 있는 학습을 위해 공식 문서와 다양한 튜토리얼을 참고하는 것이 좋습니다.
 
 
 </details>

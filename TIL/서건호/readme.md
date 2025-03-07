@@ -120,6 +120,98 @@ void main() {
 }
 ```
 
+#### 9. if문 (조건문)
+if문을 사용하여 조건을 검사하고 특정 코드를 실행할 수 있습니다.
+
+```dart
+int age = 18;
+if (age >= 18) {
+  print("성인입니다.");
+} else {
+  print("미성년자입니다.");
+}
+```
+
+#### 10. Loops (반복문)
+반복문을 사용하면 코드 실행을 여러 번 반복할 수 있습니다.
+
+```dart
+For Loop
+for (int i = 0; i < 5; i++) {
+  print("반복 횟수: \$i");
+}
+While Loop
+int count = 0;
+while (count < 3) {
+  print("카운트: \$count");
+  count++;
+}
+```
+
+#### 11. Enum (열거형)
+Enum은 여러 개의 상태를 나타낼 때 유용합니다.
+
+```dart
+enum Status { pending, completed, failed }
+
+void main() {
+  Status currentStatus = Status.completed;
+  print(currentStatus);
+}
+```
+
+#### 12. 함수 (Function)
+Dart에서 함수를 선언하는 방법은 다음과 같습니다.
+
+```dart
+int add(int a, int b) {
+  return a + b;
+}
+
+void main() {
+  print(add(3, 5)); // 8
+}
+```
+
+#### 13. Typedef (별칭 타입 정의)
+Typedef를 사용하면 특정 함수 타입에 별칭을 지정할 수 있습니다.
+
+1. 기본 함수 타입 정의
+
+```dart
+typedef MathOperation = int Function(int, int);
+
+int multiply(int a, int b) => a * b;
+
+void main() {
+  MathOperation operation = multiply;
+  print(operation(4, 5)); // 20
+}
+```
+
+2. 리스트 타입 별칭 정의
+
+```dart
+typedef IntList = List<int>;
+
+void main() {
+  IntList numbers = [1, 2, 3, 4, 5];
+  print(numbers); // [1, 2, 3, 4, 5]
+}
+```
+
+3. 함수 타입 정의
+
+```dart
+typedef Operation = int Function(int, int);
+
+int add(int a, int b) => a + b;
+int subtract(int a, int b) => a - b;
+
+Operation selectedOperation = add;
+print(selectedOperation(5, 3)); // Output: 8
+```
+
 </details>
 
 ---

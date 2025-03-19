@@ -6,7 +6,11 @@ import com.a601.moba.auth.Entity.Member;
 import com.a601.moba.auth.Exception.AuthException;
 import com.a601.moba.auth.Repository.MemberRepository;
 import com.a601.moba.global.code.ErrorCode;
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,6 +25,8 @@ public class AuthService {
     private final MemberRepository memberRepository;
     private final JwtProvider jwtProvider;
     private final PasswordEncoder passwordEncoder;
+    private final StringRedisTemplate redisTemplate;
+    private final RedisService redisService;
 
     @Transactional
     public AuthResponse authenticate(String email, String password) {
@@ -31,9 +37,41 @@ public class AuthService {
             throw new AuthException(ErrorCode.INVALID_CREDENTIALS);
         }
 
-        String token = jwtProvider.generateToken(email);
-        return new AuthResponse(token);
+        // 기존 Refresh Token 삭제 후 새로운 Refresh Token 생성
+        redisService.deleteRefreshToken(email);
+        String refreshToken = jwtProvider.generateRefreshToken(email);
+        long refreshExpirationTime = jwtProvider.getExpirationTime(refreshToken);
+        redisService.saveRefreshToken(email, refreshToken, refreshExpirationTime);
+
+        // 새로운 Access Token 생성
+        String accessToken = jwtProvider.generateAccessToken(email);
+
+        return new AuthResponse(accessToken, refreshToken);
     }
+
+
+    @Transactional
+    public AuthResponse refreshAccessToken(String refreshToken) {
+        // Refresh Token이 유효한지 확인
+        if (refreshToken == null || !jwtProvider.isTokenValid(refreshToken)) {
+            throw new AuthException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        // Refresh Token에서 사용자 email 추출
+        String email = jwtProvider.getEmailFromToken(refreshToken);
+
+        // Redis에 저장된 Refresh Token과 일치하는지 확인
+        String storedRefreshToken = redisService.getRefreshToken(email);
+        if (!refreshToken.equals(storedRefreshToken)) {
+            throw new AuthException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        // 새로운 Access Token 발급
+        String newAccessToken = jwtProvider.generateAccessToken(email);
+
+        return new AuthResponse(newAccessToken, refreshToken);
+    }
+
 
     @Transactional
     public SignupResponse registerUser(String email, String password, String name, MultipartFile image) {
@@ -53,6 +91,32 @@ public class AuthService {
         memberRepository.save(newMember);
 
         return new SignupResponse(newMember.getId(), newMember.getEmail(), newMember.getName(), newMember.getImage());
+    }
+
+    @Transactional
+    public void signout(String accessToken) {
+        // Access Token이 유효한지 확인
+        if (accessToken == null || !jwtProvider.isTokenValid(accessToken)) {
+            throw new AuthException(ErrorCode.INVALID_TOKEN);
+        }
+
+        // Access Token에서 사용자 email 추출
+        String email = jwtProvider.getEmailFromToken(accessToken);
+
+        // Refresh Token을 블랙리스트에 추가 후 삭제
+        String refreshToken = redisService.getRefreshToken(email);
+        if (refreshToken != null) {
+            long refreshExpirationTime = jwtProvider.getExpirationTime(refreshToken);
+            redisService.addToBlacklist(refreshToken, refreshExpirationTime);
+            redisService.deleteRefreshToken(email);
+        }
+
+        // Access Token도 블랙리스트에 추가
+        long accessExpirationTime = jwtProvider.getExpirationTime(accessToken);
+        redisService.addToBlacklist(accessToken, accessExpirationTime);
+
+        // SecurityContext 초기화 (현재 사용자 로그아웃)
+        SecurityContextHolder.clearContext();
     }
 
     private String uploadImage(MultipartFile image) {

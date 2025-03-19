@@ -3,7 +3,6 @@ package com.a601.moba.global.exception;
 import static org.springframework.http.HttpStatus.*;
 
 import com.a601.moba.global.code.ErrorCode;
-import com.a601.moba.global.message.MessageUtil;
 import com.a601.moba.global.response.JSONResponse;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,17 +22,10 @@ public class CommonExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<JSONResponse<Object>> handleMethodArgumentNotValidException(final MethodArgumentNotValidException e) {
         List<FieldError> fieldErrors = e.getBindingResult().getFieldErrors();
-        List<String> errorMessages = fieldErrors.stream()
-                .map(fieldError -> MessageUtil
-                        .getMessage(fieldError.getCode(),
-                                new Object[] { fieldError.getField() }
-                        )
-                )
-                .collect(Collectors.toList());
 
         return ResponseEntity
                 .status(BAD_REQUEST)
-                .body(JSONResponse.onFailure(ErrorCode.INVALID_REQUEST, errorMessages));
+                .body(JSONResponse.onFailure(ErrorCode.INVALID_REQUEST, fieldErrors.get(0).getDefaultMessage()));
     }
 
     // @PathVariable 잘못 입력 또는 요청 메시지 바디에 아무 값도 전달되지 않았을 때
@@ -41,7 +33,7 @@ public class CommonExceptionHandler {
     public ResponseEntity<JSONResponse<Object>> handlerMethodArgumentTypeMismatchException(final Exception e) {
         return ResponseEntity
                 .status(BAD_REQUEST)
-                .body(JSONResponse.onFailure(ErrorCode.INVALID_REQUEST, null));
+                .body(JSONResponse.onFailure(ErrorCode.INVALID_REQUEST));
     }
 
     // 그 외 CommonException 상속받은 모든 예외를 이 메소드에서 처리
@@ -49,7 +41,7 @@ public class CommonExceptionHandler {
     public ResponseEntity<JSONResponse<Object>> handlerCommonException(final CommonException e) {
         return ResponseEntity
                 .status(e.getErrorCode().getHttpStatus())
-                .body(JSONResponse.onFailure(e.getErrorCode(), null));
+                .body(JSONResponse.onFailure(e.getErrorCode()));
     }
 
     // 서버 내부 오류 (SQL 연결 오류 등) 처리
@@ -57,6 +49,6 @@ public class CommonExceptionHandler {
     public ResponseEntity<JSONResponse<Object>> handlerException(final Exception e) {
         return ResponseEntity
                 .status(INTERNAL_SERVER_ERROR)
-                .body(JSONResponse.onFailure(ErrorCode.SERVER_ERROR, null));
+                .body(JSONResponse.onFailure(ErrorCode.SERVER_ERROR));
     }
 }

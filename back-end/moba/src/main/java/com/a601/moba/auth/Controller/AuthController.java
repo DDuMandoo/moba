@@ -3,6 +3,7 @@ package com.a601.moba.auth.Controller;
 import com.a601.moba.auth.Controller.Request.AuthRequest;
 import com.a601.moba.auth.Controller.Response.AuthResponse;
 import com.a601.moba.auth.Controller.Response.SignupResponse;
+import com.a601.moba.auth.Exception.AuthException;
 import com.a601.moba.auth.Service.AuthService;
 import com.a601.moba.auth.Util.AuthUtil;
 import com.a601.moba.global.code.ErrorCode;
@@ -54,9 +55,17 @@ public class AuthController {
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.LOGOUT_SUCCESS));
     }
 
-    @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refreshAccessToken(@RequestParam String email, @RequestParam String refreshToken) {
+    @PostMapping("/reissuance")
+    public ResponseEntity<JSONResponse<AuthResponse>> refreshAccessToken(@RequestHeader("Authorization") String refreshToken) {
+        if (refreshToken != null && refreshToken.startsWith("Bearer ")) {
+            refreshToken = refreshToken.substring(7);
+        } else {
+            throw new AuthException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        // ✅ Access Token 재발급
         AuthResponse response = authService.refreshAccessToken(refreshToken);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(JSONResponse.onSuccess(response));
     }
+
 }

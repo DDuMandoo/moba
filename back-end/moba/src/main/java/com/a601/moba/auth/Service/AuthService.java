@@ -52,24 +52,24 @@ public class AuthService {
 
     @Transactional
     public AuthResponse refreshAccessToken(String refreshToken) {
-        // Refresh Token이 유효한지 확인
+        // Refresh Token 유효성 검증
         if (refreshToken == null || !jwtProvider.isTokenValid(refreshToken)) {
             throw new AuthException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
-        // Refresh Token에서 사용자 email 추출
+        // Refresh Token에서 사용자 이메일 추출
         String email = jwtProvider.getEmailFromToken(refreshToken);
 
-        // Redis에 저장된 Refresh Token과 일치하는지 확인
+        // Redis에서 저장된 Refresh Token과 비교 (탈취 방지)
         String storedRefreshToken = redisService.getRefreshToken(email);
-        if (!refreshToken.equals(storedRefreshToken)) {
+        if (storedRefreshToken == null || !refreshToken.equals(storedRefreshToken)) {
             throw new AuthException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
         // 새로운 Access Token 발급
         String newAccessToken = jwtProvider.generateAccessToken(email);
 
-        return new AuthResponse(newAccessToken, refreshToken);
+        return new AuthResponse(newAccessToken,refreshToken);
     }
 
 

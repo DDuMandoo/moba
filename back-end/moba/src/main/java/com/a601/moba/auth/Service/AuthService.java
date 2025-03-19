@@ -1,5 +1,6 @@
 package com.a601.moba.auth.Service;
 
+import com.a601.moba.auth.Controller.Response.AuthResponse;
 import com.a601.moba.auth.Controller.Response.SignupResponse;
 import com.a601.moba.auth.Entity.Member;
 import com.a601.moba.auth.Exception.AuthException;
@@ -22,15 +23,16 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public String authenticate(String email, String password) {
+    public AuthResponse authenticate(String email, String password) {
         Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("NoSuchElementException"));
+                .orElseThrow(() -> new AuthException(ErrorCode.INVALID_CREDENTIALS));
 
         if (!passwordEncoder.matches(password, member.getPassword())) {
-            throw new IllegalArgumentException("Invalid credentials");
+            throw new AuthException(ErrorCode.INVALID_CREDENTIALS);
         }
 
-        return jwtProvider.generateToken(email);
+        String token = jwtProvider.generateToken(email);
+        return new AuthResponse(token);
     }
 
     @Transactional

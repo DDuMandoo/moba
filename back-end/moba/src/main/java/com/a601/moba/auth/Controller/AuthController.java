@@ -29,7 +29,7 @@ public class AuthController {
 
     @PostMapping("/signin")
     public ResponseEntity<AuthResponse> signin(@RequestBody AuthRequest request) {
-        String token = authService.authenticate(request.getEmail(), request.getPassword());
-        return ResponseEntity.ok(new AuthResponse(token));
+        AuthResponse response = authService.authenticate(request.getEmail(), request.getPassword());
+        return ResponseEntity.ok(response);
     }
 }

@@ -11,7 +11,7 @@ public class AuthExceptionHandler {
     @ExceptionHandler(AuthException.class)
     public ResponseEntity<JSONResponse<Void>> handleAuthException(AuthException e) {
         return ResponseEntity
-                .status(e.getErrorCode().getCode() / 10) // 4090 → 409 상태 코드 반환
+                .status(e.getErrorCode().getHttpStatus())
                 .body(JSONResponse.onFailure(e.getErrorCode()));
     }
 }

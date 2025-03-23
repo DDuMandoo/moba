@@ -103,4 +103,15 @@ public class EmailService {
         int code = 100000 + random.nextInt(900000); // 6자리 숫자
         return String.valueOf(code);
     }
+
+    public void sendTempPasswordEmail(String to, String tempPassword) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject("[MoYeoBaRa] 임시 비밀번호 발급 안내");
+        message.setText("요청하신 임시 비밀번호는 다음과 같습니다:\n\n" +
+                tempPassword + "\n\n" +
+                "보안을 위해 30분 내에 비밀번호를 변경해 주세요.");
+
+        mailSender.send(message);
+    }
 }

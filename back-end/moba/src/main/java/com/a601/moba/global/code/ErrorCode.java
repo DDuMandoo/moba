@@ -5,6 +5,7 @@ import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 import lombok.Getter;
@@ -37,6 +38,7 @@ public enum ErrorCode {
     INVALID_VERIFICATION_CODE(4016, UNAUTHORIZED, "인증 코드가 일치하지 않습니다."),
     EMAIL_ALREADY_VERIFIED(4017, UNAUTHORIZED, "이미 인증된 이메일입니다."),
     EMAIL_NOT_VERIFIED(4018, UNAUTHORIZED, "검증되지 않은 이메일입니다."),
+    TOO_MANY_PASSWORD_RESET_REQUESTS(4019, TOO_MANY_REQUESTS, "비밀번호 재설정 요청이 너무 많습니다."),
     ;
 
 

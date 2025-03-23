@@ -2,13 +2,16 @@ package com.a601.moba.auth.Service;
 
 import com.a601.moba.auth.Controller.Response.AuthResponse;
 import com.a601.moba.auth.Controller.Response.SignupResponse;
-import com.a601.moba.auth.Entity.Member;
 import com.a601.moba.auth.Exception.AuthException;
-import com.a601.moba.auth.Repository.MemberRepository;
 import com.a601.moba.email.Service.EmailService;
 import com.a601.moba.global.code.ErrorCode;
+import com.a601.moba.member.Entity.Member;
+import com.a601.moba.member.Repository.MemberRepository;
+import com.a601.moba.member.Service.MemberService;
 import java.util.Optional;
+import java.util.Random;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class AuthService {
 
@@ -26,6 +30,7 @@ public class AuthService {
     private final StringRedisTemplate redisTemplate;
     private final RedisService redisService;
     private final EmailService emailService;
+    private final MemberService memberService;
 
 
     @Transactional
@@ -88,12 +93,13 @@ public class AuthService {
         String encodedPassword = passwordEncoder.encode(password);
 
         // 프로필 이미지 처리 (여기서는 기본 URL 사용, S3 업로드 가능)
-        String imageUrl = uploadImage(image);
+        String imageUrl = memberService.uploadImage(image);
 
         Member newMember = new Member(email, encodedPassword, name, imageUrl);
         memberRepository.save(newMember);
-
-        return new SignupResponse(newMember.getId(), newMember.getEmail(), newMember.getName(), newMember.getImage());
+        emailService.deleteEmailVerified(email);
+        return new SignupResponse(newMember.getId(), newMember.getEmail(), newMember.getName(),
+                newMember.getProfileImage());
     }
 
     @Transactional
@@ -122,8 +128,44 @@ public class AuthService {
         SecurityContextHolder.clearContext();
     }
 
-    private String uploadImage(MultipartFile image) {
-        // TODO: S3 또는 로컬 서버에 이미지 업로드 로직 추가
-        return null;
+    @Transactional
+    public void resetPassword(String email) {
+        // 1. Rate Limit 확인
+        String rateLimitKey = "reset_password_rate:" + email;
+
+        Long count = redisTemplate.opsForValue().increment(rateLimitKey);
+
+        if (count != null && count > 5) {
+            throw new AuthException(ErrorCode.TOO_MANY_PASSWORD_RESET_REQUESTS);
+        }
+
+        // 2. 사용자 조회
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new AuthException(ErrorCode.EMAIL_NOT_FOUND));
+
+        // 3. 임시 비밀번호 생성 및 암호화
+        String tempPassword = generateTempPassword();
+        String encoded = passwordEncoder.encode(tempPassword);
+
+        // 4. 비밀번호 변경
+        member.setPassword(encoded);
+        memberRepository.save(member);
+
+        // 5. 이메일 전송
+        emailService.sendTempPasswordEmail(email, tempPassword);
+
+        log.info("[AuthService] 임시 비밀번호 발급 완료 - email: {}, tempPassword: {}", email, tempPassword);
     }
+
+    private String generateTempPassword() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < 8 + random.nextInt(5); i++) { // 8~12자리
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
+    }
+
 }

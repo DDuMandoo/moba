@@ -41,10 +41,11 @@ public class SecurityConfig {
 
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/members/signin").permitAll()
-                        .requestMatchers("/api/members/signup").permitAll()
+                        .requestMatchers("/api/auth/signin").permitAll()
+                        .requestMatchers("/api/auth/signup").permitAll()
                         .requestMatchers("/api/emails/send").permitAll()
                         .requestMatchers("/api/emails/verify").permitAll()
+                        .requestMatchers("/api/members/password/reset").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

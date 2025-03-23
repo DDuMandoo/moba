@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/members")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -73,5 +73,4 @@ public class AuthController {
         AuthResponse response = authService.refreshAccessToken(refreshToken);
         return ResponseEntity.ok(JSONResponse.onSuccess(response));
     }
-
 }

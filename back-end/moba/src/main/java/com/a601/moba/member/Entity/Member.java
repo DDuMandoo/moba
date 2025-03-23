@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -24,16 +25,17 @@ public class Member {
     @Column(name = "ID")
     private Long id;
 
-    @Column(name = "EMAIL", nullable = false, unique = true, length = 255)
+    @Column(name = "EMAIL", nullable = false, unique = true)
     private String email;
 
-    @Column(name = "PASSWORD", length = 64)
+    @Setter
+    @Column(name = "PASSWORD")
     private String password;
 
-    @Column(name = "NAME", nullable = false, length = 30)
+    @Column(name = "NAME", nullable = false)
     private String name;
 
-    @Column(name = "PROFILE_IMAGE", length = 255)
+    @Column(name = "PROFILE_IMAGE")
     private String profileImage;
 
     @Column(name = "SOCIAL_ID")
@@ -53,7 +55,7 @@ public class Member {
     @Column(name = "IS_DELETED", nullable = false)
     private boolean isDeleted = false;
 
-    @Column(name = "MYDATA_TOKEN", length = 255)
+    @Column(name = "MYDATA_TOKEN")
     private String mydataToken;
 
     public Member(String email, String password, String name, String profileImage) {
@@ -64,15 +66,6 @@ public class Member {
         this.isDeleted = false;
     }
 
-    public void setPassword(String hashedPassword) {
-        this.password = hashedPassword;
-    }
-
-    public void setDeleted(boolean deleted) {
-        this.isDeleted = deleted;
-        this.deletedAt = deleted ? LocalDateTime.now() : null;
-    }
-
     public void updateName(String name) {
         this.name = name;
     }
@@ -80,7 +73,12 @@ public class Member {
     public void updateProfileImage(String imageUrl) {
         this.profileImage = imageUrl;
     }
-    
+
+    public void delete() {
+        this.isDeleted = true;
+        this.deletedAt = LocalDateTime.now();
+    }
+
     public void updateMydataToken(String token) {
         this.mydataToken = token;
     }

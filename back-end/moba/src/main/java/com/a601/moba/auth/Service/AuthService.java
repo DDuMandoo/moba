@@ -42,6 +42,10 @@ public class AuthService {
             throw new AuthException(ErrorCode.INVALID_CREDENTIALS);
         }
 
+        if (member.isDeleted()) {
+            throw new AuthException(ErrorCode.ALREADY_DELETED_MEMBER);
+        }
+
         // 기존 Refresh Token 삭제 후 새로운 Refresh Token 생성
         redisService.deleteRefreshToken(email);
         String refreshToken = jwtProvider.generateRefreshToken(email);
@@ -67,7 +71,7 @@ public class AuthService {
 
         // Redis에서 저장된 Refresh Token과 비교 (탈취 방지)
         String storedRefreshToken = redisService.getRefreshToken(email);
-        if (storedRefreshToken == null || !refreshToken.equals(storedRefreshToken)) {
+        if (!refreshToken.equals(storedRefreshToken)) {
             throw new AuthException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 

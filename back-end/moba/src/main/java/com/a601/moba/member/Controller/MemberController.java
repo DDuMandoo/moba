@@ -13,6 +13,7 @@ import com.a601.moba.member.Service.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -62,5 +63,12 @@ public class MemberController {
                 .body(JSONResponse.of(SuccessCode.PASSWORD_RESET_SUCCESS));
     }
 
-
+    @DeleteMapping
+    public ResponseEntity<JSONResponse<Void>> deleteMember(HttpServletRequest request) {
+        memberService.deleteMember(request);
+        return ResponseEntity
+                .status(SuccessCode.MEMBER_DELETE_SUCCESS.getHttpStatus())
+                .body(JSONResponse.of(SuccessCode.MEMBER_DELETE_SUCCESS));
+    }
+    
 }

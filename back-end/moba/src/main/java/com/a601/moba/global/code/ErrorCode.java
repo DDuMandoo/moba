@@ -39,6 +39,8 @@ public enum ErrorCode {
     EMAIL_ALREADY_VERIFIED(4017, UNAUTHORIZED, "이미 인증된 이메일입니다."),
     EMAIL_NOT_VERIFIED(4018, UNAUTHORIZED, "검증되지 않은 이메일입니다."),
     TOO_MANY_PASSWORD_RESET_REQUESTS(4019, TOO_MANY_REQUESTS, "비밀번호 재설정 요청이 너무 많습니다."),
+    ALREADY_DELETED_MEMBER(4020, CONFLICT, "이미 탈퇴된 회원입니다"),
+
     ;
 
 

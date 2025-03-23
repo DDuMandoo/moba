@@ -1,10 +1,11 @@
 package com.a601.moba.member.Service;
 
+import com.a601.moba.auth.Exception.AuthException;
 import com.a601.moba.auth.Util.AuthUtil;
+import com.a601.moba.global.code.ErrorCode;
 import com.a601.moba.member.Controller.Request.MemberUpdateRequest;
 import com.a601.moba.member.Controller.Response.MemberUpdateResponse;
 import com.a601.moba.member.Entity.Member;
-import com.a601.moba.member.Repository.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,6 @@ public class MemberService {
 
     private final AuthUtil authUtil;
     private final PasswordEncoder passwordEncoder;
-    private final MemberRepository memberRepository;
 
     @Transactional
     public MemberUpdateResponse updateMemberInfo(MemberUpdateRequest request, HttpServletRequest servletRequest) {
@@ -44,6 +44,18 @@ public class MemberService {
                 member.getProfileImage()
         );
     }
+
+    @Transactional
+    public void deleteMember(HttpServletRequest request) {
+        Member member = authUtil.getMemberFromToken(request);
+
+        if (member.isDeleted()) {
+            throw new AuthException(ErrorCode.ALREADY_DELETED_MEMBER);
+        }
+
+        member.delete();
+    }
+
 
     // 실제 S3 또는 로컬 이미지 업로드 구현에 따라 변경 가능
     public String uploadImage(MultipartFile image) {

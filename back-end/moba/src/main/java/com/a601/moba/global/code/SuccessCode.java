@@ -13,7 +13,9 @@ public enum SuccessCode {
     LOGOUT_SUCCESS(2001, OK, "로그아웃에 성공하였습니다."),
     PASSWORD_RESET_SUCCESS(2100, OK, "임시 비밀번호 전송을 성공하였습니다"),
     EMAIL_VERIFIED_SUCCESS(2150, OK, "이메일 인증을 성공하였습니다"),
-    EMAIL_SENT_SUCCESS(2002, OK, "이메일 전송에 성공하였습니다");
+    EMAIL_SENT_SUCCESS(2002, OK, "이메일 전송에 성공하였습니다"),
+    MEMBER_DELETE_SUCCESS(2003, OK, "성공적으로 회원탈퇴 되었습니다"),
+    ;
 
 
     private final int code;

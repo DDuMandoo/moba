@@ -35,7 +35,9 @@ public enum ErrorCode {
     //이메일
     EXPIRED_VERIFICATION_CODE(4015, UNAUTHORIZED, "인증 코드가 만료되었습니다."),
     INVALID_VERIFICATION_CODE(4016, UNAUTHORIZED, "인증 코드가 일치하지 않습니다."),
-    EMAIL_ALREADY_VERIFIED(4017, UNAUTHORIZED, "이미 인증된 이메일입니다.");
+    EMAIL_ALREADY_VERIFIED(4017, UNAUTHORIZED, "이미 인증된 이메일입니다."),
+    EMAIL_NOT_VERIFIED(4018, UNAUTHORIZED, "검증되지 않은 이메일입니다."),
+    ;
 
 
     private final int code;

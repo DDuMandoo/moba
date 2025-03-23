@@ -1,18 +1,22 @@
 spring:
+  config:
+    import:
+      #      - classpath:application-auth.yml
+      #      - classpath:application-redis.yml
+      - classpath:application-mail.yml
+      - classpath:application-jwt.yml
+      - classpath:application-mysql.yml
+      #      - classpath:application-firebase.yml
+      #      - classpath:application-mongo.yml
+      #      - classpath:application-elastic.yml
+      - optional:file:.env[.properties]
   application:
     name: moba
   servlet:
     multipart:
       max-file-size: 50MB
       max-request-size: 50MB
-  config:
-    import:
-#      - classpath:application-auth.yml
-#      - classpath:application-mail.yml
-#      - classpath:application-redis.yml
-      - classpath:application-jwt.yml
-      - classpath:application-mysql.yml
-#      - classpath:application-firebase.yml
-#      - classpath:application-mongo.yml
-      #      - classpath:application-elastic.yml
-      - optional:file:.env[.properties]
+
+  web:
+    resources:
+      add-mappings: false

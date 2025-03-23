@@ -6,17 +6,14 @@ import com.a601.moba.auth.Entity.Member;
 import com.a601.moba.auth.Exception.AuthException;
 import com.a601.moba.auth.Repository.MemberRepository;
 import com.a601.moba.global.code.ErrorCode;
-import jakarta.servlet.http.HttpServletRequest;
-import java.util.concurrent.TimeUnit;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +24,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final StringRedisTemplate redisTemplate;
     private final RedisService redisService;
+
 
     @Transactional
     public AuthResponse authenticate(String email, String password) {
@@ -69,7 +67,7 @@ public class AuthService {
         // 새로운 Access Token 발급
         String newAccessToken = jwtProvider.generateAccessToken(email);
 
-        return new AuthResponse(newAccessToken,refreshToken);
+        return new AuthResponse(newAccessToken, refreshToken);
     }
 
 

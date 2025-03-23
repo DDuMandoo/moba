@@ -12,7 +12,12 @@ import com.a601.moba.global.response.JSONResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
@@ -24,15 +29,16 @@ public class AuthController {
     private final AuthUtil authUtil;
 
     @PostMapping("/signup")
-    public ResponseEntity<SignupResponse> signup(
+    public ResponseEntity<JSONResponse<SignupResponse>> signup(
             @RequestPart("email") String email,
             @RequestPart("password") String password,
             @RequestPart("name") String name,
             @RequestPart(value = "image", required = false) MultipartFile image) {
-
+        
         SignupResponse response = authService.registerUser(email, password, name, image);
-        return ResponseEntity.status(201).body(response);
+        return ResponseEntity.status(201).body(JSONResponse.onSuccess(response));
     }
+
 
     @PostMapping("/signin")
     public ResponseEntity<AuthResponse> signin(@RequestBody AuthRequest request) {
@@ -56,14 +62,15 @@ public class AuthController {
     }
 
     @PostMapping("/reissuance")
-    public ResponseEntity<JSONResponse<AuthResponse>> refreshAccessToken(@RequestHeader("Authorization") String refreshToken) {
+    public ResponseEntity<JSONResponse<AuthResponse>> refreshAccessToken(
+            @RequestHeader("Authorization") String refreshToken) {
         if (refreshToken != null && refreshToken.startsWith("Bearer ")) {
             refreshToken = refreshToken.substring(7);
         } else {
             throw new AuthException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
-        // ✅ Access Token 재발급
+        // Access Token 재발급
         AuthResponse response = authService.refreshAccessToken(refreshToken);
         return ResponseEntity.ok(JSONResponse.onSuccess(response));
     }

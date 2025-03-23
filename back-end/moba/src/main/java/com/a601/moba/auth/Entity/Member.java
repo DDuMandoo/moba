@@ -1,6 +1,10 @@
 package com.a601.moba.auth.Entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -29,5 +33,9 @@ public class Member {
         this.password = password;
         this.name = name;
         this.image = image;
+    }
+
+    public void setPassword(String hashedPassword) {
+        this.password = hashedPassword;
     }
 }

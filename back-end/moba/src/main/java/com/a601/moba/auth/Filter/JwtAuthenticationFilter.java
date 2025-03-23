@@ -10,6 +10,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.OutputStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,15 +20,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
     private final RedisService redisService;
-    private final ObjectMapper objectMapper = new ObjectMapper(); //JSON 변환 추가
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -35,23 +34,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = request.getHeader("Authorization");
 
         if (token != null && token.startsWith("Bearer ")) {
-            token = token.substring(7); // "Bearer " 접두사 제거
+            token = token.substring(7);
 
             try {
-                // 블랙리스트(무효화된 Access Token)인지 확인
                 if (redisService.isTokenBlacklisted(token)) {
                     sendJsonErrorResponse(response, ErrorCode.INVALID_TOKEN);
                     return;
                 }
 
-                // Access Token 검증
                 if (jwtProvider.isTokenValid(token)) {
                     String email = jwtProvider.getEmailFromToken(token);
 
                     UserDetails userDetails = User.builder()
                             .username(email)
-                            .password("")  // JWT로 인증하므로 비밀번호 필요 없음
-                            .roles("USER")  // 기본 역할 설정
+                            .password("")
+                            .roles("MEMBER")
                             .build();
 
                     UsernamePasswordAuthenticationToken authentication =
@@ -72,7 +69,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 
-    // JSON 에러 응답을 반환하는 메서드 추가
     private void sendJsonErrorResponse(HttpServletResponse response, ErrorCode errorCode) throws IOException {
         response.setContentType("application/json");
         response.setStatus(errorCode.getHttpStatus().value());

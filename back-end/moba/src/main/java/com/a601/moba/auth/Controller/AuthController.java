@@ -1,6 +1,7 @@
 package com.a601.moba.auth.Controller;
 
 import com.a601.moba.auth.Controller.Request.AuthRequest;
+import com.a601.moba.auth.Controller.Request.SignupRequest;
 import com.a601.moba.auth.Controller.Response.AuthResponse;
 import com.a601.moba.auth.Controller.Response.SignupResponse;
 import com.a601.moba.auth.Exception.AuthException;
@@ -12,13 +13,12 @@ import com.a601.moba.global.response.JSONResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/members")
@@ -29,20 +29,20 @@ public class AuthController {
     private final AuthUtil authUtil;
 
     @PostMapping("/signup")
-    public ResponseEntity<JSONResponse<SignupResponse>> signup(
-            @RequestPart("email") String email,
-            @RequestPart("password") String password,
-            @RequestPart("name") String name,
-            @RequestPart(value = "image", required = false) MultipartFile image) {
-
-        SignupResponse response = authService.registerUser(email, password, name, image);
+    public ResponseEntity<JSONResponse<SignupResponse>> signup(@ModelAttribute SignupRequest request) {
+        SignupResponse response = authService.signup(
+                request.getEmail(),
+                request.getPassword(),
+                request.getName(),
+                request.getImage()
+        );
         return ResponseEntity.status(201).body(JSONResponse.onSuccess(response));
     }
 
 
     @PostMapping("/signin")
     public ResponseEntity<AuthResponse> signin(@RequestBody AuthRequest request) {
-        AuthResponse response = authService.authenticate(request.getEmail(), request.getPassword());
+        AuthResponse response = authService.signin(request.getEmail(), request.getPassword());
         return ResponseEntity.ok(response);
     }
 

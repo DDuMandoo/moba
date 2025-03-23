@@ -29,7 +29,7 @@ public class AuthService {
 
 
     @Transactional
-    public AuthResponse authenticate(String email, String password) {
+    public AuthResponse signin(String email, String password) {
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new AuthException(ErrorCode.INVALID_CREDENTIALS));
 
@@ -74,7 +74,7 @@ public class AuthService {
 
 
     @Transactional
-    public SignupResponse registerUser(String email, String password, String name, MultipartFile image) {
+    public SignupResponse signup(String email, String password, String name, MultipartFile image) {
         // 이메일 중복 확인
         Optional<Member> existingMember = memberRepository.findByEmail(email);
         if (existingMember.isPresent()) {
@@ -88,7 +88,7 @@ public class AuthService {
         String encodedPassword = passwordEncoder.encode(password);
 
         // 프로필 이미지 처리 (여기서는 기본 URL 사용, S3 업로드 가능)
-        String imageUrl = (image != null) ? uploadImage(image) : "https://example.com/default-profile.jpg";
+        String imageUrl = uploadImage(image);
 
         Member newMember = new Member(email, encodedPassword, name, imageUrl);
         memberRepository.save(newMember);
@@ -124,6 +124,6 @@ public class AuthService {
 
     private String uploadImage(MultipartFile image) {
         // TODO: S3 또는 로컬 서버에 이미지 업로드 로직 추가
-        return "https://example.com/uploaded-profile.jpg"; // 임시 URL
+        return null;
     }
 }

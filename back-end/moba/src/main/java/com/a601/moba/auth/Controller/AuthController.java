@@ -6,7 +6,6 @@ import com.a601.moba.auth.Controller.Response.SignupResponse;
 import com.a601.moba.auth.Exception.AuthException;
 import com.a601.moba.auth.Service.AuthService;
 import com.a601.moba.auth.Util.AuthUtil;
-import com.a601.moba.email.Service.EmailService;
 import com.a601.moba.global.code.ErrorCode;
 import com.a601.moba.global.code.SuccessCode;
 import com.a601.moba.global.response.JSONResponse;
@@ -28,7 +27,6 @@ public class AuthController {
 
     private final AuthService authService;
     private final AuthUtil authUtil;
-    private final EmailService emailService;
 
     @PostMapping("/signup")
     public ResponseEntity<JSONResponse<SignupResponse>> signup(
@@ -36,12 +34,6 @@ public class AuthController {
             @RequestPart("password") String password,
             @RequestPart("name") String name,
             @RequestPart(value = "image", required = false) MultipartFile image) {
-
-        if (!emailService.isEmailVerified(email)) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(JSONResponse.onFailure(ErrorCode.EMAIL_NOT_VERIFIED));
-        }
 
         SignupResponse response = authService.registerUser(email, password, name, image);
         return ResponseEntity.status(201).body(JSONResponse.onSuccess(response));

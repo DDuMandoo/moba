@@ -5,6 +5,7 @@ import com.a601.moba.auth.Controller.Response.SignupResponse;
 import com.a601.moba.auth.Entity.Member;
 import com.a601.moba.auth.Exception.AuthException;
 import com.a601.moba.auth.Repository.MemberRepository;
+import com.a601.moba.email.Service.EmailService;
 import com.a601.moba.global.code.ErrorCode;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final StringRedisTemplate redisTemplate;
     private final RedisService redisService;
+    private final EmailService emailService;
 
 
     @Transactional
@@ -79,6 +81,9 @@ public class AuthService {
             throw new AuthException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
+        if (!emailService.isEmailVerified(email)) {
+            throw new AuthException(ErrorCode.EMAIL_NOT_VERIFIED);
+        }
         // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(password);
 

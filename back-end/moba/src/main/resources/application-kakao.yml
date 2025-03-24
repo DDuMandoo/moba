@@ -1,0 +1,6 @@
+kakao:
+  auth:
+    client: ${KAKAO_CLIENT_ID}
+    redirect: ${KAKAO_REDIRECT_URL}
+    token-uri: https://kauth.kakao.com/oauth/token
+    member-info-uri: https://kapi.kakao.com/v2/user/me

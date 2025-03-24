@@ -9,7 +9,6 @@ import jakarta.persistence.Id;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -28,7 +27,6 @@ public class Member {
     @Column(name = "EMAIL", nullable = false, unique = true)
     private String email;
 
-    @Setter
     @Column(name = "PASSWORD")
     private String password;
 
@@ -68,6 +66,10 @@ public class Member {
 
     public void updateName(String name) {
         this.name = name;
+    }
+
+    public void changePassword(String newPassword) {
+        this.password = newPassword;
     }
 
     public void updateProfileImage(String imageUrl) {

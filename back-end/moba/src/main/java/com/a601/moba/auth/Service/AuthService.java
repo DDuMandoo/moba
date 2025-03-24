@@ -152,7 +152,7 @@ public class AuthService {
         String encoded = passwordEncoder.encode(tempPassword);
 
         // 4. 비밀번호 변경
-        member.setPassword(encoded);
+        member.changePassword(encoded);
         memberRepository.save(member);
 
         // 5. 이메일 전송

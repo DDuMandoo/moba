@@ -30,7 +30,7 @@ public class MemberService {
 
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
             String encoded = passwordEncoder.encode(request.getPassword());
-            member.setPassword(encoded);
+            member.changePassword(encoded);
         }
 
         if (request.getImage() != null && !request.getImage().isEmpty()) {

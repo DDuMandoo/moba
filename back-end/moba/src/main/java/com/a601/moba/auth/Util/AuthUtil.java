@@ -1,10 +1,10 @@
 package com.a601.moba.auth.Util;
 
-import com.a601.moba.auth.Entity.Member;
 import com.a601.moba.auth.Exception.AuthException;
-import com.a601.moba.auth.Repository.MemberRepository;
 import com.a601.moba.auth.Service.JwtProvider;
 import com.a601.moba.global.code.ErrorCode;
+import com.a601.moba.member.Entity.Member;
+import com.a601.moba.member.Repository.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -29,7 +29,7 @@ public class AuthUtil {
     }
 
 
-     // 현재 로그인한 사용자의 이메일 가져오기 (SecurityContext 활용)
+    // 현재 로그인한 사용자의 이메일 가져오기 (SecurityContext 활용)
     public String getAuthenticatedUserEmail() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {

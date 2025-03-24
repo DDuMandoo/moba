@@ -1,4 +1,4 @@
-package com.a601.moba.auth.Controller.Request;
+package com.a601.moba.member.Controller.Request;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,9 +8,8 @@ import org.springframework.web.multipart.MultipartFile;
 @Getter
 @Setter
 @NoArgsConstructor
-public class SignupRequest {
-    private String email;
-    private String password;
+public class MemberUpdateRequest {
     private String name;
+    private String password;
     private MultipartFile image;
 }

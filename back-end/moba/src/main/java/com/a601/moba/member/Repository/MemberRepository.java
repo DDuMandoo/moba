@@ -1,9 +1,8 @@
-package com.a601.moba.auth.Repository;
+package com.a601.moba.member.Repository;
 
-import com.a601.moba.auth.Entity.Member;
-import org.springframework.data.jpa.repository.JpaRepository;
-
+import com.a601.moba.member.Entity.Member;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface MemberRepository extends JpaRepository<Member, Long> {
     Optional<Member> findByEmail(String email);

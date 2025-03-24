@@ -4,12 +4,13 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.client.HttpClientErrorException.Unauthorized;
 
 @Getter
 @RequiredArgsConstructor
@@ -23,16 +24,25 @@ public enum ErrorCode {
     //인증
     //회원가입 관련 에러
     EMAIL_ALREADY_EXISTS(4090, CONFLICT, "이미 존재하는 이메일입니다"),
-
+    EMAIL_NOT_FOUND(4091, NOT_FOUND, "해당 이메일을 가진 사용자가 없습니다"),
     //로그인 관련 에러
-    INVALID_CREDENTIALS(4010,UNAUTHORIZED, "이메일 또는 비밀번호가 잘못되었습니다"),
+    INVALID_CREDENTIALS(4010, UNAUTHORIZED, "이메일 또는 비밀번호가 잘못되었습니다"),
     UNAUTHORIZED_ACCESS(4011, UNAUTHORIZED, "토큰이 없거나 틀렸습니다"),
     FORBIDDEN_ACCESS(4030, FORBIDDEN, "접근 권한이 없습니다"),
     //유저 인증(토큰) 에러
     INVALID_TOKEN(4012, UNAUTHORIZED, "유효하지 않은 토큰입니다"),
     TOKEN_NOT_FOUND(4013, UNAUTHORIZED, "토큰이 제공되지 않았습니다"),
-    INVALID_REFRESH_TOKEN(4014, UNAUTHORIZED, "유효하지 않은 Refresh Token입니다")
+    INVALID_REFRESH_TOKEN(4014, UNAUTHORIZED, "유효하지 않은 Refresh Token입니다"),
+    //이메일
+    EXPIRED_VERIFICATION_CODE(4015, UNAUTHORIZED, "인증 코드가 만료되었습니다."),
+    INVALID_VERIFICATION_CODE(4016, UNAUTHORIZED, "인증 코드가 일치하지 않습니다."),
+    EMAIL_ALREADY_VERIFIED(4017, UNAUTHORIZED, "이미 인증된 이메일입니다."),
+    EMAIL_NOT_VERIFIED(4018, UNAUTHORIZED, "검증되지 않은 이메일입니다."),
+    TOO_MANY_PASSWORD_RESET_REQUESTS(4019, TOO_MANY_REQUESTS, "비밀번호 재설정 요청이 너무 많습니다."),
+    ALREADY_DELETED_MEMBER(4020, CONFLICT, "이미 탈퇴된 회원입니다"),
+
     ;
+
 
     private final int code;
     private final HttpStatus httpStatus;

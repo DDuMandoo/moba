@@ -29,7 +29,7 @@
 
 # 디렉토리
 
-```mark
+```markdown
 📦frontend
  ┣ 📂app
  ┃ ┣ 📂(tabs)

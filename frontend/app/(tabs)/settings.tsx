@@ -5,7 +5,7 @@ import { View, Text } from 'react-native';
 const ExplorePage = () => {
   return (
     <View>
-      <Text>Explore 페이지</Text>
+      <Text>설정 페이지</Text>
     </View>
   );
 };

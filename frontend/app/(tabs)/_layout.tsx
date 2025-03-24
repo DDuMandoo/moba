@@ -1,32 +1,30 @@
-// app/(tabs)/_layout.tsx
-import React, { ReactNode } from 'react';
-import { View, Text } from 'react-native';
-import { Link } from 'expo-router';
+import { Tabs } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
-interface TabsLayoutProps {
-  children: ReactNode;
-}
-
-const TabsLayout: React.FC<TabsLayoutProps> = ({ children }) => {
+export default function TabLayout() {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <View style={{ flexDirection: 'row', marginBottom: 20 }}>
-        {/* Home 탭 */}
-        <Link href="/" style={{ marginHorizontal: 10 }}>
-          <Text>홈</Text>
-        </Link>
-        {/* Explore 탭 */}
-        <Link href="/explore" style={{ marginHorizontal: 10 }}>
-          <Text>예시</Text>
-        </Link>
-      </View>
-
-      {/* 탭에 해당하는 내용 */}
-      <View style={{ flex: 1 }}>
-        {children}
-      </View>
-    </View>
+    <Tabs>
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: '홈',
+          tabBarIcon: ({ color }) => <Ionicons name="home" size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: '프로필',
+          tabBarIcon: ({ color }) => <Ionicons name="person" size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: '설정',
+          tabBarIcon: ({ color }) => <Ionicons name="settings" size={24} color={color} />,
+        }}
+      />
+    </Tabs>
   );
-};
-
-export default TabsLayout;
+}

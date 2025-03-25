@@ -1,6 +1,9 @@
+// 📂app/(bottom-navigation)/_layout.tsx
+
 import { Tabs, useRouter } from 'expo-router';
 import { View, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import Colors from '@/constants/Colors';
 
 export default function BottomTabLayout() {
   const router = useRouter();
@@ -10,7 +13,7 @@ export default function BottomTabLayout() {
       {/* 헤더 */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Feather name="chevron-left" size={24} color="#5B3A29" />
+          <Feather name="chevron-left" size={24} color={Colors.secondary} />
         </TouchableOpacity>
 
         <Image
@@ -19,7 +22,7 @@ export default function BottomTabLayout() {
         />
 
         <TouchableOpacity onPress={() => console.log('알림')}>
-          <Feather name="bell" size={24} color="#5B3A29" />
+          <Feather name="bell" size={24} color={Colors.secondary} />
         </TouchableOpacity>
       </View>
 
@@ -30,9 +33,9 @@ export default function BottomTabLayout() {
           tabBarShowLabel: false,
           tabBarStyle: {
             height: 70,
-            backgroundColor: '#fff',
+            backgroundColor: Colors.white,
             borderTopWidth: 1,
-            borderTopColor: '#eee',
+            borderTopColor: Colors.grayBackground,
           },
           tabBarItemStyle: {
             justifyContent: 'center',
@@ -53,7 +56,7 @@ export default function BottomTabLayout() {
               <Feather
                 name="home"
                 size={28}
-                color={focused ? '#3B1E0F' : '#5B3A29'}
+                color={focused ? Colors.primary : Colors.secondary}
               />
             ),
           }}
@@ -66,7 +69,7 @@ export default function BottomTabLayout() {
               <Feather
                 name="plus-circle"
                 size={28}
-                color={focused ? '#3B1E0F' : '#5B3A29'}
+                color={focused ? Colors.primary : Colors.secondary}
               />
             ),
           }}
@@ -79,7 +82,7 @@ export default function BottomTabLayout() {
               <Feather
                 name="user"
                 size={26}
-                color={focused ? '#3B1E0F' : '#5B3A29'}
+                color={focused ? Colors.primary : Colors.secondary}
               />
             ),
           }}
@@ -92,7 +95,7 @@ export default function BottomTabLayout() {
 const styles = StyleSheet.create({
   header: {
     height: 60,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',

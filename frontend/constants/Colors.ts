@@ -1,26 +1,28 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * 사용법 예시:
+ * import Colors from '@/constants/Colors';
+ * 
+ * const bgColor = Colors.background;
+ *
+ * 컴포넌트 스타일에 적용 예시:
+ * <View style={{ backgroundColor: Colors.background }} />
+ * <Text style={{ color: Colors.text }} />
  */
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
-
-export const Colors = {
-  light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
-  },
-  dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
-  },
+const Colors = {
+  background: '#F2F0EF',        // 배경
+  text: '#000000',              // 기본 텍스트 (검은색)
+  primary: '#431905',           // 선 색, 전화 갈색
+  secondary: '#A47764',         // 모카무스
+  logo: '#B29486',              // 로고
+  logoInner: '#E9D9C5',         // 로고 내부, 노랑 모달
+  grayLightText: '#CCCCCC',     // 회색 연한 글씨
+  grayDarkText: '#666666',      // 회색 진한 글씨
+  grayBackground: '#F4F4F5',    // 회색 배경
+  white: '#FFFFFF',             // 흰색
+  black: '#000000',             // 검은색
+  modalBackground: '#000000',   // 모달 배경
+  yellowAccent: '#E9D9C5',      // 강조 노랑 (로고 내부와 동일)
 };
+
+export default Colors;

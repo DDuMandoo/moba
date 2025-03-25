@@ -1,5 +1,9 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+// 📂app/(bottom-navigation)/index.tsx
+
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
+import RoundedButton from '@/components/ui/RoundedButton';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -9,37 +13,72 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>🏠 Home Page</Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>🏠 Home Page</Text>
 
-      <TouchableOpacity style={styles.button} onPress={goToLogin}>
-        <Text style={styles.buttonText}>로그인으로 이동</Text>
-      </TouchableOpacity>
-    </View>
+      {/* 버튼 1 */}
+      <RoundedButton
+        title="버튼1 - Large + FullWidth"
+        size="lg"
+        fullWidth
+        onPress={goToLogin}
+      />
+
+      {/* 버튼 2 */}
+      <RoundedButton
+        title="버튼2 - Medium, width: 300"
+        size="md"
+        style={{ width: 300 }}
+        onPress={() => {}}
+      />
+
+      {/* 버튼 3 */}
+      <RoundedButton
+        title="버튼3 - Small, width: 270"
+        size="sm"
+        style={{ width: 270 }}
+        onPress={() => {}}
+      />
+
+      {/* 버튼 4 */}
+      <RoundedButton
+        title="버튼4 - XS, width: 140"
+        size="xs"
+        style={{ width: 140 }}
+        onPress={() => {}}
+      />
+
+      {/* 버튼 5 */}
+      <RoundedButton
+        title="버튼5 - Small, width: 80"
+        size="sm"
+        style={{ width: 80 }}
+        onPress={() => {}}
+      />
+
+      {/* 버튼 6 */}
+      <RoundedButton
+        title="버튼6 - Medium, width: 250"
+        size="md"
+        style={{ width: 250 }}
+        onPress={() => {}}
+      />
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: '#f5f3f2',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 24,
+    padding: 24,
+    gap: 16,
   },
-  text: {
+  title: {
     fontSize: 20,
     color: '#3B1E0F',
     marginBottom: 20,
-  },
-  button: {
-    backgroundColor: '#3B1E0F',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
   },
 });

@@ -10,17 +10,12 @@ import com.a601.moba.global.code.ErrorCode;
 import com.a601.moba.member.Entity.Member;
 import com.a601.moba.member.Repository.MemberRepository;
 import com.a601.moba.member.Service.MemberService;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,6 +53,7 @@ public class AuthService {
         return issueTokens(email);
     }
 
+    //백에서 바로 카카오 코드를 받을 때 signin
     @Transactional
     public AuthResponse kakaoSignin(String code) {
         String kakaoAccessToken = kakaoOAuthClient.getAccessToken(code);
@@ -107,21 +103,45 @@ public class AuthService {
         return issueTokens(email);
     }
 
+    //프론트에서 카카오 코드를 받고 POST 요청 보낼 때의 signin
+//    @Transactional
+//    public AuthResponse kakaoSignin(String code) {
+//        String kakaoAccessToken = kakaoOAuthClient.getAccessToken(code);
+//        KakaoUserResponse kakaoUser = kakaoOAuthClient.getUserInfo(kakaoAccessToken);
+//
+//        String email = kakaoUser.getKakaoAccount().getEmail();
+//        String name = kakaoUser.getKakaoAccount().getProfile().getNickname();
+//        String image = kakaoUser.getKakaoAccount().getProfile().getProfileImageUrl();
+//        Long socialId = kakaoUser.getId();
+//
+//        Member member = memberRepository.findByEmail(email).orElse(null);
+//
+//        if (member != null) {
+//            if (member.isDeleted()) {
+//                throw new AuthException(ErrorCode.ALREADY_DELETED_MEMBER);
+//            }
+//            if (member.getSocialId() == null) {
+//                member.updateSocialId(socialId);
+//            }
+//        } else {
+//            member = new Member(email, null, name, image);
+//            member.updateSocialId(socialId);
+//            memberRepository.save(member);
+//        }
+//
+//        String accessToken = jwtProvider.generateAccessToken(email);
+//        String refreshToken = jwtProvider.generateRefreshToken(email);
+//        redisService.saveRefreshToken(email, refreshToken, jwtProvider.getExpirationTime(refreshToken));
+//
+//        return new AuthResponse(accessToken, refreshToken);
+//    }
+
 
     private AuthResponse issueTokens(String email) {
         String accessToken = jwtProvider.generateAccessToken(email);
         String refreshToken = jwtProvider.generateRefreshToken(email);
         redisService.saveRefreshToken(email, refreshToken, jwtProvider.getExpirationTime(refreshToken));
         return new AuthResponse(accessToken, refreshToken);
-    }
-
-    private Authentication authenticate(Member member) {
-        User user = new User(
-                String.valueOf(member.getId()),
-                "",
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
-        );
-        return new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
     }
 
     @Transactional

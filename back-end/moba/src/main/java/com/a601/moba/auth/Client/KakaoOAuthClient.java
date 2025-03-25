@@ -61,4 +61,52 @@ public class KakaoOAuthClient {
         return response.getBody();
     }
 }
+//@Component
+//@RequiredArgsConstructor
+//public class KakaoOAuthClient {
+//
+//    private final RestTemplate restTemplate = new RestTemplate();
+//
+//    @Value("${kakao.auth.client}")
+//    private String clientId;
+//
+//    @Value("${kakao.auth.redirect}")
+//    private String redirectUri;
+//
+//    @Value("${kakao.auth.token-uri}")
+//    private String tokenUri;
+//
+//    @Value("${kakao.auth.member-info-uri}")
+//    private String memberInfoUri;
+//
+//    public String getAccessToken(String code) {
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+//
+//        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+//        body.add("grant_type", "authorization_code");
+//        body.add("client_id", clientId);
+//        body.add("redirect_uri", redirectUri);
+//        body.add("code", code);
+//
+//        HttpEntity<?> request = new HttpEntity<>(body, headers);
+//        ResponseEntity<Map> response = restTemplate.postForEntity(tokenUri, request, Map.class);
+//
+//        return (String) response.getBody().get("access_token");
+//    }
+//
+//    public KakaoUserResponse getUserInfo(String accessToken) {
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setBearerAuth(accessToken);
+//        HttpEntity<?> entity = new HttpEntity<>(headers);
+//
+//        ResponseEntity<KakaoUserResponse> response = restTemplate.exchange(
+//                memberInfoUri,
+//                HttpMethod.GET,
+//                entity,
+//                KakaoUserResponse.class
+//        );
+//        return response.getBody();
+//    }
+//}
 

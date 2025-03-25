@@ -47,11 +47,12 @@ public class AuthController {
 
 
     @PostMapping("/signin")
-    public ResponseEntity<AuthResponse> signin(@RequestBody AuthRequest request) {
+    public ResponseEntity<JSONResponse<AuthResponse>> signin(@RequestBody AuthRequest request) {
         AuthResponse response = authService.signin(request.getEmail(), request.getPassword());
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.SIGNIN_SUCCESS, response));
     }
 
+    //백엔드에서 직접 카카오 코드 받기
     @GetMapping("/kakao/callback")
     public void kakaoCallback(@RequestParam String code, HttpServletResponse response) throws IOException {
         try {
@@ -65,12 +66,20 @@ public class AuthController {
                     "?access=" + encodedAccess +
                     "&refresh=" + encodedRefresh;
 
-            System.out.println("▶️ 백엔드 redirect URL: " + frontendUrl);
+            System.out.println("@@@@ 백엔드 redirect URL: " + frontendUrl);
             response.sendRedirect(frontendUrl);
         } catch (Exception e) {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "소셜 로그인 실패");
         }
     }
+
+    //프론트엔드에서 카카오 코드 받고 호출
+//    @PostMapping("/social/kakao")
+//    public ResponseEntity<JSONResponse<AuthResponse>> kakaoLogin(@RequestBody Map<String, String> body) {
+//        String code = body.get("code");
+//        AuthResponse tokens = authService.kakaoSignin(code);
+//        return ResponseEntity.ok(JSONResponse.of(SuccessCode.SIGNIN_SUCCESS, tokens));
+//    }
 
 
     @PostMapping("/signout")
@@ -84,7 +93,7 @@ public class AuthController {
         // Access Token을 기반으로 로그아웃 수행
         authService.signout(accessToken);
 
-        return ResponseEntity.ok(JSONResponse.of(SuccessCode.LOGOUT_SUCCESS));
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.SIGNOUT_SUCCESS));
     }
 
     @PostMapping("/reissuance")

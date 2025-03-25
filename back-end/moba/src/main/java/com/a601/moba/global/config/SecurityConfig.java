@@ -45,13 +45,14 @@ public class SecurityConfig {
 
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/signin").permitAll()
-                        .requestMatchers("/api/auth/signup").permitAll()
-                        .requestMatchers("/api/auth/kakao/callback").permitAll()
-                        .requestMatchers("/api/emails/send").permitAll()
-                        .requestMatchers("/api/emails/verify").permitAll()
-                        .requestMatchers("/api/members/password/reset").permitAll()
-                        .anyRequest().authenticated()
+                                .requestMatchers("/api/auth/signin").permitAll()
+                                .requestMatchers("/api/auth/signup").permitAll()
+                                .requestMatchers("/api/auth/kakao/callback").permitAll()
+//                        .requestMatchers("/api/auth/social/kakao").permitAll()
+                                .requestMatchers("/api/emails/send").permitAll()
+                                .requestMatchers("/api/emails/verify").permitAll()
+                                .requestMatchers("/api/members/password/reset").permitAll()
+                                .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)

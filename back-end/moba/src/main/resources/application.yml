@@ -21,7 +21,3 @@ spring:
   web:
     resources:
       add-mappings: false
-
-server:
-  address: 0.0.0.0
-  port: 8080

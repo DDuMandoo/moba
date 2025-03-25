@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -66,7 +68,7 @@ public class AuthController {
                     "?access=" + encodedAccess +
                     "&refresh=" + encodedRefresh;
 
-            System.out.println("@@@@ 백엔드 redirect URL: " + frontendUrl);
+            log.info("@@@@ 백엔드 redirect URL: {}", frontendUrl);
             response.sendRedirect(frontendUrl);
         } catch (Exception e) {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "소셜 로그인 실패");

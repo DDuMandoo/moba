@@ -22,7 +22,7 @@ public class Member {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
-    private Long id;
+    private Integer id;
 
     @Column(name = "EMAIL", nullable = false, unique = true)
     private String email;
@@ -62,6 +62,10 @@ public class Member {
         this.name = name;
         this.profileImage = profileImage;
         this.isDeleted = false;
+    }
+
+    public void updateSocialId(Long socialId) {
+        this.socialId = socialId;
     }
 
     public void updateName(String name) {

@@ -19,6 +19,7 @@ public class MemberService {
 
     private final AuthUtil authUtil;
     private final PasswordEncoder passwordEncoder;
+//    private final S3Service s3Service;
 
     @Transactional
     public MemberUpdateResponse updateMemberInfo(MemberUpdateRequest request, HttpServletRequest servletRequest) {
@@ -56,10 +57,8 @@ public class MemberService {
         member.delete();
     }
 
-
-    // 실제 S3 또는 로컬 이미지 업로드 구현에 따라 변경 가능
     public String uploadImage(MultipartFile image) {
-        // 임시 구현 - 실제 구현에서는 S3 또는 로컬 경로 처리
+//        return s3Service.uploadFile(image);
         return null;
     }
 }

@@ -41,6 +41,9 @@ public enum ErrorCode {
     TOO_MANY_PASSWORD_RESET_REQUESTS(4019, TOO_MANY_REQUESTS, "비밀번호 재설정 요청이 너무 많습니다."),
     ALREADY_DELETED_MEMBER(4020, CONFLICT, "이미 탈퇴된 회원입니다"),
 
+    // 약속방
+    INVITE_CODE_GENERATION_FAILED(5001, INTERNAL_SERVER_ERROR, "초대 코드 생성에 실패했습니다"),
+
     ;
 
 

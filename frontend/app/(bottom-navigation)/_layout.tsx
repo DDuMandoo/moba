@@ -1,5 +1,5 @@
 // 📂app/(bottom-navigation)/_layout.tsx
-
+import React from 'react';
 import { Tabs, useRouter } from 'expo-router';
 import { View, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';

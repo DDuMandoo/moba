@@ -14,6 +14,7 @@ interface Props extends TouchableOpacityProps {
   heightRatio: number;
   radius?: number;
   fontSize?: number;
+  textColor?: string; // 🔥 텍스트 색상 추가
 }
 
 export default function RoundedButtonBase({
@@ -22,6 +23,7 @@ export default function RoundedButtonBase({
   heightRatio,
   radius,
   fontSize,
+  textColor = Colors.white, // 기본값: 화이트
   style,
   ...props
 }: Props) {
@@ -50,7 +52,7 @@ export default function RoundedButtonBase({
     >
       <Text
         style={{
-          color: Colors.white,
+          color: textColor, // 🔥 커스텀 텍스트 색상 적용
           fontFamily: Fonts.bold,
           fontSize: finalFontSize,
         }}

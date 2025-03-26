@@ -2,8 +2,6 @@
 
 - NativeWind, Redux, Axios, Expo Router
 
-
-
 # 개발 환경 설정
 
 1. Expo CLI로 새로운 프로젝트 생성
@@ -22,50 +20,56 @@
    npm install expo-permissions expo-location expo-camera expo-media-library
    npm install expo-notifications
    npm install react-native-config
-   
+   npm install react-native-dotenv
+   npm install @types/react-native-dotenv --save-dev
+
    ```
-
-
 
 # 디렉토리
 
 ```markdown
 📦frontend
  ┣ 📂app
- ┃ ┣ 📂(tabs)
+ ┃ ┣ 📂(bottom-navigation)
+ ┃ ┃ ┣ 📜add.tsx
  ┃ ┃ ┣ 📜_layout.tsx
- ┃ ┃ ┣ 📜explore.tsx
- ┃ ┃ ┗ 📜index.tsx
+ ┃ ┃ ┣ 📜index.tsx
+ ┃ ┃ ┗ 📜profile.tsx
  ┃ ┣ 📜_layout.tsx
- ┃ ┗ 📜_not-found.tsx
+ ┃ ┣ 📜LayoutInner.tsx
+ ┃ ┗ 📜axios.js
  ┃ ┣ 📂assets
  ┃ ┃ ┣ 📂fonts
+ ┃ ┃ ┃ ┣ 📜NanumSquareRoundB.ttf
+ ┃ ┃ ┃ ┣ 📜NanumSquareRoundEB.ttf
+ ┃ ┃ ┃ ┗ 📜NanumSquareRoundR.tts
+ ┃ ┃ ┣ 📂icons
+ ┃ ┃ ┃ ┗ 📂header
+ ┃ ┃ ┃     ┗ 📜Logo.png
  ┃ ┃ ┗ 📂images
  ┃ ┣ 📂components
- ┃ ┃ ┣ 📂__tests__
- ┃ ┃ ┃ ┣ 📂__snapshots__
- ┃ ┃ ┃ ┃ ┗ 📜ThemedText-test.tsx.snap
- ┃ ┃ ┃ ┗ 📜ThemedText-test.tsx
- ┃ ┃ ┣ 📂ui
- ┃ ┃ ┃ ┣ 📜IconSymbol.ios.tsx
- ┃ ┃ ┃ ┣ 📜IconSymbol.tsx
- ┃ ┃ ┃ ┣ 📜TabBarBackground.ios.tsx
- ┃ ┃ ┃ ┗ 📜TabBarBackground.tsx
- ┃ ┃ ┣ 📜Collapsible.tsx
- ┃ ┃ ┣ 📜ExternalLink.tsx
- ┃ ┃ ┣ 📜HapticTab.tsx
- ┃ ┃ ┣ 📜HelloWave.tsx
- ┃ ┃ ┣ 📜ParallaxScrollView.tsx
- ┃ ┃ ┣ 📜ThemedText.tsx
- ┃ ┃ ┗ 📜ThemedView.tsx
+ ┃ ┃ ┗ 📂ui
+ ┃ ┃    ┃ 📜Button.tsx
+ ┃ ┃    ┗ 📜RoundedButtonBase.tsx
  ┃ ┣ 📂constants
- ┃ ┃ ┗ 📜Colors.ts
+ ┃ ┃ ┣ 📜Colors.ts
+ ┃ ┃ ┗ 📜Fonts.ts
  ┃ ┣ 📂hooks
  ┃ ┃ ┣ 📜useColorScheme.ts
  ┃ ┃ ┣ 📜useColorScheme.web.ts
  ┃ ┃ ┗ 📜useThemeColor.ts
  ┃ ┣ 📂scripts
  ┃ ┃ ┗ 📜reset-project.js
+ ┃ ┣ 📂redux
+ ┃ ┃ ┣ 📂actions
+ ┃ ┃ ┣ 📂services
+ ┃ ┃ ┣ 📂slices
+ ┃ ┃ ┃ ┗ 📜userSlice.ts 
+ ┃ ┃ ┣ 📜hooks.ts
+ ┃ ┃ ┗ 📜store.ts
+ ┃ ┣ 📂scripts
+ ┃ ┃ ┗ 📜reset-project.js
+ ┃ ┣ 📜.env
  ┃ ┣ 📜.gitignore
  ┃ ┣ 📜app.json
  ┃ ┣ 📜package-lock.json

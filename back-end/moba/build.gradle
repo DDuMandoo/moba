@@ -42,7 +42,6 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
     implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'io.github.cdimascio:dotenv-java:3.0.0'
     implementation 'org.apache.tomcat.embed:tomcat-embed-core:10.1.36' // 현재 사용 중

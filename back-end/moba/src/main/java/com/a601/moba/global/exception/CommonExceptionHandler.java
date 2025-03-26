@@ -1,11 +1,12 @@
 package com.a601.moba.global.exception;
 
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 import com.a601.moba.global.code.ErrorCode;
 import com.a601.moba.global.response.JSONResponse;
+import io.swagger.v3.oas.annotations.Hidden;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,12 +18,15 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
+
 @Slf4j
+@Hidden
 @RestControllerAdvice
 public class CommonExceptionHandler {
     // Valid 실패 시 발생하는 예외
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<JSONResponse<Object>> handleMethodArgumentNotValidException(final MethodArgumentNotValidException e) {
+    public ResponseEntity<JSONResponse<Object>> handleMethodArgumentNotValidException(
+            final MethodArgumentNotValidException e) {
         List<FieldError> fieldErrors = e.getBindingResult().getFieldErrors();
         log.error(e.getMessage(), e);
 

@@ -45,6 +45,11 @@ public class SecurityConfig {
 
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                                .requestMatchers(
+                                        "/swagger-ui/**",
+                                        "/swagger-ui.html",
+                                        "/v3/api-docs/**"
+                                ).permitAll()
                                 .requestMatchers("/api/auth/signin").permitAll()
                                 .requestMatchers("/api/auth/signup").permitAll()
                                 .requestMatchers("/api/auth/kakao/callback").permitAll()

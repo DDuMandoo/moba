@@ -3,6 +3,7 @@ package com.a601.moba.member.Service;
 import com.a601.moba.auth.Exception.AuthException;
 import com.a601.moba.auth.Util.AuthUtil;
 import com.a601.moba.global.code.ErrorCode;
+import com.a601.moba.global.service.S3Service;
 import com.a601.moba.member.Controller.Request.MemberUpdateRequest;
 import com.a601.moba.member.Controller.Response.MemberUpdateResponse;
 import com.a601.moba.member.Entity.Member;
@@ -19,7 +20,7 @@ public class MemberService {
 
     private final AuthUtil authUtil;
     private final PasswordEncoder passwordEncoder;
-//    private final S3Service s3Service;
+    private final S3Service s3Service;
 
     @Transactional
     public MemberUpdateResponse updateMemberInfo(MemberUpdateRequest request, HttpServletRequest servletRequest) {
@@ -58,7 +59,6 @@ public class MemberService {
     }
 
     public String uploadImage(MultipartFile image) {
-//        return s3Service.uploadFile(image);
-        return null;
+        return s3Service.uploadFile(image);
     }
 }

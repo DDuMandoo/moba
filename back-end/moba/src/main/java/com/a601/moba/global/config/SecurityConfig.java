@@ -39,11 +39,12 @@ public class SecurityConfig {
                                                    JwtAccessDeniedHandler jwtAccessDeniedHandler,
                                                    List<HandlerMapping> handlerMappings) throws Exception {
 
-        // NotFoundPreFilter는 UsernamePasswordAuthenticationFilter보다 앞에 있어야 함
         NotFoundPreFilter notFoundPreFilter = new NotFoundPreFilter(handlerMappings);
         JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtProvider, redisService);
 
-        http.csrf(AbstractHttpConfigurer::disable)
+        http
+//                .cors(Customizer.withDefaults()) // [추가] CORS 설정 활성화
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                                 .requestMatchers(
                                         "/swagger-ui/**",
@@ -75,10 +76,10 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(List.of("*")); // 프론트 도메인으로 제한 권장
+        configuration.setAllowedOrigins(List.of("*")); // 모든 Origin 허용
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH", "DELETE", "PUT", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true); // 클라이언트 쿠키 허용 여부 (필요 시)
+        configuration.setAllowCredentials(false); // 중요: credentials 허용 불가 when origin is "*"
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

@@ -22,12 +22,22 @@ public class NotFoundPreFilter implements Filter {
     private final List<HandlerMapping> handlerMappings;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
+
+        String uri = req.getRequestURI();
+        if (uri.startsWith("/v3/api-docs") ||
+                uri.startsWith("/swagger-ui") ||
+                uri.startsWith("/swagger-resources") ||
+                uri.startsWith("/webjars")) {
+            chain.doFilter(request, response);
+            return;
+        }
 
         boolean handlerFound = false;
 

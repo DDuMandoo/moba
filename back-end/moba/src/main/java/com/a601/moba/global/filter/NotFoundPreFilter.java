@@ -34,7 +34,8 @@ public class NotFoundPreFilter implements Filter {
         if (uri.startsWith("/v3/api-docs") ||
                 uri.startsWith("/swagger-ui") ||
                 uri.startsWith("/swagger-resources") ||
-                uri.startsWith("/webjars")) {
+                uri.startsWith("/webjars") ||
+                uri.equals("/swagger-ui.html")) {
             chain.doFilter(request, response);
             return;
         }

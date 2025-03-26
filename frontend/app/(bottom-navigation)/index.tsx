@@ -3,7 +3,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import RoundedButton from '@/components/ui/RoundedButton';
+import { Button } from '@/components/ui/Button'; // ✅ Button 객체 import
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -16,53 +16,12 @@ export default function HomeScreen() {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>🏠 Home Page</Text>
 
-      {/* 버튼 1 */}
-      <RoundedButton
-        title="버튼1 - Large + FullWidth"
-        size="lg"
-        fullWidth
-        onPress={goToLogin}
-      />
-
-      {/* 버튼 2 */}
-      <RoundedButton
-        title="버튼2 - Medium, width: 300"
-        size="md"
-        style={{ width: 300 }}
-        onPress={() => {}}
-      />
-
-      {/* 버튼 3 */}
-      <RoundedButton
-        title="버튼3 - Small, width: 270"
-        size="sm"
-        style={{ width: 270 }}
-        onPress={() => {}}
-      />
-
-      {/* 버튼 4 */}
-      <RoundedButton
-        title="버튼4 - XS, width: 140"
-        size="xs"
-        style={{ width: 140 }}
-        onPress={() => {}}
-      />
-
-      {/* 버튼 5 */}
-      <RoundedButton
-        title="버튼5 - Small, width: 80"
-        size="sm"
-        style={{ width: 80 }}
-        onPress={() => {}}
-      />
-
-      {/* 버튼 6 */}
-      <RoundedButton
-        title="버튼6 - Medium, width: 250"
-        size="md"
-        style={{ width: 250 }}
-        onPress={() => {}}
-      />
+      <Button.Large title="버튼1 - Large" onPress={goToLogin} />
+      <Button.Medium title="버튼2 - Medium" onPress={() => {}} />
+      <Button.MidSmall title="버튼3 - MidSmall" onPress={() => {}} />
+      <Button.Small title="버튼4 - Small" onPress={() => {}} />
+      <Button.Mini title="버튼5 - Mini" onPress={() => {}} />
+      <Button.Tiny title="확인" onPress={() => {}} />
     </ScrollView>
   );
 }

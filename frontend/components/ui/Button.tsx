@@ -26,8 +26,8 @@ const Large = (props: ButtonProps) => (
   <RoundedButtonBase
     widthRatio={0.9}
     heightRatio={0.055}
-    radius={20}
-    fontSize={28}
+    radius={10}
+    fontSize={24}
     {...props}
   />
 );
@@ -36,8 +36,8 @@ const Medium = (props: ButtonProps) => (
   <RoundedButtonBase
     widthRatio={0.8}
     heightRatio={0.051}
-    radius={17}
-    fontSize={28}
+    radius={10}
+    fontSize={24}
     {...props}
   />
 );
@@ -46,8 +46,8 @@ const MidSmall = (props: ButtonProps) => (
   <RoundedButtonBase
     widthRatio={0.425}
     heightRatio={0.048}
-    radius={15}
-    fontSize={28}
+    radius={10}
+    fontSize={24}
     {...props}
   />
 );
@@ -56,8 +56,8 @@ const Small = (props: ButtonProps) => (
   <RoundedButtonBase
     widthRatio={0.384}
     heightRatio={0.048}
-    radius={15}
-    fontSize={28}
+    radius={10}
+    fontSize={24}
     {...props}
   />
 );
@@ -67,7 +67,7 @@ const Mini = (props: ButtonProps) => (
     widthRatio={0.2}
     heightRatio={0.034}
     radius={10}
-    fontSize={20}
+    fontSize={16}
     {...props}
   />
 );

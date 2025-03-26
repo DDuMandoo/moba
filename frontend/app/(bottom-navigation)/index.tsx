@@ -1,43 +1,77 @@
-// 📂app/(bottom-navigation)/index.tsx
-
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Button } from '@/components/ui/Button'; // ✅ Button 객체 import
+import {
+  ScrollView,
+  StyleSheet,
+  View,
+  Text,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
+import Colors from '@/constants/Colors';
+import Fonts from '@/constants/Fonts';
+import WalletStatus from '@/components/WalletStatus';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+
+interface UserProfile {
+  name: string;
+  image: string;
+}
+
+const fetchUserProfile = async (): Promise<UserProfile> => {
+  const response = await axios.get('/api/members');
+  return response.data;
+};
 
 export default function HomeScreen() {
-  const router = useRouter();
-
-  const goToLogin = () => {
-    router.push('/login');
-  };
+  const { data, isLoading, isError } = useQuery<UserProfile>({
+    queryKey: ['userProfile'],
+    queryFn: fetchUserProfile,
+  });
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>🏠 Home Page</Text>
+      {/* 프로필 영역 */}
+      {isLoading ? (
+        <ActivityIndicator color={Colors.primary} />
+      ) : !data || isError ? (
+        <Text style={styles.name}>유저 정보를 불러올 수 없습니다.</Text>
+      ) : (
+        <View style={styles.profileSection}>
+          <Image
+            source={{ uri: data.image }}
+            style={styles.avatar}
+          />
+          <Text style={styles.name}>{data.name}</Text>
+        </View>
+      )}
 
-      <Button.Large title="버튼1 - Large" onPress={goToLogin} />
-      <Button.Medium title="버튼2 - Medium" onPress={() => {}} />
-      <Button.MidSmall title="버튼3 - MidSmall" onPress={() => {}} />
-      <Button.Small title="버튼4 - Small" onPress={() => {}} />
-      <Button.Mini title="버튼5 - Mini" onPress={() => {}} />
-      <Button.Tiny title="확인" onPress={() => {}} />
+      {/* 지갑 컴포넌트 */}
+      <WalletStatus />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
-    backgroundColor: '#f5f3f2',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-    gap: 16,
+    padding: 16,
+    backgroundColor: Colors.background,
+    gap: 20,
   },
-  title: {
+  profileSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.grayBackground, // 로딩 중 빈 배경
+  },
+  name: {
     fontSize: 20,
-    color: '#3B1E0F',
-    marginBottom: 20,
+    fontFamily: Fonts.bold,
+    color: Colors.text,
   },
 });

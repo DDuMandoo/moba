@@ -1,17 +1,15 @@
 import React from 'react';
 import {
   ScrollView,
-  StyleSheet,
   View,
   Text,
   Image,
   ActivityIndicator,
 } from 'react-native';
-import Colors from '@/constants/Colors';
-import Fonts from '@/constants/Fonts';
 import WalletStatus from '@/components/WalletStatus';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
+import Colors from '@/constants/Colors';
 
 interface UserProfile {
   name: string;
@@ -23,55 +21,35 @@ const fetchUserProfile = async (): Promise<UserProfile> => {
   return response.data;
 };
 
-export default function HomeScreen() {
+export default function WalletDetailPage() {
   const { data, isLoading, isError } = useQuery<UserProfile>({
     queryKey: ['userProfile'],
     queryFn: fetchUserProfile,
   });
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* 프로필 영역 */}
-      {isLoading ? (
-        <ActivityIndicator color={Colors.primary} />
-      ) : !data || isError ? (
-        <Text style={styles.name}>유저 정보를 불러올 수 없습니다.</Text>
-      ) : (
-        <View style={styles.profileSection}>
-          <Image
-            source={{ uri: data.image }}
-            style={styles.avatar}
-          />
-          <Text style={styles.name}>{data.name}</Text>
-        </View>
-      )}
+    <ScrollView className="bg-gray-50" contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24 }}>
 
-      {/* 지갑 컴포넌트 */}
-      <WalletStatus />
-    </ScrollView>
+  {/* 프로필 영역 */}
+  {isLoading ? (
+    <ActivityIndicator color={Colors.primary} />
+  ) : !data || isError ? (
+    <Text className="text-base font-bold text-gray-800">유저 정보를 불러올 수 없습니다.</Text>
+  ) : (
+    <View className="flex-row items-center space-x-3 self-start mb-4">
+      <Image
+        source={{ uri: data.image }}
+        className="w-14 h-14 rounded-full bg-gray-200"
+      />
+      <Text className="text-lg text-gray-900 font-bold">{data.name} 님의 지갑</Text>
+    </View>
+  )}
+
+  {/* ✅ WalletStatus 중앙 정렬 */}
+  <View className="items-center w-full">
+    <WalletStatus />
+  </View>
+</ScrollView>
+
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    backgroundColor: Colors.background,
-    gap: 20,
-  },
-  profileSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.grayBackground, // 로딩 중 빈 배경
-  },
-  name: {
-    fontSize: 20,
-    fontFamily: Fonts.bold,
-    color: Colors.text,
-  },
-});

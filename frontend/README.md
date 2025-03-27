@@ -1,80 +1,50 @@
-# 기술스택
+# Welcome to your Expo app 👋
 
-- NativeWind, Redux, Axios, Expo Router
+This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-# 개발 환경 설정
+## Get started
 
-1. Expo CLI로 새로운 프로젝트 생성
-   
-   ```git
-   npx create-expo-app frontend
-   cd frontend
+1. Install dependencies
+
+   ```bash
+   npm install
    ```
 
-2. 필수 라이브러리 설치
-   
-   ```git
-   npm install nativewind
-   npm install @reduxjs/toolkit react-redux
-   npm install axios
-   npm install expo-permissions expo-location expo-camera expo-media-library
-   npm install expo-notifications
-   npm install react-native-config
-   npm install react-native-dotenv
-   npm install @types/react-native-dotenv --save-dev
+2. Start the app
 
+   ```bash
+    npx expo start
    ```
 
-# 디렉토리
+In the output, you'll find options to open the app in a
 
-```markdown
-📦frontend
- ┣ 📂app
- ┃ ┣ 📂(bottom-navigation)
- ┃ ┃ ┣ 📜add.tsx
- ┃ ┃ ┣ 📜_layout.tsx
- ┃ ┃ ┣ 📜index.tsx
- ┃ ┃ ┗ 📜profile.tsx
- ┃ ┣ 📜_layout.tsx
- ┃ ┣ 📜LayoutInner.tsx
- ┃ ┗ 📜axios.js
- ┃ ┣ 📂assets
- ┃ ┃ ┣ 📂fonts
- ┃ ┃ ┃ ┣ 📜NanumSquareRoundB.ttf
- ┃ ┃ ┃ ┣ 📜NanumSquareRoundEB.ttf
- ┃ ┃ ┃ ┗ 📜NanumSquareRoundR.tts
- ┃ ┃ ┣ 📂icons
- ┃ ┃ ┃ ┗ 📂header
- ┃ ┃ ┃     ┗ 📜Logo.png
- ┃ ┃ ┗ 📂images
- ┃ ┣ 📂components
- ┃ ┃ ┗ 📂ui
- ┃ ┃    ┃ 📜Button.tsx
- ┃ ┃    ┗ 📜RoundedButtonBase.tsx
- ┃ ┣ 📂constants
- ┃ ┃ ┣ 📜Colors.ts
- ┃ ┃ ┗ 📜Fonts.ts
- ┃ ┣ 📂hooks
- ┃ ┃ ┣ 📜useColorScheme.ts
- ┃ ┃ ┣ 📜useColorScheme.web.ts
- ┃ ┃ ┗ 📜useThemeColor.ts
- ┃ ┣ 📂scripts
- ┃ ┃ ┗ 📜reset-project.js
- ┃ ┣ 📂redux
- ┃ ┃ ┣ 📂actions
- ┃ ┃ ┣ 📂services
- ┃ ┃ ┣ 📂slices
- ┃ ┃ ┃ ┗ 📜userSlice.ts 
- ┃ ┃ ┣ 📜hooks.ts
- ┃ ┃ ┗ 📜store.ts
- ┃ ┣ 📂scripts
- ┃ ┃ ┗ 📜reset-project.js
- ┃ ┣ 📜.env
- ┃ ┣ 📜.gitignore
- ┃ ┣ 📜app.json
- ┃ ┣ 📜package-lock.json
- ┃ ┣ 📜package.json
- ┃ ┣ 📜README.md
- ┃ ┗ 📜tsconfig.json
- ┗ 📜README.md
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+
+You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+
+## Get a fresh project
+
+When you're ready, run:
+
+```bash
+npm run reset-project
 ```
+
+This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+
+## Learn more
+
+To learn more about developing your project with Expo, look at the following resources:
+
+- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+
+## Join the community
+
+Join our community of developers creating universal apps.
+
+- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
+- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.

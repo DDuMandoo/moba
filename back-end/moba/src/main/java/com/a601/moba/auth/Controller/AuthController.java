@@ -116,6 +116,7 @@ public class AuthController {
         return ResponseEntity.ok(JSONResponse.onSuccess(response));
     }
 
+    @Operation(summary = "이메일 중복 확인", description = "회원가입 시 이메일이 이미 존재하는지 확인합니다.")
     @PostMapping("/email")
     public ResponseEntity<JSONResponse<Boolean>> checkEmailDuplicate(@RequestBody EmailDuplicateCheckRequest request) {
         boolean isDuplicated = authService.isEmailDuplicated(request.email());

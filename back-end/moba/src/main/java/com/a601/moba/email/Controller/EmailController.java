@@ -2,6 +2,7 @@ package com.a601.moba.email.Controller;
 
 import com.a601.moba.email.Controller.Request.EmailSendRequest;
 import com.a601.moba.email.Controller.Request.EmailVerifyRequest;
+import com.a601.moba.email.Exception.EmailVerificationException;
 import com.a601.moba.email.Service.EmailService;
 import com.a601.moba.global.code.ErrorCode;
 import com.a601.moba.global.code.SuccessCode;
@@ -35,13 +36,12 @@ public class EmailController {
     public ResponseEntity<JSONResponse<Boolean>> verifyCode(@RequestBody EmailVerifyRequest request) {
         boolean isValid = emailService.verifyCode(request.getEmail(), request.getCode());
 
-        if (isValid) {
-            return ResponseEntity.ok(JSONResponse.of(SuccessCode.EMAIL_VERIFIED_SUCCESS, true));
-        } else {
-            return ResponseEntity
-                    .badRequest()
-                    .body(JSONResponse.onFailure(ErrorCode.INVALID_VERIFICATION_CODE, false));
+        if (!isValid) {
+            throw new EmailVerificationException(ErrorCode.INVALID_VERIFICATION_CODE);
         }
+
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.EMAIL_VERIFIED_SUCCESS, true));
+
     }
 
 }

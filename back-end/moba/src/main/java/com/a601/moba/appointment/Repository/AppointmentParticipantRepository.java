@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface AppointmentParticipantRepository extends JpaRepository<AppointmentParticipant, Long> {
+public interface AppointmentParticipantRepository extends JpaRepository<AppointmentParticipant, Integer> {
     List<AppointmentParticipant> findAllByAppointment(Appointment appointment);
 
     Optional<AppointmentParticipant> findByAppointmentAndMemberId(Appointment appointment, Integer memberId);

@@ -28,6 +28,8 @@ public enum ErrorCode {
     UNAUTHORIZED_ACCESS(4103, UNAUTHORIZED, "토큰이 없거나 틀렸습니다"),
     FORBIDDEN_ACCESS(4104, FORBIDDEN, "접근 권한이 없습니다"),
     ALREADY_DELETED_MEMBER(4105, BAD_REQUEST, "이미 탈퇴된 회원입니다"),
+    MEMBER_NOT_FOUND(4106, NOT_FOUND, "사용자가 존재하지 않습니다."),
+    MEMBER_NOT_FOUND_IN_LIST(4107, NOT_FOUND, "해당 리스트에 사용자가 존재하지 않습니다."),
 
     // ================= 토큰 관련 에러 (4200번대) =================
     INVALID_TOKEN(4200, UNAUTHORIZED, "유효하지 않은 토큰입니다"),

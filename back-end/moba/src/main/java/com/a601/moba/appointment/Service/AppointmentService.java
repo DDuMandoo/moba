@@ -1,6 +1,7 @@
-// 패키지: com.a601.moba.appointment.Service
 package com.a601.moba.appointment.Service;
 
+import com.a601.moba.appointment.Constant.Role;
+import com.a601.moba.appointment.Constant.State;
 import com.a601.moba.appointment.Controller.Request.AppointmentCreateRequest;
 import com.a601.moba.appointment.Controller.Request.AppointmentJoinRequest;
 import com.a601.moba.appointment.Controller.Response.AppointmentCreateResponse;
@@ -9,8 +10,6 @@ import com.a601.moba.appointment.Controller.Response.AppointmentDetailResponse.P
 import com.a601.moba.appointment.Controller.Response.AppointmentJoinResponse;
 import com.a601.moba.appointment.Entity.Appointment;
 import com.a601.moba.appointment.Entity.AppointmentParticipant;
-import com.a601.moba.appointment.Entity.AppointmentParticipant.Role;
-import com.a601.moba.appointment.Entity.AppointmentParticipant.State;
 import com.a601.moba.appointment.Exception.AppointmentException;
 import com.a601.moba.appointment.Repository.AppointmentParticipantRepository;
 import com.a601.moba.appointment.Repository.AppointmentRepository;
@@ -21,6 +20,7 @@ import com.a601.moba.global.service.S3Service;
 import com.a601.moba.member.Entity.Member;
 import com.a601.moba.member.Repository.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -39,8 +39,8 @@ public class AppointmentService {
     private final AuthUtil authUtil;
     private final MemberRepository memberRepository;
 
-    public AppointmentCreateResponse createAppointment(AppointmentCreateRequest request, MultipartFile image,
-                                                       HttpServletRequest httpRequest) {
+    public AppointmentCreateResponse create(AppointmentCreateRequest request, MultipartFile image,
+                                            HttpServletRequest httpRequest) {
         String inviteCode = inviteCodeGenerator.generate()
                 .orElseThrow(() -> new AppointmentException(ErrorCode.INVITE_CODE_GENERATION_FAILED));
 
@@ -62,15 +62,9 @@ public class AppointmentService {
                 .memo(request.memo())
                 .inviteUrl(inviteCode)
                 .isEnded(false)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
 
-        try {
-            appointmentRepository.saveAndFlush(appointment);
-        } catch (Exception e) {
-            throw new AppointmentException(ErrorCode.APPOINTMENT_SAVE_FAILED);
-        }
+        appointmentRepository.saveAndFlush(appointment);
 
         Integer appointmentId = appointment.getId();
         Integer hostMemberId = authUtil.getMemberFromToken(httpRequest).getId();
@@ -84,33 +78,29 @@ public class AppointmentService {
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        try {
-            appointmentParticipantRepository.save(hostParticipant);
-        } catch (Exception e) {
-            throw new AppointmentException(ErrorCode.APPOINTMENT_PARTICIPANT_SAVE_FAILED);
-        }
+        appointmentParticipantRepository.save(hostParticipant);
 
-        return new AppointmentCreateResponse(
-                appointmentId,
-                appointment.getName(),
-                appointment.getImage(),
-                appointment.getTime(),
-                appointment.getLatitude(),
-                appointment.getLongitude(),
-                appointment.getMemo(),
-                appointment.getInviteUrl(),
-                appointment.getIsEnded(),
-                appointment.getCreatedAt()
-        );
+        return AppointmentCreateResponse.builder()
+                .appointmentId(appointmentId)
+                .name(appointment.getName())
+                .imageUrl(appointment.getImage())
+                .time(appointment.getTime())
+                .latitude(appointment.getLatitude())
+                .longitude(appointment.getLongitude())
+                .memo(appointment.getMemo())
+                .inviteCode(appointment.getInviteUrl())
+                .isEnded(appointment.getIsEnded())
+                .build();
+
     }
 
-    public AppointmentJoinResponse joinAppointment(AppointmentJoinRequest request, HttpServletRequest httpRequest) {
+    @Transactional
+    public AppointmentJoinResponse join(AppointmentJoinRequest request, HttpServletRequest httpRequest) {
         Integer memberId = authUtil.getMemberFromToken(httpRequest).getId();
 
-        Appointment appointment = appointmentRepository.findById(request.appointmentId().longValue())
+        Appointment appointment = appointmentRepository.findById(request.appointmentId())
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
 
-        // 기존 참여자 존재 여부 확인
         Optional<AppointmentParticipant> existingParticipantOpt =
                 appointmentParticipantRepository.findByAppointmentAndMemberId(appointment, memberId);
 
@@ -118,19 +108,23 @@ public class AppointmentService {
 
         if (existingParticipantOpt.isPresent()) {
             AppointmentParticipant existingParticipant = existingParticipantOpt.get();
+            State state = existingParticipant.getState();
 
-            switch (existingParticipant.getState()) {
-                case JOINED -> throw new AppointmentException(ErrorCode.APPOINTMENT_ALREADY_JOINED);
-                case KICKED -> throw new AppointmentException(ErrorCode.APPOINTMENT_JOIN_FORBIDDEN);
-                case LEAVE -> {
-                    // 다시 참여 허용 (state만 갱신)
-                    existingParticipant.updateState(State.JOINED, LocalDateTime.now());
-                    participant = appointmentParticipantRepository.save(existingParticipant);
-                }
-                default -> throw new AppointmentException(ErrorCode.INVALID_REQUEST);
+            if (state == State.JOINED) {
+                throw new AppointmentException(ErrorCode.APPOINTMENT_ALREADY_JOINED);
+            }
+
+            if (state == State.KICKED) {
+                throw new AppointmentException(ErrorCode.APPOINTMENT_JOIN_FORBIDDEN);
+            }
+
+            if (state == State.LEAVE) {
+                existingParticipant.updateState(State.JOINED);
+                participant = existingParticipant;
+            } else {
+                throw new AppointmentException(ErrorCode.INVALID_REQUEST);
             }
         } else {
-            // 신규 참여자 등록
             participant = AppointmentParticipant.builder()
                     .appointment(appointment)
                     .memberId(memberId)
@@ -143,21 +137,22 @@ public class AppointmentService {
             appointmentParticipantRepository.save(participant);
         }
 
-        Member member = memberRepository.findById(memberId.longValue())
+        Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_PARTICIPANT_NOT_FOUND));
 
-        return new AppointmentJoinResponse(
-                appointment.getId(),
-                appointment.getName(),
-                new AppointmentJoinResponse.ParticipantInfo(
-                        memberId,
-                        member.getName(),
-                        participant.getJoinAt()
-                )
-        );
+        return AppointmentJoinResponse.builder()
+                .appointmentId(appointment.getId())
+                .name(appointment.getName())
+                .participant(AppointmentJoinResponse.ParticipantInfo.builder()
+                        .memberId(memberId)
+                        .name(member.getName())
+                        .joinedAt(participant.getJoinAt())
+                        .build())
+                .build();
     }
 
-    public AppointmentDetailResponse getAppointmentDetail(Long appointmentId, HttpServletRequest request) {
+
+    public AppointmentDetailResponse getDetail(Integer appointmentId, HttpServletRequest request) {
         Integer memberId = authUtil.getMemberFromToken(request).getId();
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
@@ -172,7 +167,7 @@ public class AppointmentService {
             throw new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED);
         }
 
-        // 모든 참여자 중 state가 JOINED인 사람만 조회
+        // JOINED 상태의 참여자만 필터링
         List<AppointmentParticipant> participantList = appointmentParticipantRepository
                 .findAllByAppointment(appointment).stream()
                 .filter(p -> p.getState() == State.JOINED)
@@ -180,31 +175,31 @@ public class AppointmentService {
 
         List<ParticipantInfo> participants = participantList.stream()
                 .map(p -> {
-                    Member member = memberRepository.findById(p.getMemberId().longValue())
+                    Member member = memberRepository.findById(p.getMemberId())
                             .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_PARTICIPANT_NOT_FOUND));
-                    return new AppointmentDetailResponse.ParticipantInfo(
-                            member.getId(),
-                            member.getName()
-                    );
+                    return ParticipantInfo.builder()
+                            .memberId(member.getId())
+                            .name(member.getName())
+                            .build();
                 })
                 .toList();
 
-        return new AppointmentDetailResponse(
-                appointment.getId().longValue(),
-                appointment.getName(),
-                appointment.getImage(),
-                appointment.getTime(),
-                appointment.getLatitude(),
-                appointment.getLongitude(),
-                appointment.getMemo(),
-                appointment.getIsEnded(),
-                participants,
-                appointment.getCreatedAt()
-        );
+        return AppointmentDetailResponse.builder()
+                .appointmentId(appointment.getId())
+                .name(appointment.getName())
+                .imageUrl(appointment.getImage())
+                .time(appointment.getTime())
+                .latitude(appointment.getLatitude())
+                .longitude(appointment.getLongitude())
+                .memo(appointment.getMemo())
+                .isEnded(appointment.getIsEnded())
+                .participants(participants)
+                .build();
     }
 
 
-    public void leaveAppointment(Long appointmentId, HttpServletRequest request) {
+    @Transactional
+    public void leave(Integer appointmentId, HttpServletRequest request) {
         Integer memberId = authUtil.getMemberFromToken(request).getId();
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
@@ -218,7 +213,7 @@ public class AppointmentService {
             throw new AppointmentException(ErrorCode.APPOINTMENT_EXIT_FORBIDDEN);
         }
 
-        participant.updateState(State.LEAVE, LocalDateTime.now());
-        appointmentParticipantRepository.save(participant);
+        participant.updateState(State.LEAVE);
     }
+
 }

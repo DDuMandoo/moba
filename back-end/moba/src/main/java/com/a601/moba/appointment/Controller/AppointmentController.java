@@ -29,39 +29,39 @@ public class AppointmentController {
     private final AppointmentService appointmentService;
 
     @PostMapping
-    public ResponseEntity<JSONResponse<AppointmentCreateResponse>> createAppointment(
+    public ResponseEntity<JSONResponse<AppointmentCreateResponse>> create(
             @RequestPart("data") AppointmentCreateRequest request,
             @RequestPart(value = "image", required = false) MultipartFile image,
             HttpServletRequest httpRequest
     ) {
-        AppointmentCreateResponse response = appointmentService.createAppointment(request, image, httpRequest);
+        AppointmentCreateResponse response = appointmentService.create(request, image, httpRequest);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.APPOINTMENT_CREAT_SUCCESS, response));
     }
 
     @PostMapping("/join")
-    public ResponseEntity<JSONResponse<AppointmentJoinResponse>> joinAppointment(
+    public ResponseEntity<JSONResponse<AppointmentJoinResponse>> join(
             @RequestBody AppointmentJoinRequest request,
             HttpServletRequest httpRequest
     ) {
-        AppointmentJoinResponse response = appointmentService.joinAppointment(request, httpRequest);
+        AppointmentJoinResponse response = appointmentService.join(request, httpRequest);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.APPOINTMENT_JOIN_SUCCESS, response));
     }
 
     @GetMapping("/{appointmentId}")
     public ResponseEntity<JSONResponse<AppointmentDetailResponse>> getAppointment(
-            @PathVariable Long appointmentId,
+            @PathVariable Integer appointmentId,
             HttpServletRequest httpRequest
     ) {
-        AppointmentDetailResponse response = appointmentService.getAppointmentDetail(appointmentId, httpRequest);
+        AppointmentDetailResponse response = appointmentService.getDetail(appointmentId, httpRequest);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.APPOINTMENT_READ_SUCCESS, response));
     }
 
     @PatchMapping("/{appointmentId}/leave")
-    public ResponseEntity<JSONResponse<Void>> leaveAppointment(
-            @PathVariable Long appointmentId,
+    public ResponseEntity<JSONResponse<Void>> leave(
+            @PathVariable Integer appointmentId,
             HttpServletRequest request
     ) {
-        appointmentService.leaveAppointment(appointmentId, request);
+        appointmentService.leave(appointmentId, request);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.APPOINTMENT_EXIT_SUCCESS));
     }
 

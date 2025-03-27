@@ -7,7 +7,6 @@ import {
   StyleSheet,
   Image,
   Alert,
-  Platform,
   Keyboard
 } from 'react-native';
 import { Button } from '@/components/ui/Button';
@@ -16,9 +15,14 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import Constants from 'expo-constants';
-import { API_URL } from '@env';
 
-const BASE_URL = Platform.OS === 'web' ? process.env.API_URL : Constants.expoConfig?.extra?.API_URL || API_URL;
+const BASE_URL = Constants.expoConfig?.extra?.API_URL;
+console.log(BASE_URL)
+// const BASE_URL =
+//   Constants.expoConfig?.extra?.API_URL ?? // 앱 (iOS/Android)
+//   Constants.manifest?.extra?.API_URL ??   // 웹 (Expo web)
+//   'http://localhost:8081'; // fallback
+
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -186,6 +190,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold'
   },
   footer: {
+    marginTop: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',

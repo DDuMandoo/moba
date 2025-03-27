@@ -16,9 +16,8 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import Constants from 'expo-constants';
-import { API_URL } from '@env';
 
-const BASE_URL = Platform.OS === 'web' ? process.env.API_URL : Constants.expoConfig?.extra?.API_URL || API_URL;
+const BASE_URL = Constants.expoConfig?.extra?.API_URL;
 
 export default function LoginScreen() {
   const router = useRouter();

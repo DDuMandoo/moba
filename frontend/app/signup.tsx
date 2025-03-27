@@ -6,8 +6,9 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
-  Alert,
-  Keyboard
+  Keyboard,
+  Platform,
+  Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -19,6 +20,14 @@ import { Button } from '@/components/ui/Button';
 
 const BASE_URL = Constants.expoConfig?.extra?.API_URL;
 
+const showAlert = (title: string, message?: string) => {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}${message ? '\n' + message : ''}`);
+  } else {
+    Alert.alert(title, message);
+  }
+};
+
 export default function SignupScreen() {
   const router = useRouter();
   const [name, setName] = useState('');
@@ -27,12 +36,10 @@ export default function SignupScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [image, setImage] = useState<string | null>(null);
-
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isConfirmVisible, setIsConfirmVisible] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [isAuthCodeSent, setIsAuthCodeSent] = useState(false);
-
   const [timer, setTimer] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -54,10 +61,7 @@ export default function SignupScreen() {
 
   useEffect(() => {
     return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
+      if (timerRef.current) clearInterval(timerRef.current);
     };
   }, []);
 
@@ -73,72 +77,66 @@ export default function SignupScreen() {
   };
 
   const handleCheckEmail = async () => {
-    if (!isEmailValid(email)) {
-      Alert.alert('이메일 오류', '올바른 이메일 주소를 입력해주세요.');
-      return;
-    }
+    if (!isEmailValid(email)) return showAlert('이메일 오류', '올바른 이메일 주소를 입력해주세요.');
     try {
+      const checkRes = await axios.post(`${BASE_URL}/auth/email`, { email });
+      if (checkRes.data.result === true) {
+        showAlert('중복 이메일', '이미 사용 중인 이메일입니다.');
+        return;
+      }
       const sendRes = await axios.post(`${BASE_URL}/emails/send`, { email });
       if (sendRes.status === 200 && sendRes.data.isSuccess) {
-        Alert.alert('인증번호 발송', '이메일로 인증번호를 전송했습니다.');
+        showAlert('인증번호 발송', '이메일로 인증번호를 전송했습니다.');
         setIsAuthCodeSent(true);
         setIsEmailVerified(false);
         startTimer();
       } else {
-        Alert.alert('오류', '인증번호 발송에 실패했습니다.');
+        showAlert('오류', '인증번호 발송에 실패했습니다.');
       }
-    } catch {
-      Alert.alert('오류', '이메일 인증 중 문제가 발생했습니다.');
+    } catch (err) {
+      showAlert('오류', '이메일 인증 중 문제가 발생했습니다.');
     }
   };
 
   const handleVerifyCode = async () => {
-    if (!authCode || !email) return Alert.alert('입력 오류', '인증번호를 입력해주세요.');
+    if (!authCode || !email) return showAlert('입력 오류', '인증번호를 입력해주세요.');
     try {
       const res = await axios.post(`${BASE_URL}/emails/verify`, { email, code: authCode });
       if (res.status === 200 && res.data.result) {
         setIsEmailVerified(true);
         if (timerRef.current) clearInterval(timerRef.current);
-        Alert.alert('성공', '이메일 인증 완료');
+        showAlert('성공', '이메일 인증 완료');
       } else {
-        Alert.alert('실패', '인증번호가 올바르지 않습니다.');
+        showAlert('실패', '인증번호가 올바르지 않습니다.');
       }
     } catch {
-      Alert.alert('실패', '인증번호 확인 중 오류 발생');
+      showAlert('실패', '인증번호 확인 중 오류 발생');
     }
   };
 
   const handleSignup = async () => {
     Keyboard.dismiss();
     if (!name || !email || !password || !confirmPassword)
-      return Alert.alert('입력 오류', '모든 필수 항목을 입력해주세요.');
+      return showAlert('입력 오류', '모든 필수 항목을 입력해주세요.');
     if (!isEmailVerified)
-      return Alert.alert('인증 필요', '이메일 인증을 완료해주세요.');
+      return showAlert('인증 필요', '이메일 인증을 완료해주세요.');
     if (password !== confirmPassword)
-      return Alert.alert('비밀번호 불일치', '비밀번호가 다릅니다.');
+      return showAlert('비밀번호 불일치', '비밀번호가 다릅니다.');
 
     try {
-      const formData = new FormData();
-      formData.append('email', email);
-      formData.append('password', password);
-      formData.append('name', name);
-      if (image) {
-        const filename = image.split('/').pop()!;
-        const match = /\.(\w+)$/.exec(filename);
-        const type = match ? `image/${match[1]}` : `image`;
-        formData.append('image', { uri: image, name: filename, type } as any);
-      }
-      const res = await axios.post(`${BASE_URL}/auth/signup`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      const body = { email, password, name, image: image ?? '' };
+      const res = await axios.post(`${BASE_URL}/auth/signup`, body, {
+        headers: { 'Content-Type': 'application/json' },
       });
-      if (res.status === 201) {
-        Alert.alert('회원가입 완료', '로그인 해주세요.');
-        router.replace('/');
+      if (res.status === 200 || res.status === 201) {
+        showAlert('회원가입 완료', '약관을 동의해주세요.');
+        router.push('/terms-agreements');
       }
     } catch {
-      Alert.alert('회원가입 실패', '잠시 후 다시 시도해주세요.');
+      showAlert('회원가입 실패', '잠시 후 다시 시도해주세요.');
     }
   };
+
 
   return (
     <View style={styles.container}>

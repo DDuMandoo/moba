@@ -1,5 +1,6 @@
 package com.a601.moba.member.Entity;
 
+import com.a601.moba.global.entity.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -9,15 +10,13 @@ import jakarta.persistence.Id;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Getter
 @NoArgsConstructor
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-public class Member {
+public class Member extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,14 +37,6 @@ public class Member {
 
     @Column(name = "SOCIAL_ID")
     private Long socialId;
-
-    @CreatedDate
-    @Column(name = "CREATED_AT", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    @Column(name = "UPDATED_AT", nullable = false)
-    private LocalDateTime updatedAt;
 
     @Column(name = "DELETED_AT")
     private LocalDateTime deletedAt;

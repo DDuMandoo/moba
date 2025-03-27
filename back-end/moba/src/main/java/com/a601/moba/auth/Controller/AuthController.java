@@ -1,6 +1,7 @@
 package com.a601.moba.auth.Controller;
 
 import com.a601.moba.auth.Controller.Request.AuthRequest;
+import com.a601.moba.auth.Controller.Request.EmailDuplicateCheckRequest;
 import com.a601.moba.auth.Controller.Request.SignupRequest;
 import com.a601.moba.auth.Controller.Response.AuthResponse;
 import com.a601.moba.auth.Controller.Response.SignupResponse;
@@ -113,5 +114,12 @@ public class AuthController {
         // Access Token 재발급
         AuthResponse response = authService.refreshAccessToken(refreshToken);
         return ResponseEntity.ok(JSONResponse.onSuccess(response));
+    }
+
+    @Operation(summary = "이메일 중복 확인", description = "회원가입 시 이메일이 이미 존재하는지 확인합니다.")
+    @PostMapping("/email")
+    public ResponseEntity<JSONResponse<Boolean>> checkEmailDuplicate(@RequestBody EmailDuplicateCheckRequest request) {
+        boolean isDuplicated = authService.isEmailDuplicated(request.email());
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.REQUEST_SUCCESS, isDuplicated));
     }
 }

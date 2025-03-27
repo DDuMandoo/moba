@@ -236,4 +236,8 @@ public class AuthService {
         }
         return sb.toString();
     }
+
+    public boolean isEmailDuplicated(String email) {
+        return memberRepository.existsByEmail(email);
+    }
 }

@@ -21,5 +21,5 @@ public class BaseTimeEntity {
     private Timestamp createdTime;
     @LastModifiedDate
     @Column(name = "modified_time", nullable = false)
-    private Timestamp modifiedTime;
+    private Timestamp updatedTime;
 }

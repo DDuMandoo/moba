@@ -12,3 +12,5 @@ spring:
         jdbc:
           batch_size: 30
 #        show_sql: true
+    hibernate:
+      ddl-auto: update

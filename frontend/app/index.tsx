@@ -6,9 +6,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
-  Alert,
+  Keyboard,
   Platform,
-  Keyboard
 } from 'react-native';
 import { Button } from '@/components/ui/Button';
 import Colors from '@/constants/Colors';
@@ -16,29 +15,36 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import Constants from 'expo-constants';
-import { API_URL } from '@env';
+import CustomAlert from '@/components/CustomAlert';
 
-const BASE_URL = Platform.OS === 'web' ? process.env.API_URL : Constants.expoConfig?.extra?.API_URL || API_URL;
+const BASE_URL = Constants.expoConfig?.extra?.API_URL;
 
 export default function LoginScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState<{ title: string; message?: string } | null>(null);
+
+  const showAlert = (title: string, message?: string) => {
+    setAlert({ title, message });
+  };
 
   const isEmailValid = (email: string) =>
     /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/.test(email);
 
-  // 로그인 요청
   const handleLogin = async () => {
-    Keyboard.dismiss(); // 키보드 닫기
+    Keyboard.dismiss();
 
     if (!isEmailValid(email)) {
-      Alert.alert('이메일 오류', '유효한 이메일 주소를 입력해주세요.');
+      showAlert('이메일 오류', '유효한 이메일 주소를 입력해주세요.');
       return;
     }
 
     try {
+      setLoading(true);
+
       const response = await axios.post(
         `${BASE_URL}/auth/signin`,
         { email, password },
@@ -49,18 +55,21 @@ export default function LoginScreen() {
 
       if (response.status === 200) {
         router.push('/(bottom-navigation)');
+      } else {
+        showAlert('로그인 실패', '이메일 혹은 비밀번호를 다시 확인해주세요!');
       }
-    } catch (error) {
-      Alert.alert('로그인 실패', '이메일 혹은 비밀번호를 다시 확인해주세요!');
+    } catch (error: any) {
+      const message = error?.response?.data?.message || '서버 오류가 발생했습니다.';
+      showAlert('로그인 실패', message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
-      {/* 로그인 이미지 */}
       <Image source={require('@/assets/images/login_image.png')} style={styles.logo} />
 
-      {/* 이메일 입력 */}
       <Text style={styles.label}>이메일</Text>
       <TextInput
         style={styles.input}
@@ -72,12 +81,9 @@ export default function LoginScreen() {
         autoCapitalize="none"
         autoCorrect={false}
         returnKeyType="next"
-        onSubmitEditing={() => {
-          Keyboard.dismiss();
-        }}
+        onSubmitEditing={() => Keyboard.dismiss()}
       />
 
-      {/* 비밀번호 입력 */}
       <Text style={styles.label}>비밀번호</Text>
       <View style={styles.passwordContainer}>
         <TextInput
@@ -88,25 +94,31 @@ export default function LoginScreen() {
           onChangeText={setPassword}
           secureTextEntry={!isPasswordVisible}
           returnKeyType="done"
-          onSubmitEditing={handleLogin} // 엔터 누르면 로그인
+          onSubmitEditing={handleLogin}
         />
-        <TouchableOpacity style={styles.eyeIcon} onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
-          <Ionicons name={isPasswordVisible ? 'eye-off' : 'eye'} size={24} color={Colors.grayDarkText} />
+        <TouchableOpacity
+          style={styles.eyeIcon}
+          onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+        >
+          <Ionicons
+            name={isPasswordVisible ? 'eye' : 'eye-off'}
+            size={24}
+            color={Colors.grayDarkText}
+          />
         </TouchableOpacity>
       </View>
 
-      {/* 로그인 버튼 */}
       <Button.Large title="로그인" onPress={handleLogin} style={styles.loginButton} />
 
-      {/* 카카오 로그인 버튼 */}
-      <Button.Large 
-        title="카카오 로그인" 
-        onPress={() => {}}
-        style={{ backgroundColor: '#FFDD00' }} 
-        textColor={Colors.primary} 
+      <Button.Large
+        title="카카오 로그인"
+        onPress={() => {
+          showAlert('알림', '카카오 로그인이 아직 준비 중입니다.');
+        }}
+        style={{ backgroundColor: '#FFDD00' }}
+        textColor={Colors.primary}
       />
 
-      {/* 비밀번호 찾기 및 회원가입 */}
       <View style={styles.footer}>
         <TouchableOpacity onPress={() => router.push('/forgot-password')}>
           <Text style={styles.footerText}>비밀번호 찾기</Text>
@@ -115,18 +127,25 @@ export default function LoginScreen() {
           <Text style={styles.footerText}>회원가입</Text>
         </TouchableOpacity>
       </View>
+
+      {/*알림 모달 */}
+      <CustomAlert
+        visible={!!alert}
+        title={alert?.title || ''}
+        message={alert?.message}
+        onClose={() => setAlert(null)}
+      />
     </View>
   );
 }
 
-// 스타일
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Colors.secondary,
     padding: '5%',
+    paddingTop: 100,
     height: '100%'
   },
   logo: {
@@ -177,15 +196,8 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: Colors.primary
   },
-  kakaoLoginButton: {
-    backgroundColor: '#FFDD00',
-    marginBottom: 15
-  },
-  kakaoLoginText: {
-    color: Colors.primary,
-    fontWeight: 'bold'
-  },
   footer: {
+    marginTop: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
@@ -196,4 +208,3 @@ const styles = StyleSheet.create({
     fontSize: 14
   }
 });
-

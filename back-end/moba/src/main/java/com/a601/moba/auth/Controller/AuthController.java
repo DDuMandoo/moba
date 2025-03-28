@@ -43,6 +43,7 @@ public class AuthController {
     @Operation(summary = "일반 회원가입", description = "이메일, 비밀번호, 이름으로 회원가입을 수행합니다.")
     @PostMapping("/signup")
     public ResponseEntity<JSONResponse<SignupResponse>> signup(@ModelAttribute SignupRequest request) {
+        log.info("request: {}", request.toString());
         SignupResponse response = authService.signup(
                 request.getEmail(),
                 request.getPassword(),

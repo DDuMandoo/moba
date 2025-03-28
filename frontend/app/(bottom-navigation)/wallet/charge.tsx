@@ -39,7 +39,7 @@ export default function ChargePage() {
           selectedAccountId={selectedAccountId}
           setSelectedAccountId={setSelectedAccountId}
         />
-      </ScrollView>
+      </ScrollView> 
 
       {/* 하단 고정 버튼 */}
       <View

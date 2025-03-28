@@ -23,6 +23,7 @@ public enum SuccessCode {
     // ================= 비밀번호 / 계정 관련 성공 (2300번대) =================
     MEMBER_DELETE_SUCCESS(2300, OK, "성공적으로 회원탈퇴 되었습니다"),
     PASSWORD_RESET_SUCCESS(2301, OK, "임시 비밀번호 전송을 성공하였습니다"),
+    PROFILE_IMAGE_UPLOAD_SUCCESS(2302, OK, "프로필 이미지 업로드 성공하였습니다"),
 
     // ================= 약속 관련 성공 (2400번대) ==================
     APPOINTMENT_CREAT_SUCCESS(2400, CREATED, "약속방 생성을 성공하였습니다"),

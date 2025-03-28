@@ -1,11 +1,10 @@
 package com.a601.moba.auth.Controller.Request;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Builder;
 
-@Getter
-@NoArgsConstructor
-public class AuthRequest {
-    private String email;
-    private String password;
+@Builder
+public record AuthRequest(
+        String email,
+        String password
+) {
 }

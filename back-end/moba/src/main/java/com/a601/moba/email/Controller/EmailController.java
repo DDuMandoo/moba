@@ -27,14 +27,14 @@ public class EmailController {
     @Operation(summary = "이메일 인증 코드 전송", description = "사용자의 이메일로 인증 코드를 전송합니다.")
     @PostMapping("/send")
     public ResponseEntity<JSONResponse<Void>> sendVerificationCode(@RequestBody EmailSendRequest request) {
-        emailService.sendVerificationCode(request.getEmail());
+        emailService.sendVerificationCode(request.email());
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.EMAIL_SENT_SUCCESS));
     }
 
     @Operation(summary = "인증 코드 확인", description = "사용자가 입력한 인증 코드가 유효한지 검증합니다.")
     @PostMapping("/verify")
     public ResponseEntity<JSONResponse<Boolean>> verifyCode(@RequestBody EmailVerifyRequest request) {
-        boolean isValid = emailService.verifyCode(request.getEmail(), request.getCode());
+        boolean isValid = emailService.verifyCode(request.email(), request.code());
 
         if (!isValid) {
             throw new EmailVerificationException(ErrorCode.INVALID_VERIFICATION_CODE);

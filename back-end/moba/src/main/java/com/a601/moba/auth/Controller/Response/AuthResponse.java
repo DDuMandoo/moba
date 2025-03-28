@@ -1,11 +1,10 @@
 package com.a601.moba.auth.Controller.Response;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
 
-@Getter
-@AllArgsConstructor
-public class AuthResponse {
-    private String accessToken;
-    private String refreshToken;
+@Builder
+public record AuthResponse(
+        String accessToken,
+        String refreshToken
+) {
 }

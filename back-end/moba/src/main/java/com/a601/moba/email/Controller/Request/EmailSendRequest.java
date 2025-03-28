@@ -1,8 +1,9 @@
 package com.a601.moba.email.Controller.Request;
 
-import lombok.Getter;
+import lombok.Builder;
 
-@Getter
-public class EmailSendRequest {
-    private String email;
+@Builder
+public record EmailSendRequest(
+        String email
+) {
 }

@@ -1,11 +1,9 @@
-// KakaoCodeRequest.java
 package com.a601.moba.auth.Controller.Request;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Builder;
 
-@Getter
-@NoArgsConstructor
-public class KakaoCodeRequest {
-    private String code;
+@Builder
+public record KakaoCodeRequest(
+        String code
+) {
 }

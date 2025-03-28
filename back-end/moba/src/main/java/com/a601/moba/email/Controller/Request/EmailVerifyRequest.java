@@ -1,9 +1,10 @@
 package com.a601.moba.email.Controller.Request;
 
-import lombok.Getter;
+import lombok.Builder;
 
-@Getter
-public class EmailVerifyRequest {
-    private String email;
-    private String code;
+@Builder
+public record EmailVerifyRequest(
+        String email,
+        String code
+) {
 }

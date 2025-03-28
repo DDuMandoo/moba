@@ -8,12 +8,17 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import java.time.LocalDateTime;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 public class Member extends BaseTimeEntity {
@@ -46,14 +51,6 @@ public class Member extends BaseTimeEntity {
 
     @Column(name = "MYDATA_TOKEN")
     private String mydataToken;
-
-    public Member(String email, String password, String name, String profileImage) {
-        this.email = email;
-        this.password = password;
-        this.name = name;
-        this.profileImage = profileImage;
-        this.isDeleted = false;
-    }
 
     public void updateSocialId(Long socialId) {
         this.socialId = socialId;

@@ -1,7 +1,7 @@
 package com.a601.moba.auth.Filter;
 
+import com.a601.moba.auth.Service.AuthRedisService;
 import com.a601.moba.auth.Service.JwtProvider;
-import com.a601.moba.auth.Service.RedisService;
 import com.a601.moba.global.code.ErrorCode;
 import com.a601.moba.global.response.JSONResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,7 +24,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
-    private final RedisService redisService;
+    private final AuthRedisService redisService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override

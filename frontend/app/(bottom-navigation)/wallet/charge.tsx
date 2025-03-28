@@ -25,9 +25,7 @@ export default function ChargePage() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={{ flex: 1, backgroundColor: Colors.background }}
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: Colors.background }}
     >
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: 120 }}

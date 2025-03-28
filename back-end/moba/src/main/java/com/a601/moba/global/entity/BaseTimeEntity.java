@@ -17,9 +17,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EntityListeners(AuditingEntityListener.class)
 public class BaseTimeEntity {
     @CreatedDate
-    @Column(name = "created_time", updatable = false, nullable = false)
-    private Timestamp createdTime;
+    @Column(name = "created_at", updatable = false, nullable = false)
+    private Timestamp createdAt;
     @LastModifiedDate
-    @Column(name = "modified_time", nullable = false)
-    private Timestamp updatedTime;
+    @Column(name = "updated_at", nullable = false)
+    private Timestamp updatedAt;
 }

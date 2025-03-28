@@ -21,6 +21,7 @@ public class EmailService {
     private static final String VERIFIED_EMAIL_PREFIX = "verified_email:";
     private static final long VERIFICATION_CODE_TTL_MINUTES = 5;
     private static final long VERIFIED_TTL_MINUTES = 10;
+    private final StringRedisTemplate stringRedisTemplate;
 
     // 인증 코드 전송
     public void sendVerificationCode(String email) {
@@ -67,7 +68,8 @@ public class EmailService {
 
     // 이메일 인증 완료 여부 확인
     public boolean isEmailVerified(String email) {
-        String verified = redisTemplate.opsForValue().get(VERIFIED_EMAIL_PREFIX + email);
+//        String verified = redisTemplate.opsForValue().get(VERIFIED_EMAIL_PREFIX + email);
+        String verified = stringRedisTemplate.opsForValue().get("verified_email:" + email);
         log.info("[EmailService] verified 값: {}", verified);
         return "true".equals(verified);
     }

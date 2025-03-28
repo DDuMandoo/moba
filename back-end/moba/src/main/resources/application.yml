@@ -11,7 +11,13 @@ spring:
 #      - classpath:application-mail.yml
 #      - classpath:application-redis.yml
       - classpath:application-mysql.yml
+      - classpath:application-jwt.yml
 #      - classpath:application-firebase.yml
 #      - classpath:application-mongo.yml
       #      - classpath:application-elastic.yml
       - optional:file:.env[.properties]
+  jpa:
+    properties:
+      hibernate:
+        jdbc:
+          autocommit: true

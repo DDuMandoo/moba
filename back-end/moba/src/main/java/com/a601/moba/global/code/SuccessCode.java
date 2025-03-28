@@ -9,7 +9,9 @@ import static org.springframework.http.HttpStatus.OK;
 @Getter
 @RequiredArgsConstructor
 public enum SuccessCode {
-    REQUEST_SUCCESS(2000, OK, "요청이 성공적으로 처리되었습니다"),;
+    REQUEST_SUCCESS(2000, OK, "요청이 성공적으로 처리되었습니다"),
+    TRANSFER_SUCCESS(2101, OK, "이체 성공"),
+    ;
 
     private final int code;
     private final HttpStatus httpStatus;

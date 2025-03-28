@@ -2,7 +2,7 @@ spring:
   config:
     import:
       #      - classpath:application-auth.yml
-      #      - classpath:application-redis.yml
+      - classpath:application-redis.yml
       - classpath:application-mail.yml
       - classpath:application-jwt.yml
       - classpath:application-mysql.yml

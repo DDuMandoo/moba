@@ -6,33 +6,38 @@ import {
   TouchableOpacity,
   StyleSheet,
   Keyboard,
-  Platform,
-  Alert
+  Platform
 } from 'react-native';
 import { Button } from '@/components/ui/Button';
 import Colors from '@/constants/Colors';
 import axios from 'axios';
 import Constants from 'expo-constants';
+import CustomAlert from '@/components/CustomAlert';
+import LoadingModal from '@/components/LoadingModal';
+import PasswordSentModal from '@/components/PasswordSentModal';
+import { useRouter } from 'expo-router';
 
 const BASE_URL = Constants.expoConfig?.extra?.API_URL;
 
-const showAlert = (title: string, message?: string) => {
-  if (Platform.OS === 'web') {
-    window.alert(`${title}${message ? '\n' + message : ''}`);
-  } else {
-    Alert.alert(title, message);
-  }
-};
-
 export default function ForgotPasswordScreen() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [authCode, setAuthCode] = useState('');
   const [isAuthCodeSent, setIsAuthCodeSent] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [timer, setTimer] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertContent, setAlertContent] = useState({ title: '', message: '' });
+  const [loadingVisible, setLoadingVisible] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const isEmailValid = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+  const showAlert = (title: string, message: string) => {
+    setAlertContent({ title, message });
+    setAlertVisible(true);
+  };
 
   const startTimer = () => {
     setTimer(300);
@@ -54,15 +59,17 @@ export default function ForgotPasswordScreen() {
     };
   }, []);
 
-  const formatTimer = (sec: number) => `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
+  const formatTimer = (sec: number) =>
+    `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
 
   const handleCheckEmail = async () => {
     if (!isEmailValid(email)) return showAlert('이메일 오류', '올바른 이메일 주소를 입력해주세요.');
+    setLoadingVisible(true);
     try {
       const checkRes = await axios.post(`${BASE_URL}/auth/email`, { email });
       if (!checkRes.data.result) {
-        showAlert('가입되지 않은 이메일', '입력한 이메일은 가입되어 있지 않습니다.');
-        return;
+        setLoadingVisible(false);
+        return showAlert('가입되지 않은 이메일', '입력한 이메일은 가입되어 있지 않습니다.');
       }
 
       const sendRes = await axios.post(`${BASE_URL}/emails/send`, { email });
@@ -76,6 +83,8 @@ export default function ForgotPasswordScreen() {
       }
     } catch {
       showAlert('오류', '이메일 인증 중 문제가 발생했습니다.');
+    } finally {
+      setLoadingVisible(false);
     }
   };
 
@@ -98,11 +107,13 @@ export default function ForgotPasswordScreen() {
   const handleResetPassword = async () => {
     Keyboard.dismiss();
     if (!email || !isEmailVerified) return showAlert('입력 오류', '이메일 인증을 완료해주세요.');
-
+  
+    setLoadingVisible(true); // ✅ 로딩 모달 시작
+  
     try {
       const res = await axios.post(`${BASE_URL}/members/password/reset`, { email });
       if (res.status === 200) {
-        showAlert('임시 비밀번호 발급 완료', '이메일을 확인해주세요.');
+        setShowSuccessModal(true); // ✅ 성공 모달 표시
       }
     } catch (error: any) {
       if (error?.response?.status === 429) {
@@ -110,13 +121,17 @@ export default function ForgotPasswordScreen() {
       } else {
         showAlert('오류', '비밀번호 발급 중 오류가 발생했습니다.');
       }
+    } finally {
+      setLoadingVisible(false); // ✅ 로딩 모달 종료
     }
   };
+  
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>비밀번호 찾기</Text>
-      <Text style={styles.subtitle}>기존에 가입하신 이메일을 입력하시면, {'\n'}임시 비밀번호를 발급해드립니다.</Text>
+      <Text style={styles.subtitle}>
+        기존에 가입하신 이메일을 입력하시면, {'\n'}임시 비밀번호를 발급해드립니다.
+      </Text>
 
       <Text style={styles.label}>이메일 아이디</Text>
       <View style={styles.inputWrapper}>
@@ -133,7 +148,11 @@ export default function ForgotPasswordScreen() {
           keyboardType="email-address"
           editable={!isEmailVerified}
         />
-        <TouchableOpacity style={styles.inlineButton} onPress={handleCheckEmail} disabled={isEmailVerified}>
+        <TouchableOpacity
+          style={styles.inlineButton}
+          onPress={handleCheckEmail}
+          disabled={isEmailVerified}
+        >
           <Text style={styles.inlineButtonText}>중복확인</Text>
         </TouchableOpacity>
       </View>
@@ -152,7 +171,11 @@ export default function ForgotPasswordScreen() {
           {timer > 0 && !isEmailVerified && (
             <Text style={styles.timerText}>{formatTimer(timer)}</Text>
           )}
-          <TouchableOpacity style={styles.inlineButton} onPress={handleVerifyCode} disabled={isEmailVerified}>
+          <TouchableOpacity
+            style={styles.inlineButton}
+            onPress={handleVerifyCode}
+            disabled={isEmailVerified}
+          >
             <Text style={styles.inlineButtonText}>확인</Text>
           </TouchableOpacity>
         </View>
@@ -164,6 +187,23 @@ export default function ForgotPasswordScreen() {
         style={styles.submitButton}
         textColor={Colors.white}
       />
+
+      <CustomAlert
+        visible={alertVisible}
+        title={alertContent.title}
+        message={alertContent.message}
+        onClose={() => setAlertVisible(false)}
+      />
+
+      <LoadingModal visible={loadingVisible} />
+
+      <PasswordSentModal
+        visible={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          router.replace('/');
+        }}
+      />
     </View>
   );
 }
@@ -172,18 +212,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    padding : '5%'
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 16
+    padding: '5%'
   },
   subtitle: {
     fontSize: 16,
     color: Colors.grayDarkText,
-    marginBottom: 40
+    marginBottom: 40,
+    lineHeight: 22,
+    marginTop: 16
   },
   label: {
     fontSize: 18,

@@ -138,7 +138,6 @@ export default function SignupScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>회원가입</Text>
 
       <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
         <View style={styles.imageCircle}>
@@ -257,15 +256,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     padding: '5%'
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 24
-  },
   imagePicker: {
     alignItems: 'center',
-    marginBottom: 32
+    marginBottom: 32,
+    marginTop: 16
   },
   imageCircle: {
     width: 140,
@@ -309,11 +303,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     fontSize: 16,
     color: Colors.black,
-    marginBottom: 16
+    marginBottom: 30
   },
   inputWrapper: {
     position: 'relative',
-    marginBottom: 16
+    marginBottom: 30
   },
   inputWithButton: {
     height: 50,

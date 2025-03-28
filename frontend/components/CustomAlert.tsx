@@ -41,20 +41,20 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: 10, // ✅ 둥글게!
     padding: 24,
-    width: '80%',
+    width: '90%',
     alignItems: 'center'
   },
   title: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: 'bold',
     color: Colors.text,
-    marginBottom: 8
+    marginBottom: 30
   },
   message: {
-    fontSize: 16,
+    fontSize: 20,
     color: Colors.grayDarkText,
-    textAlign: 'center',
-    marginBottom: 16
+    textAlign: 'left',
+    marginBottom: 30
   },
   button: {
     backgroundColor: Colors.primary,

@@ -152,7 +152,6 @@ export default function TermsAgreementScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>약관 동의</Text>
 
       <TouchableOpacity style={[styles.agreeRow, { marginBottom: 5 }]} onPress={toggleAll}>
         <Ionicons
@@ -239,13 +238,9 @@ const styles = StyleSheet.create({
     padding: '5%',
     backgroundColor: Colors.background
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 24
-  },
   section: {
-    marginBottom: 10
+    marginBottom: 10,
+    marginTop: 16
   },
   agreeRowWrapper: {
     marginBottom: 10

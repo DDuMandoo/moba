@@ -37,10 +37,11 @@ export default function RootLayout() {
               title: '약관 동의'
             }}
           />
-
           <Stack.Screen
-            name="modal"
-            options={{ presentation: 'modal', title: '모달' }}
+            name="forgot-password"
+            options={{
+              title: '비밀번호 찾기'
+            }}
           />
         </Stack>
       </LayoutInner>

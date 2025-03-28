@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     marginBottom: 16
   },
   title: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#333'
   },
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     maxHeight: 400
   },
   contentText: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#444',
     lineHeight: 20
   }

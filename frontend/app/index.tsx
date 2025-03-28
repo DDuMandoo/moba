@@ -8,7 +8,6 @@ import {
   Image,
   Keyboard,
   Platform,
-  Alert,
 } from 'react-native';
 import { Button } from '@/components/ui/Button';
 import Colors from '@/constants/Colors';
@@ -16,40 +15,36 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import Constants from 'expo-constants';
+import CustomAlert from '@/components/CustomAlert';
 
 const BASE_URL = Constants.expoConfig?.extra?.API_URL;
-console.log('🌐 BASE_URL:', BASE_URL);
-
-// 플랫폼 구분 alert
-const showAlert = (title: string, message: string) => {
-  if (Platform.OS === 'web') {
-    window.alert(`${title}\n${message}`);
-  } else {
-    Alert.alert(title, message);
-  }
-};
 
 export default function LoginScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState<{ title: string; message?: string } | null>(null);
+
+  const showAlert = (title: string, message?: string) => {
+    setAlert({ title, message });
+  };
 
   const isEmailValid = (email: string) =>
     /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/.test(email);
 
   const handleLogin = async () => {
     Keyboard.dismiss();
-    console.log('🧪 로그인 시도');
 
     if (!isEmailValid(email)) {
-      console.log('❌ 이메일 형식 오류:', email);
       showAlert('이메일 오류', '유효한 이메일 주소를 입력해주세요.');
       return;
     }
 
     try {
-      console.log('📤 로그인 요청:', `${BASE_URL}/auth/signin`);
+      setLoading(true);
+
       const response = await axios.post(
         `${BASE_URL}/auth/signin`,
         { email, password },
@@ -58,18 +53,16 @@ export default function LoginScreen() {
         }
       );
 
-      console.log('✅ 로그인 응답 수신:', response.status, response.data);
-
       if (response.status === 200) {
-        console.log('🎉 로그인 성공 → 메인 페이지로 이동');
         router.push('/(bottom-navigation)');
       } else {
-        console.log('⚠️ 로그인 응답 실패:', response.status);
         showAlert('로그인 실패', '이메일 혹은 비밀번호를 다시 확인해주세요!');
       }
     } catch (error: any) {
-      console.log('❌ 로그인 에러:', error?.response?.data || error.message);
-      showAlert('로그인 실패', '이메일 혹은 비밀번호를 다시 확인해주세요!');
+      const message = error?.response?.data?.message || '서버 오류가 발생했습니다.';
+      showAlert('로그인 실패', message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -105,13 +98,10 @@ export default function LoginScreen() {
         />
         <TouchableOpacity
           style={styles.eyeIcon}
-          onPress={() => {
-            setIsPasswordVisible(!isPasswordVisible);
-            console.log(`👁️ 비밀번호 ${!isPasswordVisible ? '보이기' : '숨기기'}`);
-          }}
+          onPress={() => setIsPasswordVisible(!isPasswordVisible)}
         >
           <Ionicons
-            name={isPasswordVisible ? 'eye-off' : 'eye'}
+            name={isPasswordVisible ? 'eye' : 'eye-off'}
             size={24}
             color={Colors.grayDarkText}
           />
@@ -123,7 +113,7 @@ export default function LoginScreen() {
       <Button.Large
         title="카카오 로그인"
         onPress={() => {
-          console.log('⚠️ 카카오 로그인은 아직 미구현');
+          showAlert('알림', '카카오 로그인이 아직 준비 중입니다.');
         }}
         style={{ backgroundColor: '#FFDD00' }}
         textColor={Colors.primary}
@@ -137,6 +127,14 @@ export default function LoginScreen() {
           <Text style={styles.footerText}>회원가입</Text>
         </TouchableOpacity>
       </View>
+
+      {/*알림 모달 */}
+      <CustomAlert
+        visible={!!alert}
+        title={alert?.title || ''}
+        message={alert?.message}
+        onClose={() => setAlert(null)}
+      />
     </View>
   );
 }
@@ -144,10 +142,10 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Colors.secondary,
     padding: '5%',
+    paddingTop: 100,
     height: '100%'
   },
   logo: {

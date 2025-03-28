@@ -5,12 +5,14 @@ import {
   Text,
   Image,
   ActivityIndicator,
+  TouchableOpacity,
+  useWindowDimensions,
 } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import WalletStatus from '@/components/WalletStatus';
 import { useRouter } from 'expo-router';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 
 interface UserProfile {
@@ -31,72 +33,144 @@ export default function WalletDetailPage() {
     queryFn: fetchUserProfile,
   });
 
+  const renderProfile = () => {
+    if (isLoading) {
+      return <ActivityIndicator color={Colors.primary} />;
+    }
+
+    if (isError || !data) {
+      return (
+        <Text style={{ fontSize: 16, fontWeight: 'bold', color: Colors.grayDarkText }}>
+          유저 정보를 불러올 수 없습니다.
+        </Text>
+      );
+    }
+
+    return (
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Image
+          source={{ uri: data.image }}
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: 28,
+            backgroundColor: Colors.grayLightText,
+          }}
+        />
+        <Text style={{ fontSize: 18, fontWeight: 'bold', color: Colors.text }}>
+          {data.name} 님의 지갑
+        </Text>
+      </View>
+    );
+  };
+
   return (
-    <ScrollView className="bg-gray-50 px-5 pt-6 pb-10 space-y-6">
+    <ScrollView
+      style={{ backgroundColor: Colors.background }}
+      contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 24 }}
+    >
       {/* 프로필 영역 */}
-      {isLoading ? (
-        <ActivityIndicator color={Colors.primary} />
-      ) : !data || isError ? (
-        <Text className="text-base font-bold text-gray-800">유저 정보를 불러올 수 없습니다.</Text>
-      ) : (
-        <View className="flex-row items-center space-x-3">
-          <Image source={{ uri: data.image }} className="w-14 h-14 rounded-full bg-gray-200" />
-          <Text className="text-lg text-gray-900 font-bold">{data.name} 님의 지갑</Text>
-        </View>
-      )}
+      {renderProfile()}
 
       {/* 지갑 상태 */}
-      <View className="items-center w-full">
+      <View style={{ alignItems: 'center', width: '100%', marginTop: 24 }}>
         <WalletStatus />
       </View>
 
       {/* 기능 버튼 3개 */}
-      <View className="flex-row justify-between gap-3">
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 24 }}>
         <FeatureButton
-          icon={<MaterialCommunityIcons name="bank-transfer" size={24} color={Colors.primary} />}
+          iconName="send"
           label="송금"
           onPress={() => router.push('/wallet/transfer')}
         />
         <FeatureButton
-          icon={<Ionicons name="list-outline" size={22} color={Colors.primary} />}
+          iconName="list"
           label="세부내역"
           onPress={() => router.push('/wallet/history')}
         />
         <FeatureButton
-          icon={<MaterialCommunityIcons name="bank-outline" size={22} color={Colors.primary} />}
+          iconName="credit-card"
           label="계좌 관리"
           onPress={() => router.push('/wallet/account')}
         />
       </View>
 
-      {/* 소비 분석 카드 영역 */}
-      <View className="bg-white rounded-xl p-5 shadow-sm">
-        <Text className="text-base font-bold text-gray-900">약속 소비 패턴 분석</Text>
-        {/* 추후 내용 들어갈 예정 */}
+      {/* 분석 카드 영역 */}
+      <View
+        style={{
+          backgroundColor: Colors.white,
+          borderRadius: 16,
+          padding: 20,
+          marginTop: 24,
+        }}
+      >
+        <Text style={{ fontSize: 16, fontWeight: 'bold', color: Colors.text }}>
+          약속 소비 패턴 분석
+        </Text>
       </View>
 
-      <View className="bg-white rounded-xl p-5 shadow-sm">
-        <Text className="text-base font-bold text-gray-900">내 소비 패턴 분석</Text>
-        {/* 추후 내용 들어갈 예정 */}
+      <View
+        style={{
+          backgroundColor: Colors.white,
+          borderRadius: 16,
+          padding: 20,
+          marginTop: 16,
+        }}
+      >
+        <Text style={{ fontSize: 16, fontWeight: 'bold', color: Colors.text }}>
+          내 소비 패턴 분석
+        </Text>
       </View>
     </ScrollView>
   );
 }
 
 interface FeatureButtonProps {
-  icon: React.ReactNode;
+  iconName: keyof typeof Feather.glyphMap;
   label: string;
   onPress: () => void;
 }
 
-const FeatureButton = ({ icon, label, onPress }: FeatureButtonProps) => (
-  <View className="flex-1">
-    <View
-      onTouchEnd={onPress}
-      className="items-center border border-[#593C1C] rounded-xl py-3 bg-white"
+const FeatureButton = ({ iconName, label, onPress }: FeatureButtonProps) => {
+  const { width: screenWidth } = useWindowDimensions();
+
+  const width = screenWidth * 0.29;
+  const height = 40;
+  const borderRadius = 12;
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.8}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width,
+        height,
+        backgroundColor: Colors.white,
+        borderColor: Colors.primary,
+        borderWidth: 1,
+        borderRadius,
+        paddingHorizontal: 8,
+      }}
     >
-      {icon}
-      <Text className="text-[#593C1C] font-bold mt-1">{label}</Text>
-    </View>
-  </View>
-);
+      <Feather
+        name={iconName}
+        size={16}
+        color={Colors.primary}
+        style={{ marginRight: 6 }}
+      />
+      <Text
+        style={{
+          color: Colors.primary,
+          fontWeight: 'bold',
+          fontSize: 13,
+        }}
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+};

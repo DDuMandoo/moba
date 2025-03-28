@@ -7,8 +7,7 @@ import {
   Image,
   StyleSheet,
   Keyboard,
-  Platform,
-  Alert
+  Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -17,16 +16,10 @@ import axios from 'axios';
 import Constants from 'expo-constants';
 import Colors from '@/constants/Colors';
 import { Button } from '@/components/ui/Button';
+import CustomAlert from '@/components/CustomAlert';
+import LoadingModal from '@/components/LoadingModal';
 
 const BASE_URL = Constants.expoConfig?.extra?.API_URL;
-
-const showAlert = (title: string, message?: string) => {
-  if (Platform.OS === 'web') {
-    window.alert(`${title}${message ? '\n' + message : ''}`);
-  } else {
-    Alert.alert(title, message);
-  }
-};
 
 export default function SignupScreen() {
   const router = useRouter();
@@ -41,7 +34,14 @@ export default function SignupScreen() {
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [isAuthCodeSent, setIsAuthCodeSent] = useState(false);
   const [timer, setTimer] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState<{ title: string; message?: string } | null>(null);
+
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const showAlert = (title: string, message?: string) => {
+    setAlert({ title, message });
+  };
 
   const isEmailValid = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
@@ -65,7 +65,8 @@ export default function SignupScreen() {
     };
   }, []);
 
-  const formatTimer = (sec: number) => `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
+  const formatTimer = (sec: number) =>
+    `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -79,6 +80,7 @@ export default function SignupScreen() {
   const handleCheckEmail = async () => {
     if (!isEmailValid(email)) return showAlert('이메일 오류', '올바른 이메일 주소를 입력해주세요.');
     try {
+      setLoading(true);
       const checkRes = await axios.post(`${BASE_URL}/auth/email`, { email });
       if (checkRes.data.result === true) {
         showAlert('중복 이메일', '이미 사용 중인 이메일입니다.');
@@ -93,14 +95,17 @@ export default function SignupScreen() {
       } else {
         showAlert('오류', '인증번호 발송에 실패했습니다.');
       }
-    } catch (err) {
+    } catch {
       showAlert('오류', '이메일 인증 중 문제가 발생했습니다.');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleVerifyCode = async () => {
     if (!authCode || !email) return showAlert('입력 오류', '인증번호를 입력해주세요.');
     try {
+      setLoading(true);
       const res = await axios.post(`${BASE_URL}/emails/verify`, { email, code: authCode });
       if (res.status === 200 && res.data.result) {
         setIsEmailVerified(true);
@@ -111,10 +116,12 @@ export default function SignupScreen() {
       }
     } catch {
       showAlert('실패', '인증번호 확인 중 오류 발생');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSignup = async () => {
+  const handleNext = () => {
     Keyboard.dismiss();
     if (!name || !email || !password || !confirmPassword)
       return showAlert('입력 오류', '모든 필수 항목을 입력해주세요.');
@@ -123,20 +130,11 @@ export default function SignupScreen() {
     if (password !== confirmPassword)
       return showAlert('비밀번호 불일치', '비밀번호가 다릅니다.');
 
-    try {
-      const body = { email, password, name, image: image ?? '' };
-      const res = await axios.post(`${BASE_URL}/auth/signup`, body, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (res.status === 200 || res.status === 201) {
-        showAlert('회원가입 완료', '약관을 동의해주세요.');
-        router.push('/terms-agreements');
-      }
-    } catch {
-      showAlert('회원가입 실패', '잠시 후 다시 시도해주세요.');
-    }
+    router.push({
+      pathname: '/terms-agreements',
+      params: { email, password, name, image: image ?? '' }
+    });
   };
-
 
   return (
     <View style={styles.container}>
@@ -215,7 +213,7 @@ export default function SignupScreen() {
           secureTextEntry={!isPasswordVisible}
         />
         <TouchableOpacity style={styles.eyeIcon} onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
-          <Ionicons name={isPasswordVisible ? 'eye-off' : 'eye'} size={24} color={Colors.grayDarkText} />
+          <Ionicons name={isPasswordVisible ? 'eye' : 'eye-off'} size={24} color={Colors.grayDarkText} />
         </TouchableOpacity>
       </View>
 
@@ -230,29 +228,37 @@ export default function SignupScreen() {
           secureTextEntry={!isConfirmVisible}
         />
         <TouchableOpacity style={styles.eyeIcon} onPress={() => setIsConfirmVisible(!isConfirmVisible)}>
-          <Ionicons name={isConfirmVisible ? 'eye-off' : 'eye'} size={24} color={Colors.grayDarkText} />
+          <Ionicons name={isConfirmVisible ? 'eye' : 'eye-off'} size={24} color={Colors.grayDarkText} />
         </TouchableOpacity>
       </View>
 
       <Button.Large
         title="다음"
-        onPress={handleSignup}
-        style={styles.submitButton}
+        onPress={handleNext}
+        style={{ marginTop: 32, backgroundColor: Colors.primary }}
         textColor={Colors.white}
+      />
+
+      <LoadingModal visible={loading} />
+      <CustomAlert
+        visible={!!alert}
+        title={alert?.title || ''}
+        message={alert?.message}
+        onClose={() => setAlert(null)}
       />
     </View>
   );
 }
 
+// ✅ 스타일은 기존 유지
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    paddingHorizontal: 24,
-    paddingTop: 48
+    padding: '5%'
   },
   title: {
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: 'bold',
     color: Colors.text,
     marginBottom: 24
@@ -363,11 +369,6 @@ const styles = StyleSheet.create({
     right: 10,
     top: '50%',
     transform: [{ translateY: -12 }]
-  },
-  submitButton: {
-    marginTop: 32,
-    backgroundColor: Colors.primary,
-    borderRadius: 16
   },
   disabledInput: {
     backgroundColor: '#F4F4F4',

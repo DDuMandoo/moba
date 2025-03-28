@@ -87,6 +87,12 @@ export default function BottomTabLayout() {
             ),
           }}
         />
+        <Tabs.Screen
+          name="wallet"
+          options={{
+            href: null,
+          }}
+        />
       </Tabs>
     </>
   );

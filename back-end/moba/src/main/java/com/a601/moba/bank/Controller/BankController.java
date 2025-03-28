@@ -2,7 +2,9 @@ package com.a601.moba.bank.Controller;
 
 import com.a601.moba.bank.Controller.Request.CreateBankRequest;
 import com.a601.moba.bank.Controller.Request.TransferBankRequest;
+import com.a601.moba.bank.Controller.Request.ValidBankRequest;
 import com.a601.moba.bank.Controller.Response.CreateBankResponse;
+import com.a601.moba.bank.Controller.Response.ValidBankResponse;
 import com.a601.moba.bank.Service.BankService;
 import com.a601.moba.global.code.SuccessCode;
 import com.a601.moba.global.response.JSONResponse;
@@ -47,6 +49,19 @@ public class BankController {
                 request.amount(),
                 request.name());
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.TRANSFER_SUCCESS));
+    }
+
+    // 계좌 연결 - 계좌 인증 토큰 발급
+    @PostMapping("/valid")
+    public ResponseEntity<JSONResponse<ValidBankResponse>> valid(
+            @RequestBody ValidBankRequest request
+    ){
+        ValidBankResponse response = bankService.valid(
+                request.account(),
+                request.bank()
+        );
+        System.out.println(JSONResponse.onSuccess(response));
+        return ResponseEntity.ok(JSONResponse.onSuccess(response));
     }
 
 }

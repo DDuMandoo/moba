@@ -1,6 +1,7 @@
 package com.a601.moba.bank.Service;
 
 import com.a601.moba.bank.Controller.Response.CreateBankResponse;
+import com.a601.moba.bank.Controller.Response.ValidBankResponse;
 import com.a601.moba.bank.Entity.Bank;
 import com.a601.moba.bank.Entity.BankAccount;
 import com.a601.moba.bank.Entity.BankTransaction;
@@ -53,7 +54,7 @@ public class BankService {
                 .build()));
 
         // 임시 토큰 생성
-        String accesstoken = jwtUtil.generateAccessToken(account);
+        String accesstoken = jwtUtil.generateAccessToken(account, bank.getName());
 
         log.info("🟢 계좌 생성 성공");
 
@@ -87,6 +88,8 @@ public class BankService {
         if(accountId.equals(targetId)){
             throw new BankException(ErrorCode.TRANSFER_ACCOUNT_DUPLICATE);
         }
+        System.out.println(accountId);
+        System.out.println(targetId);
         BankAccount account = bankAccountRepository.findByIdAndIsDeletedFalse(accountId)
                 .orElseThrow(() -> new BankException(ErrorCode.INVALID_ACCOUNT_ID));
 
@@ -125,5 +128,23 @@ public class BankService {
             depositTransaction.updateName(name);
             log.info("🟢 입금자명 변경");
         }
+    }
+
+    @Transactional
+    public ValidBankResponse valid(String account, String bank) {
+        BankAccount bankAccount = bankAccountRepository.findByIdAndIsDeletedFalse(account)
+                .orElseThrow(() -> new BankException(ErrorCode.INVALID_BANK_ID));
+
+        if(!bankAccount.getBank().getName().equals(bank)){
+            throw new BankException(ErrorCode.INVALID_BANK_NAME);
+        }
+
+        String accessToken = jwtUtil.generateAccessToken(account, bank);
+        String refreshToken = jwtUtil.generateRefreshToken(account, bank);
+
+        bankAccount.updateRefreshToken(refreshToken);
+        return ValidBankResponse.builder()
+                .accessToken(accessToken)
+                .build();
     }
 }

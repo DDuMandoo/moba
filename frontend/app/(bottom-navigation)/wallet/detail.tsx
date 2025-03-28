@@ -149,7 +149,7 @@ const FeatureButton = ({ iconName, label, onPress }: FeatureButtonProps) => {
         justifyContent: 'center',
         width,
         height,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.background,
         borderColor: Colors.primary,
         borderWidth: 1,
         borderRadius,

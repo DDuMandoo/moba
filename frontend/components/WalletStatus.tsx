@@ -129,7 +129,7 @@ export default function WalletStatus() {
 
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={() => router.push('/wallet/transfer')}
+          onPress={() => router.push('/wallet/charge')}
           style={{
             width: buttonWidth ?? undefined,
             borderWidth: 1,
@@ -150,7 +150,7 @@ export default function WalletStatus() {
               marginLeft: 4,
             }}
           >
-            +    송금
+            +    충전
           </Text>
         </TouchableOpacity>
       </View>

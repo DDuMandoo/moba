@@ -21,7 +21,7 @@ interface UserProfile {
 }
 
 const fetchUserProfile = async (): Promise<UserProfile> => {
-  const response = await axios.get('/api/members');
+  const response = await axios.get('/members');
   return response.data;
 };
 

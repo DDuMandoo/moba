@@ -88,8 +88,7 @@ public class BankService {
         if(accountId.equals(targetId)){
             throw new BankException(ErrorCode.TRANSFER_ACCOUNT_DUPLICATE);
         }
-        System.out.println(accountId);
-        System.out.println(targetId);
+
         BankAccount account = bankAccountRepository.findByIdAndIsDeletedFalse(accountId)
                 .orElseThrow(() -> new BankException(ErrorCode.INVALID_ACCOUNT_ID));
 

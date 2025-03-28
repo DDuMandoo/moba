@@ -51,6 +51,9 @@ public class SecurityConfig {
         http
                 .cors(Customizer.withDefaults()) // CORS 설정 활성화
                 .csrf(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                                 .requestMatchers(
                                         "/swagger-ui/**",

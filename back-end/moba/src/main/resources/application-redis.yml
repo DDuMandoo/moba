@@ -2,5 +2,4 @@ spring:
   # Redis 설정
   data:
     redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
+      host: moba-redis

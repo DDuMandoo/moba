@@ -68,6 +68,7 @@ public class EmailService {
     // 이메일 인증 완료 여부 확인
     public boolean isEmailVerified(String email) {
         String verified = redisTemplate.opsForValue().get(VERIFIED_EMAIL_PREFIX + email);
+        log.info("[EmailService] verified 값: {}", verified);
         return "true".equals(verified);
     }
 

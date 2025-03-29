@@ -1,5 +1,8 @@
 package com.a601.moba.email.Service;
 
+import com.a601.moba.global.code.ErrorCode;
+import com.a601.moba.global.exception.CommonException;
+import com.a601.moba.member.Repository.MemberRepository;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +25,13 @@ public class EmailService {
     private static final long VERIFICATION_CODE_TTL_MINUTES = 5;
     private static final long VERIFIED_TTL_MINUTES = 10;
     private final StringRedisTemplate stringRedisTemplate;
+    private final MemberRepository memberRepository;
 
     // 인증 코드 전송
     public void sendVerificationCode(String email) {
+        if (memberRepository.existsByEmail(email)) {
+            throw new CommonException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        }
         String code = generateVerificationCode();
 
         try {

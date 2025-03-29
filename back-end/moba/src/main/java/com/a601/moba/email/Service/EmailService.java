@@ -24,7 +24,6 @@ public class EmailService {
     private static final String VERIFIED_EMAIL_PREFIX = "verified_email:";
     private static final long VERIFICATION_CODE_TTL_MINUTES = 5;
     private static final long VERIFIED_TTL_MINUTES = 10;
-    private final StringRedisTemplate stringRedisTemplate;
     private final MemberRepository memberRepository;
 
     // 인증 코드 전송
@@ -43,7 +42,7 @@ public class EmailService {
             );
             log.info("[EmailService] 인증 코드 Redis 저장 완료 - email: {}, code: {}", email, code);
         } catch (Exception e) {
-            log.error("[EmailService] Redis 저장 실패 - email: {}, error: {}", email, e.getMessage());
+            log.error("[EmailService] Redis 저장 실패 - email: {}, error: {}", email, e.getMessage(), e);
             return;
         }
 
@@ -77,7 +76,7 @@ public class EmailService {
     public boolean isEmailVerified(String email) {
         String key = VERIFIED_EMAIL_PREFIX + email;
 //        String verified = redisTemplate.opsForValue().get(VERIFIED_EMAIL_PREFIX + email);
-        String verified = stringRedisTemplate.opsForValue().get("verified_email:" + email);
+        String verified = redisTemplate.opsForValue().get("verified_email:" + email);
         log.info("[EmailService] verified 값: {}", verified);
         log.info("Key Value: {}", key);
         return "true".equals(verified);

@@ -27,7 +27,7 @@ public class WalletAccount {
     private Wallet wallet;
 
     @Column(nullable = false)
-    private String bankType;
+    private String bank;
 
     @Column(nullable = false)
     private boolean isMain;
@@ -41,11 +41,11 @@ public class WalletAccount {
     @Builder
     public WalletAccount(String account,
                          Wallet wallet,
-                         String bankType,
+                         String bank,
                          String token) {
         this.account = account;
         this.wallet = wallet;
-        this.bankType = bankType;
+        this.bank = bank;
         this.token = token;
     }
 

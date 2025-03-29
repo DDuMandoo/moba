@@ -3,11 +3,16 @@ package com.a601.moba.appointment.Service;
 import com.a601.moba.appointment.Constant.Role;
 import com.a601.moba.appointment.Constant.State;
 import com.a601.moba.appointment.Controller.Request.AppointmentCreateRequest;
+import com.a601.moba.appointment.Controller.Request.AppointmentDelegateRequest;
 import com.a601.moba.appointment.Controller.Request.AppointmentJoinRequest;
+import com.a601.moba.appointment.Controller.Request.AppointmentKickRequest;
+import com.a601.moba.appointment.Controller.Request.AppointmentUpdateRequest;
 import com.a601.moba.appointment.Controller.Response.AppointmentCreateResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentDetailResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentDetailResponse.ParticipantInfo;
 import com.a601.moba.appointment.Controller.Response.AppointmentJoinResponse;
+import com.a601.moba.appointment.Controller.Response.AppointmentParticipantResponse;
+import com.a601.moba.appointment.Controller.Response.AppointmentUpdateResponse;
 import com.a601.moba.appointment.Entity.Appointment;
 import com.a601.moba.appointment.Entity.AppointmentParticipant;
 import com.a601.moba.appointment.Exception.AppointmentException;
@@ -48,7 +53,7 @@ public class AppointmentService {
         if (image != null && !image.isEmpty()) {
             imageUrl = s3Service.uploadFile(image);
         }
-        
+
         Appointment appointment = Appointment.builder()
                 .name(request.name())
                 .image(imageUrl)
@@ -212,4 +217,158 @@ public class AppointmentService {
         participant.updateState(State.LEAVE);
     }
 
+    @Transactional
+    public AppointmentUpdateResponse update(Integer appointmentId,
+                                            AppointmentUpdateRequest request,
+                                            MultipartFile image,
+                                            HttpServletRequest httpRequest) {
+        Integer memberId = authUtil.getMemberFromToken(httpRequest).getId();
+
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
+
+        AppointmentParticipant participant = appointmentParticipantRepository
+                .findByAppointmentAndMemberId(appointment, memberId)
+                .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED));
+
+        if (participant.getRole() != Role.HOST || participant.getState() != State.JOINED) {
+            throw new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED);
+        }
+
+        String imageUrl = appointment.getImage();
+        if (image != null && !image.isEmpty()) {
+            imageUrl = s3Service.uploadFile(image);
+        }
+
+        appointment.update(
+                request.name(),
+                imageUrl,
+                request.time(),
+                request.latitude(),
+                request.longitude(),
+                request.memo()
+        );
+
+        return AppointmentUpdateResponse.builder()
+                .appointmentId(appointment.getId())
+                .name(appointment.getName())
+                .imageUrl(appointment.getImage())
+                .time(appointment.getTime())
+                .latitude(appointment.getLatitude())
+                .longitude(appointment.getLongitude())
+                .memo(appointment.getMemo())
+                .updatedAt(appointment.getUpdatedAt())
+                .build();
+    }
+
+    @Transactional
+    public void deleteImage(Integer appointmentId, HttpServletRequest request) {
+        Appointment appointment = validateHostAccess(appointmentId, request);
+        appointment.uploadImage(null);
+    }
+
+    @Transactional
+    public void end(Integer appointmentId, HttpServletRequest httpRequest) {
+        Appointment appointment = validateHostAccess(appointmentId, httpRequest);
+        appointment.end();
+    }
+
+    public AppointmentParticipantResponse getParticipants(Integer appointmentId, HttpServletRequest request) {
+        Integer memberId = authUtil.getMemberFromToken(request).getId();
+
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
+
+        AppointmentParticipant participant = appointmentParticipantRepository
+                .findByAppointmentAndMemberId(appointment, memberId)
+                .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED));
+
+        if (participant.getState() != State.JOINED) {
+            throw new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED);
+        }
+
+        List<AppointmentParticipantResponse.ParticipantInfo> participants = appointmentParticipantRepository
+                .findAllByAppointment(appointment).stream()
+                .filter(p -> p.getState() == State.JOINED)
+                .map(p -> {
+                    Member member = memberRepository.findById(p.getMemberId())
+                            .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_PARTICIPANT_NOT_FOUND));
+                    return AppointmentParticipantResponse.ParticipantInfo.builder()
+                            .memberId(member.getId())
+                            .name(member.getName())
+                            .build();
+                }).toList();
+
+        return AppointmentParticipantResponse.builder()
+                .appointmentId(appointment.getId())
+                .participants(participants)
+                .build();
+    }
+
+    @Transactional
+    public AppointmentDelegateResponse delegateHost(Integer appointmentId, AppointmentDelegateRequest request,
+                                                    HttpServletRequest httpRequest) {
+        Appointment appointment = validateHostAccess(appointmentId, httpRequest);
+
+        AppointmentParticipant currentHost = appointmentParticipantRepository
+                .findByAppointmentAndMemberId(appointment, authUtil.getMemberFromToken(httpRequest).getId())
+                .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED));
+
+        AppointmentParticipant newHost = appointmentParticipantRepository
+                .findByAppointmentAndMemberId(appointment, request.newHostId())
+                .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_PARTICIPANT_NOT_FOUND));
+
+        if (newHost.getState() != State.JOINED) {
+            throw new AppointmentException(ErrorCode.INVALID_REQUEST);
+        }
+
+        currentHost.updateRole(Role.PARTICIPANT);
+        newHost.updateRole(Role.HOST);
+
+        Member preMember = memberRepository.findById(currentHost.getMemberId())
+                .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_PARTICIPANT_NOT_FOUND));
+
+        Member newMember = memberRepository.findById(newHost.getMemberId())
+                .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_PARTICIPANT_NOT_FOUND));
+
+        return AppointmentDelegateResponse.builder()
+                .preHostId(preMember.getId())
+                .preHostName(preMember.getName())
+                .newHostId(newMember.getId())
+                .newHostName(newMember.getName())
+                .build();
+    }
+
+    @Transactional
+    public void kickParticipant(Integer appointmentId, AppointmentKickRequest request, HttpServletRequest httpRequest) {
+        Appointment appointment = validateHostAccess(appointmentId, httpRequest);
+
+        AppointmentParticipant target = appointmentParticipantRepository
+                .findByAppointmentAndMemberId(appointment, request.memberId())
+                .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_PARTICIPANT_NOT_FOUND));
+
+        if (target.getRole() == Role.HOST) {
+            throw new AppointmentException(ErrorCode.APPOINTMENT_KICK_FORBIDDEN);
+        }
+
+        target.updateState(State.KICKED);
+    }
+
+
+    private Appointment validateHostAccess(Integer appointmentId, HttpServletRequest request) {
+        Integer memberId = authUtil.getMemberFromToken(request).getId();
+
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
+
+        AppointmentParticipant participant = appointmentParticipantRepository
+                .findByAppointmentAndMemberId(appointment, memberId)
+                .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED));
+
+        if (participant.getRole() != Role.HOST || participant.getState() != State.JOINED) {
+            throw new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED);
+        }
+
+        return appointment;
+    }
 }

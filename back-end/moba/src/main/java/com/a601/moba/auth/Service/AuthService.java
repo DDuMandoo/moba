@@ -11,6 +11,8 @@ import com.a601.moba.global.exception.CommonException;
 import com.a601.moba.global.service.S3Service;
 import com.a601.moba.member.Entity.Member;
 import com.a601.moba.member.Repository.MemberRepository;
+import com.a601.moba.member.Service.MemberService;
+import com.a601.moba.wallet.Service.WalletService;
 import java.util.Optional;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
@@ -31,9 +33,10 @@ public class AuthService {
     private final JwtProvider jwtProvider;
     private final PasswordEncoder passwordEncoder;
     private final StringRedisTemplate redisTemplate;
-    private final RedisService redisService;
+    private final AuthRedisService redisService;
     private final EmailService emailService;
     private final KakaoOAuthClient kakaoOAuthClient;
+    private final WalletService walletService;
     private final S3Service s3Service;
 
     @Transactional
@@ -190,6 +193,8 @@ public class AuthService {
 
         memberRepository.save(newMember);
         emailService.deleteEmailVerified(email);
+
+        walletService.create(newMember);
 
         return SignupResponse.builder()
                 .memberId(newMember.getId())

@@ -3,8 +3,8 @@ package com.a601.moba.global.config;
 import com.a601.moba.auth.Exception.JwtAccessDeniedHandler;
 import com.a601.moba.auth.Exception.JwtAuthenticationEntryPoint;
 import com.a601.moba.auth.Filter.JwtAuthenticationFilter;
+import com.a601.moba.auth.Service.AuthRedisService;
 import com.a601.moba.auth.Service.JwtProvider;
-import com.a601.moba.auth.Service.RedisService;
 import com.a601.moba.global.config.properties.CorsProperties;
 import com.a601.moba.global.filter.NotFoundPreFilter;
 import java.util.List;
@@ -40,7 +40,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    JwtProvider jwtProvider,
-                                                   RedisService redisService,
+                                                   AuthRedisService redisService,
                                                    JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
                                                    JwtAccessDeniedHandler jwtAccessDeniedHandler,
                                                    List<HandlerMapping> handlerMappings) throws Exception {

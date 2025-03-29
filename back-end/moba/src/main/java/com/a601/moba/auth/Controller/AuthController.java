@@ -20,8 +20,10 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -41,27 +43,34 @@ public class AuthController {
     private final AuthService authService;
     private final AuthUtil authUtil;
 
-    @Operation(summary = "일반 회원가입", description = "이메일, 비밀번호, 이름으로 회원가입을 수행합니다.")
-    @PostMapping(value = "/signup", consumes = {"multipart/form-data"})
+    @Operation(summary = "회원가입", description = "이메일, 비밀번호, 이름으로 회원가입을 수행합니다.")
+    @PostMapping("/signup")
     public ResponseEntity<JSONResponse<SignupResponse>> signup(
-            @RequestPart("data") SignupRequest request,
-            @RequestPart(value = "image", required = false) MultipartFile image
+            @RequestBody SignupRequest request
     ) {
-        log.info("request: {}", request.toString());
         SignupResponse response = authService.signup(
-                request.getEmail(),
-                request.getPassword(),
-                request.getName(),
-                image
+                request.email(),
+                request.password(),
+                request.name()
         );
         return ResponseEntity.status(201).body(JSONResponse.onSuccess(response));
+    }
+
+    @Operation(summary = "프로필 이미지 업로드", description = "회원가입 후 프로필 이미지를 업로드합니다.")
+    @PostMapping(value = "/{memberId}/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<JSONResponse<Void>> uploadProfileImage(
+            @PathVariable Integer memberId,
+            @RequestPart("image") MultipartFile image
+    ) {
+        authService.uploadProfileImage(memberId, image);
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.PROFILE_IMAGE_UPLOAD_SUCCESS));
     }
 
 
     @Operation(summary = "일반 로그인", description = "이메일과 비밀번호로 로그인을 수행합니다.")
     @PostMapping("/signin")
     public ResponseEntity<JSONResponse<AuthResponse>> signin(@RequestBody AuthRequest request) {
-        AuthResponse response = authService.signin(request.getEmail(), request.getPassword());
+        AuthResponse response = authService.signin(request.email(), request.password());
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.SIGNIN_SUCCESS, response));
     }
 
@@ -71,8 +80,8 @@ public class AuthController {
         try {
             AuthResponse auth = authService.kakaoSignin(code);
 
-            String encodedAccess = URLEncoder.encode(auth.getAccessToken(), StandardCharsets.UTF_8);
-            String encodedRefresh = URLEncoder.encode(auth.getRefreshToken(), StandardCharsets.UTF_8);
+            String encodedAccess = URLEncoder.encode(auth.accessToken(), StandardCharsets.UTF_8);
+            String encodedRefresh = URLEncoder.encode(auth.refreshToken(), StandardCharsets.UTF_8);
 
             String frontendUrl = "mobaapp://oauth" +
                     "?access=" + encodedAccess +

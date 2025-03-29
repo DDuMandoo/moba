@@ -1,5 +1,7 @@
 package com.a601.moba.global.service;
 
+import com.a601.moba.global.code.ErrorCode;
+import com.a601.moba.global.exception.CommonException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
@@ -21,8 +23,12 @@ public class S3Service {
     private String bucket;
 
     public String uploadFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new CommonException(ErrorCode.S3_UPLOAD_FAILED); // 파일이 없을 경우도 포함
+        }
+
         String originalFilename = file.getOriginalFilename();
-        String extension = originalFilename != null && originalFilename.contains(".")
+        String extension = (originalFilename != null && originalFilename.contains("."))
                 ? originalFilename.substring(originalFilename.lastIndexOf("."))
                 : "";
         String fileName = "profile/" + UUID.randomUUID() + extension;
@@ -40,7 +46,7 @@ public class S3Service {
             return amazonS3.getUrl(bucket, fileName).toString();
 
         } catch (IOException e) {
-            throw new RuntimeException("S3 파일 업로드 실패", e);
+            throw new CommonException(ErrorCode.S3_UPLOAD_FAILED);
         }
     }
 }

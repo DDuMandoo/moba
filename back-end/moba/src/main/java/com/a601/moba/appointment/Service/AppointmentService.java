@@ -46,13 +46,9 @@ public class AppointmentService {
 
         String imageUrl = null;
         if (image != null && !image.isEmpty()) {
-            try {
-                imageUrl = s3Service.uploadFile(image);
-            } catch (Exception e) {
-                throw new AppointmentException(ErrorCode.APPOINTMENT_IMAGE_UPLOAD_FAILED);
-            }
+            imageUrl = s3Service.uploadFile(image);
         }
-
+        
         Appointment appointment = Appointment.builder()
                 .name(request.name())
                 .image(imageUrl)

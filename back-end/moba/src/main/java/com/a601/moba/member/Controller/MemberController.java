@@ -62,7 +62,7 @@ public class MemberController {
     @Operation(summary = "비밀번호 재설정 메일 전송", description = "비밀번호 재설정 링크가 포함된 이메일을 전송합니다.")
     @PostMapping("/password/reset")
     public ResponseEntity<JSONResponse<Void>> resetPassword(@RequestBody PasswordResetRequest request) {
-        authService.resetPassword(request.getEmail());
+        authService.resetPassword(request.email());
         return ResponseEntity
                 .status(SuccessCode.PASSWORD_RESET_SUCCESS.getHttpStatus())
                 .body(JSONResponse.of(SuccessCode.PASSWORD_RESET_SUCCESS));

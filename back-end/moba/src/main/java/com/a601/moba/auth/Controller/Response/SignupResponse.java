@@ -1,13 +1,12 @@
 package com.a601.moba.auth.Controller.Response;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
 
-@Getter
-@AllArgsConstructor
-public class SignupResponse {
-    private Integer memberId;
-    private String email;
-    private String name;
-    private String image;
+@Builder
+public record SignupResponse(
+        Integer memberId,
+        String email,
+        String name,
+        String profileImage
+) {
 }

@@ -1,7 +1,5 @@
 package com.a601.moba.auth.Controller.Request;
 
-// package: com.a601.moba.auth.Controller.Request
-
 import lombok.Builder;
 
 @Builder

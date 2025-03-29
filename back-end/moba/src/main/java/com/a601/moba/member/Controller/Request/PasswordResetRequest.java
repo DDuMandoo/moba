@@ -1,10 +1,9 @@
 package com.a601.moba.member.Controller.Request;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Builder;
 
-@Getter
-@NoArgsConstructor
-public class PasswordResetRequest {
-    private String email;
+@Builder
+public record PasswordResetRequest(
+        String email
+) {
 }

@@ -1,16 +1,11 @@
 package com.a601.moba.auth.Controller.Request;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Builder;
 
-@Getter
-@Setter
-@ToString
-@NoArgsConstructor
-public class SignupRequest {
-    private String email;
-    private String password;
-    private String name;
+@Builder
+public record SignupRequest(
+        String email,
+        String password,
+        String name
+) {
 }

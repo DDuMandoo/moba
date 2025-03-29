@@ -26,26 +26,27 @@ public class MemberService {
     public MemberUpdateResponse updateMemberInfo(MemberUpdateRequest request, HttpServletRequest servletRequest) {
         Member member = authUtil.getMemberFromToken(servletRequest);
 
-        if (request.getName() != null && !request.getName().isBlank()) {
-            member.updateName(request.getName());
+        if (request.name() != null && !request.name().isBlank()) {
+            member.updateName(request.name());
         }
 
-        if (request.getPassword() != null && !request.getPassword().isBlank()) {
-            String encoded = passwordEncoder.encode(request.getPassword());
+        if (request.password() != null && !request.password().isBlank()) {
+            String encoded = passwordEncoder.encode(request.password());
             member.changePassword(encoded);
         }
 
-        if (request.getImage() != null && !request.getImage().isEmpty()) {
-            String imageUrl = uploadImage(request.getImage());
+        if (request.image() != null && !request.image().isEmpty()) {
+            String imageUrl = uploadImage(request.image());
             member.updateProfileImage(imageUrl);
         }
 
-        return new MemberUpdateResponse(
-                member.getId(),
-                member.getName(),
-                member.getProfileImage()
-        );
+        return MemberUpdateResponse.builder()
+                .memberId(member.getId())
+                .name(member.getName())
+                .image(member.getProfileImage())
+                .build();
     }
+
 
     @Transactional
     public void deleteMember(HttpServletRequest request) {

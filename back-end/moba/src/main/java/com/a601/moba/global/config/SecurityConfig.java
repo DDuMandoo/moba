@@ -65,6 +65,7 @@ public class SecurityConfig {
                                 ).permitAll()
                                 .requestMatchers("/api/auth/signin").permitAll()
                                 .requestMatchers("/api/auth/signup").permitAll()
+                                .requestMatchers("/api/auth/*/profile-image").permitAll()
                                 .requestMatchers("/api/auth/email").permitAll()
                                 .requestMatchers("/api/auth/kakao/callback").permitAll()
 //                        .requestMatchers("/api/auth/social/kakao").permitAll()

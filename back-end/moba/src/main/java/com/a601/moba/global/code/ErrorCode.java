@@ -60,6 +60,11 @@ public enum ErrorCode {
     INVALID_WALLET(4500, BAD_REQUEST, "존재하지 않는 지갑입니다"),
     INVALID_VERIFICATION_ACCOUNT(4501, BAD_REQUEST, "존재하지 않는 계좌입니다"),
     INVALID_VERIFICATION_ACCOUNT_CODE(4502, BAD_REQUEST, "유효하지 않는 코드 입니다"),
+
+    // ================= S3 관련 에러 (4600번대) ==================
+    S3_UPLOAD_FAILED(4600, INTERNAL_SERVER_ERROR, "S3 파일 업로드에 실패했습니다"),
+    S3_DELETE_FAILED(4601, INTERNAL_SERVER_ERROR, "S3 파일 삭제에 실패했습니다"),
+
     ;
 
 

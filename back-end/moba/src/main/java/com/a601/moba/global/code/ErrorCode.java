@@ -23,7 +23,7 @@ public enum ErrorCode {
     INSUFFICIENT_BALANCE(4007, BAD_REQUEST, "잔액이 부족합니다"),
     INVALID_AMOUNT(4008, BAD_REQUEST,"입출금 금액은 0보다 커야 합니다"),
     TRANSFER_ACCOUNT_DUPLICATE(4009, BAD_REQUEST, "자기 자신한테는 이체할 수 없습니다"),
-
+    INVALID_TRANSACTION_ID(4010, BAD_REQUEST, "존재하지 않는 거래 내역입니다"),
     ;
 
     private final int code;

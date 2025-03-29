@@ -1,6 +1,8 @@
 package com.a601.moba.bank.Service;
 
 import com.a601.moba.bank.Controller.Response.CreateBankResponse;
+import com.a601.moba.bank.Controller.Response.SearchTransactionResponse;
+import com.a601.moba.bank.Controller.Response.TransferBankResponse;
 import com.a601.moba.bank.Controller.Response.ValidBankResponse;
 import com.a601.moba.bank.Entity.Bank;
 import com.a601.moba.bank.Entity.BankAccount;
@@ -79,7 +81,7 @@ public class BankService {
     }
 
     @Transactional
-    public void transfer(String accessToken, String targetId, Long amount, String name) {
+    public TransferBankResponse transfer(String accessToken, String targetId, Long amount, String name) {
         if(!jwtUtil.isTokenValid(accessToken)){
             throw new BankException(ErrorCode.INVALID_BANK_TOKEN);
         }
@@ -98,7 +100,7 @@ public class BankService {
         //출금
         account.withdraw(amount);
 
-        bankTransactionRepository.save(
+        BankTransaction withdrawTransaction = bankTransactionRepository.save(
                 BankTransaction.builder()
                         .account(account)
                         .amount(amount)
@@ -108,6 +110,11 @@ public class BankService {
         );
 
         log.info("🟢 출금 성공");
+
+        if(!name.isEmpty()){
+            withdrawTransaction.updateName(target.getName());
+            log.info("🟢 입금자명 변경");
+        }
 
         // 입금
         target.deposit(amount);
@@ -127,6 +134,11 @@ public class BankService {
             depositTransaction.updateName(name);
             log.info("🟢 입금자명 변경");
         }
+
+        return TransferBankResponse.builder()
+                .depositId(depositTransaction.getId())
+                .withdrawId(withdrawTransaction.getId())
+                .build();
     }
 
     @Transactional
@@ -144,6 +156,19 @@ public class BankService {
         bankAccount.updateRefreshToken(refreshToken);
         return ValidBankResponse.builder()
                 .accessToken(accessToken)
+                .build();
+    }
+
+    public SearchTransactionResponse searchTransaction(Integer id, String accessToken) {
+        if(!jwtUtil.isTokenValid(accessToken)){
+            throw new BankException(ErrorCode.INVALID_BANK_TOKEN);
+        }
+        BankTransaction transaction = bankTransactionRepository.getBankTransactionById(id)
+                .orElseThrow(() -> new BankException(ErrorCode.INVALID_TRANSACTION_ID));
+
+        return SearchTransactionResponse.builder()
+                .amount(transaction.getAmount())
+                .targetId(transaction.getTarget().getId())
                 .build();
     }
 }

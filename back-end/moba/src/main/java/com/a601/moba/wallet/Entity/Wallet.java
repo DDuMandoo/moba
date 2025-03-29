@@ -1,6 +1,8 @@
 package com.a601.moba.wallet.Entity;
 
+import com.a601.moba.global.code.ErrorCode;
 import com.a601.moba.member.Entity.Member;
+import com.a601.moba.wallet.Exception.WalletAuthException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -26,17 +28,34 @@ public class Wallet {
     private Member member;
 
     @Column(nullable = false)
-    private Long amount;
+    private Long balance;
 
     private String password;
 
     @Builder
     public Wallet(Member member) {
         this.member = member;
-        amount = 0L;
+        balance = 0L;
     }
 
     public void updatePassword(String password) {
         this.password = password;
+    }
+
+    public void deposit(Long amount) {
+        if (amount < 0) {
+            throw new WalletAuthException(ErrorCode.INVALID_AMOUNT);
+        }
+        this.balance += amount;
+    }
+
+    public void withdraw(Long amount) {
+        if (amount < 0) {
+            throw new WalletAuthException(ErrorCode.INVALID_AMOUNT);
+        }
+        if (this.balance < amount) {
+            throw new WalletAuthException(ErrorCode.INSUFFICIENT_BALANCE);
+        }
+        this.balance -= amount;
     }
 }

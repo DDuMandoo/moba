@@ -2,5 +2,6 @@
 Moba:
   bank:
     accesstoken: ${MOBA_BANK_ACCESSTOKEN}
+    account: ${MOBA_BANK_ACCOUNT}
     base:
       url: ${MOBA_BANK_URL}

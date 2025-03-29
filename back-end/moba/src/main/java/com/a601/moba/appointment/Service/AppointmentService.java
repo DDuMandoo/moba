@@ -8,6 +8,7 @@ import com.a601.moba.appointment.Controller.Request.AppointmentJoinRequest;
 import com.a601.moba.appointment.Controller.Request.AppointmentKickRequest;
 import com.a601.moba.appointment.Controller.Request.AppointmentUpdateRequest;
 import com.a601.moba.appointment.Controller.Response.AppointmentCreateResponse;
+import com.a601.moba.appointment.Controller.Response.AppointmentDelegateResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentDetailResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentDetailResponse.ParticipantInfo;
 import com.a601.moba.appointment.Controller.Response.AppointmentJoinResponse;
@@ -76,7 +77,6 @@ public class AppointmentService {
                 .role(Role.HOST)
                 .state(State.JOINED)
                 .joinAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
 
         appointmentParticipantRepository.save(hostParticipant);
@@ -91,8 +91,8 @@ public class AppointmentService {
                 .memo(appointment.getMemo())
                 .inviteCode(appointment.getInviteUrl())
                 .isEnded(appointment.getIsEnded())
+                .createdAt(appointment.getCreatedAt())
                 .build();
-
     }
 
     @Transactional
@@ -114,11 +114,9 @@ public class AppointmentService {
             if (state == State.JOINED) {
                 throw new AppointmentException(ErrorCode.APPOINTMENT_ALREADY_JOINED);
             }
-
             if (state == State.KICKED) {
                 throw new AppointmentException(ErrorCode.APPOINTMENT_JOIN_FORBIDDEN);
             }
-
             if (state == State.LEAVE) {
                 existingParticipant.updateState(State.JOINED);
                 participant = existingParticipant;
@@ -151,7 +149,6 @@ public class AppointmentService {
                         .build())
                 .build();
     }
-
 
     public AppointmentDetailResponse getDetail(Integer appointmentId, HttpServletRequest request) {
         Integer memberId = authUtil.getMemberFromToken(request).getId();
@@ -195,6 +192,7 @@ public class AppointmentService {
                 .memo(appointment.getMemo())
                 .isEnded(appointment.getIsEnded())
                 .participants(participants)
+                .createdAt(appointment.getCreatedAt())
                 .build();
     }
 

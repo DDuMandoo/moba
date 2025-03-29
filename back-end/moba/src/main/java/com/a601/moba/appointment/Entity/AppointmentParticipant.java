@@ -55,8 +55,12 @@ public class AppointmentParticipant {
     @LastModifiedDate
     @Column(nullable = false)
     private LocalDateTime updatedAt;
-    
+
     public void updateState(State newState) {
         this.state = newState;
+    }
+
+    public void updateRole(Role role) {
+        this.role = role;
     }
 }

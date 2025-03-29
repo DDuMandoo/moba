@@ -55,6 +55,7 @@ public enum ErrorCode {
     APPOINTMENT_IMAGE_UPLOAD_FAILED(4408, INTERNAL_SERVER_ERROR, "약속 이미지 업로드에 실패했습니다"),
     APPOINTMENT_PARTICIPANT_LIMIT_EXCEEDED(4409, BAD_REQUEST, "약속방 참여 인원 제한을 초과하였습니다"),
     APPOINTMENT_EXIT_FORBIDDEN(4410, FORBIDDEN, "방장은 약속방을 나갈 수 없습니다"),
+    APPOINTMENT_KICK_FORBIDDEN(4410, FORBIDDEN, "방장을 강제로 퇴장시킬 수 없습니다."),
 
     //================= 지갑 관련 에러 (4500번대) ==================
     INVALID_WALLET(4500, BAD_REQUEST, "존재하지 않는 지갑입니다"),

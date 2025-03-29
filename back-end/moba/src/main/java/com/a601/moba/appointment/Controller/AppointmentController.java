@@ -6,6 +6,7 @@ import com.a601.moba.appointment.Controller.Request.AppointmentJoinRequest;
 import com.a601.moba.appointment.Controller.Request.AppointmentKickRequest;
 import com.a601.moba.appointment.Controller.Request.AppointmentUpdateRequest;
 import com.a601.moba.appointment.Controller.Response.AppointmentCreateResponse;
+import com.a601.moba.appointment.Controller.Response.AppointmentDelegateResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentDetailResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentJoinResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentParticipantResponse;
@@ -15,12 +16,15 @@ import com.a601.moba.global.code.SuccessCode;
 import com.a601.moba.global.response.JSONResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,12 +43,26 @@ public class AppointmentController {
 
     private final AppointmentService appointmentService;
 
-    @Operation(summary = "약속방 생성", description = "약속방(채팅방)을 생성합니다.")
-    @PostMapping
+    @Operation(
+            summary = "약속방 생성",
+            description = "약속방(채팅방)을 생성합니다. 약속 이름, 시간, 장소 등의 정보와 함께 대표 이미지를 업로드할 수 있습니다.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "약속 생성 요청 데이터 (JSON + 이미지)",
+                    required = true,
+                    content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE)
+            ),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "약속방 생성을 성공하였습니다.")
+            }
+    )
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<JSONResponse<AppointmentCreateResponse>> create(
-            @RequestPart("data") @Parameter(description = "약속 생성 요청 데이터") AppointmentCreateRequest request,
-            @RequestPart(value = "image", required = false)
-            @Parameter(description = "대표 이미지 (선택)") MultipartFile image,
+            @Parameter(description = "약속 생성 요청 데이터(JSON)", required = true)
+            @RequestPart("data") @Valid AppointmentCreateRequest request,
+
+            @Parameter(description = "대표 이미지 파일 (선택)")
+            @RequestPart(value = "image", required = false) MultipartFile image,
+
             HttpServletRequest httpRequest
     ) {
         AppointmentCreateResponse response = appointmentService.create(request, image, httpRequest);

@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum SuccessCode {
     REQUEST_SUCCESS(2000, OK, "요청이 성공적으로 처리되었습니다"),
+    SEARCH_SUCCESS(2001, OK, "조회에 성공했습니다"),
 
     // ================= 인증 / 로그인 관련 성공 (2100번대) =================
     SIGNIN_SUCCESS(2100, OK, "로그인에 성공하였습니다"),

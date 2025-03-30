@@ -11,8 +11,11 @@ import com.a601.moba.appointment.Controller.Response.AppointmentDetailResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentJoinResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentListItemResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentParticipantResponse;
+import com.a601.moba.appointment.Controller.Response.AppointmentSearchResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentSummaryResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentUpdateResponse;
+import com.a601.moba.appointment.Controller.Response.FriendSearchResponse;
+import com.a601.moba.appointment.Service.AppointmentSearchService;
 import com.a601.moba.appointment.Service.AppointmentService;
 import com.a601.moba.global.code.SuccessCode;
 import com.a601.moba.global.response.JSONResponse;
@@ -23,10 +26,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -41,11 +47,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name = "약속 API", description = "약속방(채팅방) 관련 기능")
 @RestController
+@Validated
 @RequestMapping("/api/appointments")
 @RequiredArgsConstructor
 public class AppointmentController {
 
     private final AppointmentService appointmentService;
+    private final AppointmentSearchService appointmentSearchService;
 
     @Operation(
             summary = "약속방 생성",
@@ -213,8 +221,8 @@ public class AppointmentController {
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.APPOINTMENT_PARTICIPANT_KICK_SUCCESS));
     }
 
-    @GetMapping
     @Operation(summary = "사용자 약속 조회", description = "연/월 파라미터가 있으면 해당 월 약속 조회, 없으면 전체 약속 조회")
+    @GetMapping
     public ResponseEntity<JSONResponse<List<AppointmentListItemResponse>>> getMyAppointments(
             @Parameter(description = "연도") @RequestParam(required = false) Integer year,
             @Parameter(description = "월") @RequestParam(required = false) Integer month,
@@ -233,5 +241,32 @@ public class AppointmentController {
     ) {
         AppointmentSummaryResponse response = appointmentService.getAppointmentSummary(year, month, request);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.APPOINTMENT_STATISTICS_SUCCESS, response));
+    }
+
+    @Operation(summary = "초대할 친구 검색", description = "이름 또는 이메일로 친구를 검색합니다.")
+    @GetMapping("/search/friends")
+    public ResponseEntity<JSONResponse<?>> searchFriends(
+            @Parameter(description = "검색 키워드 (이름 또는 이메일)", required = true)
+            @RequestParam @NotBlank String keyword,
+
+            @Parameter(description = "결과 개수 (기본값: 10)")
+            @RequestParam(defaultValue = "10") @Min(0) int size, // size는 0 이상이어야 한다
+
+            @Parameter(description = "커서 ID (페이징 용도)")
+            @RequestParam(required = false) Integer cursorId) {
+
+        FriendSearchResponse response = appointmentSearchService.searchFriends(keyword, size, cursorId);
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.SEARCH_SUCCESS, response));
+    }
+
+    @Operation(summary = "약속명 또는 참가자 이름으로 약속 검색")
+    @GetMapping("/search")
+    public ResponseEntity<JSONResponse<?>> searchAppointments(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "10") @Min(1) int size,
+            @RequestParam(required = false) Integer cursorId) {
+
+        AppointmentSearchResponse response = appointmentSearchService.searchAppointments(keyword, size, cursorId);
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.SEARCH_SUCCESS, response));
     }
 }

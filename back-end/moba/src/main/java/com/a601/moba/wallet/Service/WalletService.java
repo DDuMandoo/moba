@@ -9,6 +9,7 @@ import com.a601.moba.wallet.Controller.Response.ConnectAccountResponse;
 import com.a601.moba.wallet.Controller.Response.DepositWalletResponse;
 import com.a601.moba.wallet.Controller.Response.GetAccountResponse;
 import com.a601.moba.wallet.Controller.Response.GetBalanceResponse;
+import com.a601.moba.wallet.Controller.Response.GetTransactionResponse;
 import com.a601.moba.wallet.Controller.Response.TransferWalletResponse;
 import com.a601.moba.wallet.Controller.Response.WithdrawWalletResponse;
 import com.a601.moba.wallet.Entity.Transaction;
@@ -21,6 +22,7 @@ import com.a601.moba.wallet.Repository.TransactionRepository;
 import com.a601.moba.wallet.Repository.WalletAccountRepository;
 import com.a601.moba.wallet.Repository.WalletRepository;
 import jakarta.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +31,9 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -43,6 +47,7 @@ public class WalletService {
     private final WalletRedisService walletRedisService;
     private final TransactionRepository transactionRepository;
     private final MemberRepository memberRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${moba.bank.base.url}")
     private String BANK_URL;
@@ -58,8 +63,23 @@ public class WalletService {
                 .build());
     }
 
+    public Wallet getWallet(Member member) {
+        return walletRepository.getByMember(member)
+                .orElseThrow(() -> new WalletAuthException(ErrorCode.INVALID_WALLET));
+    }
+
+    public Wallet getWalletForUpdate(Member member) {
+        return walletRepository.getByMemberForUpdate(member)
+                .orElseThrow(() -> new WalletAuthException(ErrorCode.INVALID_WALLET));
+    }
+
+    public Member getMember(String email) {
+        return memberRepository.findByEmail(email)
+                .orElseThrow(() -> new AuthException(ErrorCode.MEMBER_NOT_FOUND));
+    }
+
     @Transactional
-    public void connectAccount(Member member, String account, String bank) {
+    public void connectAccount(String email, String account, String bank) {
         if (walletAccountRepository.existsByAccount(account)) {
             throw new WalletAuthException(ErrorCode.DUPLICATE_CONNECT_ACCOUNT);
         }
@@ -83,11 +103,12 @@ public class WalletService {
         log.info("🟢 " + response.getBody().result());
 
         // 인증 코드 저장
-        walletRedisService.saveCode(member.getEmail(), code);
+        walletRedisService.saveCode(email, code);
     }
 
     @Transactional
-    public ConnectAccountResponse authAccount(Member member, String code, String account, String bank) {
+    public ConnectAccountResponse authAccount(String email, String code, String account, String bank) {
+        Member member = getMember(email);
         if (!code.equals(walletRedisService.getCode(member.getEmail()))) {
             throw new WalletAuthException(ErrorCode.INVALID_VERIFICATION_ACCOUNT_CODE);
         }
@@ -111,8 +132,7 @@ public class WalletService {
 
         Map<String, String> result = (Map<String, String>) response.getBody().result();
 
-        Wallet wallet = walletRepository.getByMember(member)
-                .orElseThrow(() -> new WalletAuthException(ErrorCode.INVALID_WALLET));
+        Wallet wallet = getWallet(member);
 
         walletAccountRepository.save(WalletAccount.builder()
                 .account(account)
@@ -130,9 +150,9 @@ public class WalletService {
     }
 
     @Transactional
-    public void changeMainAccount(Member member, String account) {
-        Wallet wallet = walletRepository.getByMember(member)
-                .orElseThrow(() -> new WalletAuthException(ErrorCode.INVALID_WALLET));
+    public void changeMainAccount(String email, String account) {
+        Member member = getMember(email);
+        Wallet wallet = getWallet(member);
         WalletAccount walletAccount = walletAccountRepository.getWalletAccountByWalletAndIsMainTrue(wallet)
                 .orElse(null);
 
@@ -146,9 +166,10 @@ public class WalletService {
         newMainAccount.toggleMain();
     }
 
-    public GetAccountResponse getAccount(Member member) {
-        Wallet wallet = walletRepository.getByMember(member)
-                .orElseThrow(() -> new WalletAuthException(ErrorCode.INVALID_WALLET));
+    @Transactional
+    public GetAccountResponse getAccount(String email) {
+        Member member = getMember(email);
+        Wallet wallet = getWallet(member);
 
         List<WalletAccount> accounts = walletAccountRepository.getAllByWallet(wallet);
 
@@ -165,9 +186,10 @@ public class WalletService {
 
     }
 
-    public GetBalanceResponse getBalance(Member member) {
-        Wallet wallet = walletRepository.getByMember(member)
-                .orElseThrow(() -> new WalletAuthException(ErrorCode.INVALID_WALLET));
+    @Transactional
+    public GetBalanceResponse getBalance(String email) {
+        Member member = getMember(email);
+        Wallet wallet = getWallet(member);
 
         return GetBalanceResponse.builder()
                 .balance(wallet.getBalance())
@@ -175,9 +197,9 @@ public class WalletService {
     }
 
     @Transactional
-    public DepositWalletResponse deposit(Member member, String account, Long amount) {
-        Wallet wallet = walletRepository.getByMember(member)
-                .orElseThrow(() -> new WalletAuthException(ErrorCode.INVALID_WALLET));
+    public DepositWalletResponse deposit(String email, String account, Long amount) {
+        Member member = getMember(email);
+        Wallet wallet = getWallet(member);
         WalletAccount walletAccount = walletAccountRepository.getWalletAccountByAccount(account)
                 .orElseThrow(() -> new WalletAuthException(ErrorCode.INVALID_VERIFICATION_ACCOUNT));
 
@@ -230,9 +252,9 @@ public class WalletService {
     }
 
     @Transactional
-    public WithdrawWalletResponse withdraw(Member member, String account, Long amount) {
-        Wallet wallet = walletRepository.getByMember(member)
-                .orElseThrow(() -> new WalletAuthException(ErrorCode.INVALID_WALLET));
+    public WithdrawWalletResponse withdraw(String email, String account, Long amount) {
+        Member member = getMember(email);
+        Wallet wallet = getWallet(member);
         WalletAccount walletAccount = walletAccountRepository.getWalletAccountByAccount(account)
                 .orElseThrow(() -> new WalletAuthException(ErrorCode.INVALID_VERIFICATION_ACCOUNT));
         // moba -> 사용자 계좌
@@ -315,22 +337,22 @@ public class WalletService {
                 BANK_URL + "/search", requestData, JSONResponse.class
         );
         Map<String, Object> result = (Map<String, Object>) response.getBody().result();
-        System.out.println(result.toString());
 
-        return !result.get("amount").equals(amount) && result.get("targetId")
+        Long amountFromResult = ((Number) result.get("amount")).longValue();
+
+        return amountFromResult.equals(amount) && result.get("targetId")
                 .equals(targetId);
     }
 
     @Transactional
-    public TransferWalletResponse transferWallet(Member member, Integer targetId, Long amount) {
-        Wallet wallet = walletRepository.getByMember(member)
-                .orElseThrow(() -> new WalletAuthException(ErrorCode.INVALID_WALLET));
+    public TransferWalletResponse transferWallet(String email, Integer targetId, Long amount) {
+        Member member = getMember(email);
+        Wallet wallet = getWalletForUpdate(member);
 
         Member target = memberRepository.getMemberById(targetId)
                 .orElseThrow(() -> new AuthException(ErrorCode.MEMBER_NOT_FOUND));
 
-        Wallet targetWallet = walletRepository.getByMember(target)
-                .orElseThrow(() -> new WalletAuthException(ErrorCode.INVALID_WALLET));
+        Wallet targetWallet = getWalletForUpdate(target);
 
         //출금
         Transaction withdrawTransaction = transactionRepository.save(
@@ -374,6 +396,88 @@ public class WalletService {
                 .image(target.getProfileImage())
                 .amount(amount)
                 .time(withdrawTransaction.getPayAt())
+                .build();
+    }
+
+    @Transactional
+    public void setPassword(String email, String password) {
+        Member member = getMember(email);
+        Wallet wallet = getWallet(member);
+
+        if (password.length() != 6) {
+            throw new WalletAuthException(ErrorCode.INVALID_PASSWORD_FORM);
+        }
+        String encodedPassword = passwordEncoder.encode(password);
+
+        wallet.updatePassword(encodedPassword);
+    }
+
+    @Transactional
+    public void auth(String email, String password) {
+        Member member = getMember(email);
+        Wallet wallet = getWallet(member);
+
+        if (!passwordEncoder.matches(password, wallet.getPassword())) {
+            throw new WalletAuthException(ErrorCode.INVALID_WALLET_PASSWORD);
+        }
+    }
+
+    public GetTransactionResponse getTransaction(String email, Pageable pageable, Integer cursorId,
+                                                 LocalDateTime cursorPayAt) {
+        Member member = getMember(email);
+        Wallet wallet = getWallet(member);
+
+        List<Transaction> transactions = transactionRepository.findTransactions(wallet.getId(), cursorPayAt, cursorId,
+                pageable);
+
+        return convertToResponse(transactions);
+    }
+
+    public GetTransactionResponse getDepositTransaction(String email, Pageable pageable, Integer cursorId,
+                                                        LocalDateTime cursorPayAt) {
+        Member member = getMember(email);
+        Wallet wallet = getWallet(member);
+
+        List<Transaction> transactions = transactionRepository.findDepositTransactions(wallet.getId(), cursorPayAt,
+                cursorId, pageable);
+
+        return convertToResponse(transactions);
+    }
+
+    public GetTransactionResponse getWithdrawTransaction(String email, Pageable pageable, Integer cursorId,
+                                                         LocalDateTime cursorPayAt) {
+        Member member = getMember(email);
+        Wallet wallet = getWallet(member);
+
+        List<Transaction> transactions = transactionRepository.findWithdrawTransactions(wallet.getId(), cursorPayAt,
+                cursorId,
+                pageable);
+
+        return convertToResponse(transactions);
+    }
+
+    public GetTransactionResponse convertToResponse(List<Transaction> transactions) {
+        Integer nextCursorId = transactions.isEmpty() ? null : transactions.get(transactions.size() - 1).getId();
+        LocalDateTime nextCursorPayAt =
+                transactions.isEmpty() ? null : transactions.get(transactions.size() - 1).getPayAt();
+
+        List<GetTransactionResponse.transaction> transactionList = transactions.stream()
+                .map(t -> {
+                    Member target = t.getTarget().getMember();
+                    return GetTransactionResponse.transaction.builder()
+                            .name(target.getName())
+                            .image(target.getProfileImage())
+                            .payAt(t.getPayAt())
+                            .amount(t.getAmount())
+                            .type(t.getType())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        return GetTransactionResponse.builder()
+                .cursorId(nextCursorId)
+                .cursorPayAt(nextCursorPayAt)
+                .transactions(transactionList)
                 .build();
     }
 }

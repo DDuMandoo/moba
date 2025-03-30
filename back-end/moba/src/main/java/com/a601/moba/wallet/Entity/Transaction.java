@@ -62,4 +62,8 @@ public class Transaction {
         this.type = type;
         this.status = status;
     }
+
+    public void updateStatus(TransactionStatus status) {
+        this.status = status;
+    }
 }

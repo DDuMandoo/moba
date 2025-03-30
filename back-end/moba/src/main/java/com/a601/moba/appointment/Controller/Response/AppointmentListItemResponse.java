@@ -1,11 +1,10 @@
 package com.a601.moba.appointment.Controller.Response;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import lombok.Builder;
 
 @Builder
-public record AppointmentDetailResponse(
+public record AppointmentListItemResponse(
         Integer appointmentId,
         String name,
         String imageUrl,
@@ -14,14 +13,9 @@ public record AppointmentDetailResponse(
         Double longitude,
         String memo,
         Boolean isEnded,
-        List<ParticipantInfo> participants,
-        LocalDateTime createdAt
+        String inviteUrl,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt,
+        LocalDateTime deletedAt
 ) {
-    @Builder
-    public record ParticipantInfo(
-            Integer memberId,
-            String name,
-            String profileImage
-    ) {
-    }
 }

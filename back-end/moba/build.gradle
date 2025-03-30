@@ -47,6 +47,7 @@ dependencies {
 
     //AWS S3
     implementation 'com.amazonaws:aws-java-sdk-s3:1.12.681'
+    implementation 'javax.xml.bind:jaxb-api:2.3.1'
 
     //Swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'

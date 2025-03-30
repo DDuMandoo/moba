@@ -29,7 +29,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -60,7 +59,7 @@ public class AuthController {
     @PostMapping(value = "/{memberId}/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<JSONResponse<Void>> uploadProfileImage(
             @PathVariable Integer memberId,
-            @RequestPart("image") MultipartFile image
+            @RequestParam("image") MultipartFile image
     ) {
         authService.uploadProfileImage(memberId, image);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.PROFILE_IMAGE_UPLOAD_SUCCESS));

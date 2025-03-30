@@ -11,4 +11,7 @@ public interface WalletRepository extends JpaRepository<Wallet, Member> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Wallet> getByMember(Member member);
+
+    Optional<Wallet> findByMemberId(Integer memberId);
+
 }

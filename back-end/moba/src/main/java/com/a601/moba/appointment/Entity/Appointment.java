@@ -51,4 +51,23 @@ public class Appointment extends BaseTimeEntity {
     private Boolean isEnded;
 
     private LocalDateTime deletedAt;
+
+    public void update(String name, String image, LocalDateTime time,
+                       Double latitude, Double longitude, String memo) {
+        this.name = name;
+        this.image = image;
+        this.time = time;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.memo = memo;
+    }
+
+    public void uploadImage(String image) {
+        this.image = image;
+    }
+
+    public void end() {
+        this.isEnded = true;
+        this.deletedAt = LocalDateTime.now();
+    }
 }

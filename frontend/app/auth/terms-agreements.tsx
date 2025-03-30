@@ -12,7 +12,8 @@ import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { Button } from '@/components/ui/Button';
 import TermsModal from '@/components/TermsModal';
-import axios from 'axios';
+import axiosInstance from '@/app/axiosInstance';
+import { saveTokens } from '@/app/axiosInstance';
 import Constants from 'expo-constants';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
@@ -137,13 +138,15 @@ export default function TermsAgreementScreen() {
   const handleSignup = async () => {
     try {
       const body = { email, password, name, image: image || '' };
-      const res = await axios.post(`${BASE_URL}/auth/signup`, body, {
-        headers: { 'Content-Type': 'application/json' }
-      });
-
+      const res = await axiosInstance.post(`${BASE_URL}/auth/signup`, body);
+  
       if (res.status === 200 || res.status === 201) {
-        showAlert('회원가입 완료', '로그인 해주세요.');
-        router.replace('/');
+        const loginRes = await axiosInstance.post(`${BASE_URL}/auth/signin`, { email, password });
+        const { accessToken, refreshToken } = loginRes.data.result;
+        await saveTokens(accessToken, refreshToken);
+  
+        showAlert('회원가입 완료', '환영합니다!');
+        router.replace('/(bottom-navigation)');
       }
     } catch {
       showAlert('회원가입 실패', '잠시 후 다시 시도해주세요.');

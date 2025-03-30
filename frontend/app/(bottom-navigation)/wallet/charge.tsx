@@ -12,10 +12,13 @@ import ChargeAmountInput from '@/components/charge/ChargeAmountInput';
 import ChargeSourceList from '@/components/charge/ChargeSourceList';
 import ChargeConfirmModal from '@/components/charge/ChargeConfirmModal';
 import Colors from '@/constants/Colors';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { selectAccount } from '@/redux/slices/accountSlice';
 
 export default function ChargePage() {
+  const dispatch = useAppDispatch();
+  const selectedAccountId = useAppSelector((state) => state.account.selectedAccountId);
   const [amount, setAmount] = useState(0);
-  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
   const handleCharge = () => {
@@ -25,8 +28,7 @@ export default function ChargePage() {
   };
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: Colors.background }}
-    >
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: Colors.background }}>
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
@@ -37,9 +39,9 @@ export default function ChargePage() {
         {/* 충전 수단 리스트 */}
         <ChargeSourceList
           selectedAccountId={selectedAccountId}
-          setSelectedAccountId={setSelectedAccountId}
+          onSelectAccount={(id) => dispatch(selectAccount(id))}
         />
-      </ScrollView> 
+      </ScrollView>
 
       {/* 하단 고정 버튼 */}
       <View
@@ -54,7 +56,12 @@ export default function ChargePage() {
           title="충전"
           onPress={handleCharge}
           disabled={amount < 10000 || !selectedAccountId}
-          style={{ backgroundColor: amount < 10000 || !selectedAccountId ? Colors.grayLightText : Colors.primary }}
+          style={{
+            backgroundColor:
+              amount < 10000 || !selectedAccountId
+                ? Colors.grayLightText
+                : Colors.primary,
+          }}
         />
       </View>
 

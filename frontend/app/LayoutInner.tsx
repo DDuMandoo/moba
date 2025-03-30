@@ -1,14 +1,30 @@
 // 📂app/LayoutInner.tsx
-import React, { ReactNode } from 'react';
-import { Provider } from 'react-redux';
+import React, { ReactNode, useEffect } from 'react';
+import { Provider, useDispatch } from 'react-redux';
 import { store } from '@/redux/store';
 import { Slot } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { View, ActivityIndicator } from 'react-native';
 import Colors from '@/constants/Colors';
+import { requestPermissionsIfNeeded } from '@/utils/permissions';
+import { setPermissions } from '@/redux/slices/permissionSlice';
 
 interface Props {
   children?: ReactNode;
+}
+
+function InitPermissions() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const init = async () => {
+      const result = await requestPermissionsIfNeeded();
+      dispatch(setPermissions(result));
+    };
+    init();
+  }, []);
+
+  return null;
 }
 
 export default function LayoutInner({ children }: Props) {
@@ -28,6 +44,7 @@ export default function LayoutInner({ children }: Props) {
 
   return (
     <Provider store={store}>
+      <InitPermissions />
       <View style={{ flex: 1, backgroundColor: Colors.background }}>
         {children ?? <Slot />}
       </View>

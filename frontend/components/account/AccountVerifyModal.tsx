@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import Colors from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
-import axios from 'axios';
+import axiosInstance from '@/app/axiosInstance';
+import * as SecureStore from 'expo-secure-store';
 
 interface Props {
   visible: boolean;
@@ -36,27 +37,25 @@ export default function AccountVerifyModal({
   const [timeLeft, setTimeLeft] = useState(initialTimeLeft);
 
   useEffect(() => {
-    if (visible) {
-      setDigits(['', '', '', '']);
-      setTimeLeft(initialTimeLeft);
+    if (!visible) return;
 
-      const timer = setInterval(() => {
-        setTimeLeft((prev) => (prev <= 1 ? 0 : prev - 1));
-      }, 1000);
+    setDigits(['', '', '', '']);
+    setTimeLeft(initialTimeLeft);
 
-      const focusTimeout = setTimeout(() => {
-        requestAnimationFrame(() => {
-          if (inputs.current[0]) {
-            inputs.current[0].focus();
-          }
-        });
-      }, 300);
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
 
-      return () => {
-        clearInterval(timer);
-        clearTimeout(focusTimeout);
-      };
-    }
+    const focusTimeout = setTimeout(() => {
+      requestAnimationFrame(() => {
+        inputs.current[0]?.focus();
+      });
+    }, 300);
+
+    return () => {
+      clearInterval(timer);
+      clearTimeout(focusTimeout);
+    };
   }, [visible, initialTimeLeft]);
 
   const handleChange = (text: string, index: number) => {
@@ -64,6 +63,7 @@ export default function AccountVerifyModal({
     const newDigits = [...digits];
     newDigits[index] = digit;
     setDigits(newDigits);
+
     if (digit && index < 3) {
       inputs.current[index + 1]?.focus();
     } else if (index === 3 && digit) {
@@ -86,25 +86,23 @@ export default function AccountVerifyModal({
     }
 
     try {
-      const res = await axios.post(
-        '/api/wallets/password',
-        {
-          code,
-          account,
-          bank,
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      const { accesstoken } = res.data;
-      console.log('✅ 인증 성공', accesstoken);
+      const res = await axiosInstance.post('/wallets/account/auth', {
+        code,
+        account,
+        bank,
+      });
+
+      const { accessToken } = res.data.result;
+      console.log('✅ 인증 성공:', accessToken);
+
+      await SecureStore.setItemAsync('accessToken', accessToken);
       onVerify(code);
     } catch (error: any) {
-      console.error('❌ 인증 실패:', error?.response?.data || error);
-      Alert.alert('인증 실패', '인증 코드가 올바르지 않거나 만료되었습니다.');
+      console.log('🔴 error.response:', error?.response);
+      console.log('🔴 error.response.data:', error?.response?.data);
+      console.log('🔴 error.response.status:', error?.response?.status);
+      const message = error?.response?.data?.message || '인증에 실패했습니다.';
+      Alert.alert('인증 실패', message);
     }
   };
 
@@ -140,13 +138,16 @@ export default function AccountVerifyModal({
               value={digit}
               onChangeText={(text) => handleChange(text, index)}
               onKeyPress={(e) => handleKeyPress(e, index)}
-              keyboardType="numeric"
+              keyboardType="number-pad"
               maxLength={1}
               style={[styles.codeInput, digit ? styles.codeInputFilled : null]}
               textAlign="center"
               autoCorrect={false}
-              blurOnSubmit={false}
-              selectTextOnFocus={true}
+              autoCapitalize="none"
+              autoComplete="off"
+              importantForAutofill="no"
+              textContentType="oneTimeCode"
+              selectTextOnFocus
               caretHidden={false}
             />
           ))}

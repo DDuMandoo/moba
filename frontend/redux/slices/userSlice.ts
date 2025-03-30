@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import axios from '@/app/axios'; // ✅ 수정됨
+import axiosInstance from '@/app/axiosInstance';
+import * as SecureStore from 'expo-secure-store';
 
 interface UserProfile {
   name: string;
@@ -9,7 +10,6 @@ interface UserProfile {
 interface UserState {
   currentUser: any;
   isLoggedIn: boolean;
-
   profile: UserProfile | null;
   isLoading: boolean;
   isError: boolean;
@@ -18,7 +18,6 @@ interface UserState {
 const initialState: UserState = {
   currentUser: null,
   isLoggedIn: false,
-
   profile: null,
   isLoading: false,
   isError: false,
@@ -29,9 +28,9 @@ export const fetchUserProfile = createAsyncThunk(
   'user/fetchProfile',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get('/members');
+      const response = await axiosInstance.get('/members');
       console.log('✅ /members 응답:', response.data);
-      return response.data.result; // ← 응답 안에 result 감싸져 있음
+      return response.data.result;
     } catch (err: any) {
       console.error('❌ /members 에러:', err.response?.status, err.response?.data);
       return rejectWithValue(err.response?.data || '유저 정보 요청 실패');
@@ -51,6 +50,10 @@ const userSlice = createSlice({
       state.currentUser = null;
       state.isLoggedIn = false;
       state.profile = null;
+
+      // ✅ 로그아웃 시 토큰도 삭제
+      SecureStore.deleteItemAsync('accessToken');
+      SecureStore.deleteItemAsync('refreshToken');
     },
   },
   extraReducers: (builder) => {

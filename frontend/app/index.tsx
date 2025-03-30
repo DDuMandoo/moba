@@ -13,7 +13,8 @@ import { Button } from '@/components/ui/Button';
 import Colors from '@/constants/Colors';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import axios from 'axios';
+import axiosInstance from '@/app/axiosInstance';
+import { saveTokens } from '@/app/axiosInstance';
 import Constants from 'expo-constants';
 import CustomAlert from '@/components/CustomAlert';
 
@@ -36,25 +37,22 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     Keyboard.dismiss();
-
+  
     if (!isEmailValid(email)) {
       showAlert('이메일 오류', '유효한 이메일 주소를 입력해주세요.');
       return;
     }
-
+  
     try {
       setLoading(true);
-
-      const response = await axios.post(
-        `${BASE_URL}/auth/signin`,
-        { email, password },
-        {
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
-
+  
+      const response = await axiosInstance.post(`${BASE_URL}/auth/signin`, { email, password });
+  
       if (response.status === 200) {
-        router.push('/(bottom-navigation)');
+        const { accessToken, refreshToken } = response.data.result;
+        await saveTokens(accessToken, refreshToken);
+  
+        router.replace('/(bottom-navigation)');
       } else {
         showAlert('로그인 실패', '이메일 혹은 비밀번호를 다시 확인해주세요!');
       }

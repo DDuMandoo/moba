@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { Button } from '@/components/ui/Button';
 import Colors from '@/constants/Colors';
-import axios from 'axios';
+import axiosInstance from '@/app/axiosInstance';
 import Constants from 'expo-constants';
 import CustomAlert from '@/components/CustomAlert';
 import LoadingModal from '@/components/LoadingModal';
@@ -66,13 +66,13 @@ export default function ForgotPasswordScreen() {
     if (!isEmailValid(email)) return showAlert('이메일 오류', '올바른 이메일 주소를 입력해주세요.');
     setLoadingVisible(true);
     try {
-      const checkRes = await axios.post(`${BASE_URL}/auth/email`, { email });
+      const checkRes = await axiosInstance.post(`${BASE_URL}/auth/email`, { email });
       if (!checkRes.data.result) {
         setLoadingVisible(false);
         return showAlert('가입되지 않은 이메일', '입력한 이메일은 가입되어 있지 않습니다.');
       }
 
-      const sendRes = await axios.post(`${BASE_URL}/emails/send`, { email });
+      const sendRes = await axiosInstance.post(`${BASE_URL}/emails/send`, { email });
       if (sendRes.status === 200 && sendRes.data.isSuccess) {
         showAlert('인증번호 발송', '이메일로 인증번호를 전송했습니다.');
         setIsAuthCodeSent(true);
@@ -91,7 +91,7 @@ export default function ForgotPasswordScreen() {
   const handleVerifyCode = async () => {
     if (!authCode || !email) return showAlert('입력 오류', '인증번호를 입력해주세요.');
     try {
-      const res = await axios.post(`${BASE_URL}/emails/verify`, { email, code: authCode });
+      const res = await axiosInstance.post(`${BASE_URL}/emails/verify`, { email, code: authCode });
       if (res.status === 200 && res.data.result) {
         setIsEmailVerified(true);
         if (timerRef.current) clearInterval(timerRef.current);
@@ -111,7 +111,7 @@ export default function ForgotPasswordScreen() {
     setLoadingVisible(true); // ✅ 로딩 모달 시작
   
     try {
-      const res = await axios.post(`${BASE_URL}/members/password/reset`, { email });
+      const res = await axiosInstance.post(`${BASE_URL}/members/password/reset`, { email });
       if (res.status === 200) {
         setShowSuccessModal(true); // ✅ 성공 모달 표시
       }

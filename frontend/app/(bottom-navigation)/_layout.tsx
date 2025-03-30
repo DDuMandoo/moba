@@ -93,6 +93,12 @@ export default function BottomTabLayout() {
             href: null,
           }}
         />
+        <Tabs.Screen
+          name="promises"
+          options={{
+            href: null,
+          }}
+        />
       </Tabs>
     </>
   );

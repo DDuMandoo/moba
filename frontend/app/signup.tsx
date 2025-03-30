@@ -12,7 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import axios from 'axios';
+import axiosInstance from '@/app/axiosInstance';
 import Constants from 'expo-constants';
 import Colors from '@/constants/Colors';
 import { Button } from '@/components/ui/Button';
@@ -81,12 +81,12 @@ export default function SignupScreen() {
     if (!isEmailValid(email)) return showAlert('이메일 오류', '올바른 이메일 주소를 입력해주세요.');
     try {
       setLoading(true);
-      const checkRes = await axios.post(`${BASE_URL}/auth/email`, { email });
+      const checkRes = await axiosInstance.post(`${BASE_URL}/auth/email`, { email });
       if (checkRes.data.result === true) {
         showAlert('중복 이메일', '이미 사용 중인 이메일입니다.');
         return;
       }
-      const sendRes = await axios.post(`${BASE_URL}/emails/send`, { email });
+      const sendRes = await axiosInstance.post(`${BASE_URL}/emails/send`, { email });
       if (sendRes.status === 200 && sendRes.data.isSuccess) {
         showAlert('인증번호 발송', '이메일로 인증번호를 전송했습니다.');
         setIsAuthCodeSent(true);
@@ -106,7 +106,7 @@ export default function SignupScreen() {
     if (!authCode || !email) return showAlert('입력 오류', '인증번호를 입력해주세요.');
     try {
       setLoading(true);
-      const res = await axios.post(`${BASE_URL}/emails/verify`, { email, code: authCode });
+      const res = await axiosInstance.post(`${BASE_URL}/emails/verify`, { email, code: authCode });
       if (res.status === 200 && res.data.result) {
         setIsEmailVerified(true);
         if (timerRef.current) clearInterval(timerRef.current);

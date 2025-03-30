@@ -9,7 +9,9 @@ import com.a601.moba.appointment.Controller.Response.AppointmentCreateResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentDelegateResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentDetailResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentJoinResponse;
+import com.a601.moba.appointment.Controller.Response.AppointmentListItemResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentParticipantResponse;
+import com.a601.moba.appointment.Controller.Response.AppointmentSummaryResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentUpdateResponse;
 import com.a601.moba.appointment.Service.AppointmentService;
 import com.a601.moba.global.code.SuccessCode;
@@ -21,6 +23,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +34,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -50,10 +54,7 @@ public class AppointmentController {
                     description = "약속 생성 요청 데이터 (JSON + 이미지)",
                     required = true,
                     content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE)
-            ),
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "약속방 생성을 성공하였습니다.")
-            }
+            )
     )
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<JSONResponse<AppointmentCreateResponse>> create(
@@ -114,7 +115,7 @@ public class AppointmentController {
             }
     )
     @PatchMapping(value = "/{appointmentId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<AppointmentUpdateResponse> update(
+    public ResponseEntity<JSONResponse<AppointmentUpdateResponse>> update(
             @Parameter(description = "약속 ID", example = "1")
             @PathVariable Integer appointmentId,
             @RequestPart("data") @Valid AppointmentUpdateRequest request,
@@ -122,7 +123,7 @@ public class AppointmentController {
             HttpServletRequest httpRequest) {
 
         AppointmentUpdateResponse response = appointmentService.update(appointmentId, request, image, httpRequest);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.APPOINTMENT_UPDATE_SUCCESS, response));
     }
 
     @Operation(
@@ -212,4 +213,25 @@ public class AppointmentController {
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.APPOINTMENT_PARTICIPANT_KICK_SUCCESS));
     }
 
+    @GetMapping
+    @Operation(summary = "사용자 약속 조회", description = "연/월 파라미터가 있으면 해당 월 약속 조회, 없으면 전체 약속 조회")
+    public ResponseEntity<JSONResponse<List<AppointmentListItemResponse>>> getMyAppointments(
+            @Parameter(description = "연도") @RequestParam(required = false) Integer year,
+            @Parameter(description = "월") @RequestParam(required = false) Integer month,
+            HttpServletRequest request
+    ) {
+        List<AppointmentListItemResponse> response = appointmentService.getMyAppointments(year, month, request);
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.APPOINTMENT_READ_SUCCESS, response));
+    }
+
+    @Operation(summary = "약속 통계 조회", description = "특정 연/월에 참여한 약속 횟수 및 소비 금액을 반환합니다.")
+    @GetMapping("/summary")
+    public ResponseEntity<JSONResponse<AppointmentSummaryResponse>> getAppointmentSummary(
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month,
+            HttpServletRequest request
+    ) {
+        AppointmentSummaryResponse response = appointmentService.getAppointmentSummary(year, month, request);
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.APPOINTMENT_STATISTICS_SUCCESS, response));
+    }
 }

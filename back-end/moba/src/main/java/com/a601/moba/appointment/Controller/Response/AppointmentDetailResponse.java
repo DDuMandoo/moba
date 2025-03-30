@@ -20,7 +20,8 @@ public record AppointmentDetailResponse(
     @Builder
     public record ParticipantInfo(
             Integer memberId,
-            String name
+            String name,
+            String profileImage
     ) {
     }
 }

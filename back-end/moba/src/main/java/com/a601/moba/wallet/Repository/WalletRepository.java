@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface WalletRepository extends JpaRepository<Wallet, Member> {
     Optional<Wallet> getByMember(Member member);
 
+    Optional<Wallet> findByMemberId(Integer memberId);
+
 }

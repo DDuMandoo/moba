@@ -12,7 +12,9 @@ import com.a601.moba.appointment.Controller.Response.AppointmentDelegateResponse
 import com.a601.moba.appointment.Controller.Response.AppointmentDetailResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentDetailResponse.ParticipantInfo;
 import com.a601.moba.appointment.Controller.Response.AppointmentJoinResponse;
+import com.a601.moba.appointment.Controller.Response.AppointmentListItemResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentParticipantResponse;
+import com.a601.moba.appointment.Controller.Response.AppointmentSummaryResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentUpdateResponse;
 import com.a601.moba.appointment.Entity.Appointment;
 import com.a601.moba.appointment.Entity.AppointmentParticipant;
@@ -25,13 +27,18 @@ import com.a601.moba.global.code.ErrorCode;
 import com.a601.moba.global.service.S3Service;
 import com.a601.moba.member.Entity.Member;
 import com.a601.moba.member.Repository.MemberRepository;
+import com.a601.moba.wallet.Entity.Wallet;
+import com.a601.moba.wallet.Repository.TransactionRepository;
+import com.a601.moba.wallet.Repository.WalletRepository;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -44,6 +51,8 @@ public class AppointmentService {
     private final S3Service s3Service;
     private final AuthUtil authUtil;
     private final MemberRepository memberRepository;
+    private final WalletRepository walletRepository;
+    private final TransactionRepository transactionRepository;
 
     public AppointmentCreateResponse create(AppointmentCreateRequest request, MultipartFile image,
                                             HttpServletRequest httpRequest) {
@@ -178,6 +187,7 @@ public class AppointmentService {
                     return ParticipantInfo.builder()
                             .memberId(member.getId())
                             .name(member.getName())
+                            .profileImage(member.getProfileImage())
                             .build();
                 })
                 .toList();
@@ -271,6 +281,7 @@ public class AppointmentService {
         appointment.end();
     }
 
+    @Transactional(readOnly = true)
     public AppointmentParticipantResponse getParticipants(Integer appointmentId, HttpServletRequest request) {
         Integer memberId = authUtil.getMemberFromToken(request).getId();
 
@@ -285,12 +296,27 @@ public class AppointmentService {
             throw new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED);
         }
 
-        List<AppointmentParticipantResponse.ParticipantInfo> participants = appointmentParticipantRepository
+        List<AppointmentParticipant> joinedParticipants = appointmentParticipantRepository
                 .findAllByAppointment(appointment).stream()
                 .filter(p -> p.getState() == State.JOINED)
+                .toList();
+
+        // 참가자의 memberId 리스트 추출
+        List<Integer> memberIds = joinedParticipants.stream()
+                .map(AppointmentParticipant::getMemberId)
+                .distinct()
+                .toList();
+
+        // memberId로 회원 정보 일괄 조회 (IN 절). 여기서 쿼리 하나만 나감 -> N+1 문제 해결
+        Map<Integer, Member> memberMap = memberRepository.findAllById(memberIds).stream()
+                .collect(Collectors.toMap(Member::getId, member -> member));
+
+        List<AppointmentParticipantResponse.ParticipantInfo> participants = joinedParticipants.stream()
                 .map(p -> {
-                    Member member = memberRepository.findById(p.getMemberId())
-                            .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_PARTICIPANT_NOT_FOUND));
+                    Member member = memberMap.get(p.getMemberId());
+                    if (member == null) {
+                        throw new AppointmentException(ErrorCode.APPOINTMENT_PARTICIPANT_NOT_FOUND);
+                    }
                     return AppointmentParticipantResponse.ParticipantInfo.builder()
                             .memberId(member.getId())
                             .name(member.getName())
@@ -302,6 +328,7 @@ public class AppointmentService {
                 .participants(participants)
                 .build();
     }
+
 
     @Transactional
     public AppointmentDelegateResponse delegateHost(Integer appointmentId, AppointmentDelegateRequest request,
@@ -352,6 +379,59 @@ public class AppointmentService {
         target.updateState(State.KICKED);
     }
 
+    public List<AppointmentListItemResponse> getMyAppointments(Integer year, Integer month,
+                                                               HttpServletRequest request) {
+        Integer memberId = authUtil.getMemberFromToken(request).getId();
+
+        List<AppointmentParticipant> participants = appointmentParticipantRepository
+                .findAllByMemberIdAndState(memberId, State.JOINED);
+
+        return participants.stream()
+                .map(AppointmentParticipant::getAppointment)
+                .filter(appointment -> {
+                    if (year == null || month == null) {
+                        return true;
+                    }
+                    LocalDateTime time = appointment.getTime();
+                    return time.getYear() == year && time.getMonthValue() == month;
+                })
+                .map(appointment -> AppointmentListItemResponse.builder()
+                        .appointmentId(appointment.getId())
+                        .name(appointment.getName())
+                        .imageUrl(appointment.getImage())
+                        .time(appointment.getTime())
+                        .latitude(appointment.getLatitude())
+                        .longitude(appointment.getLongitude())
+                        .memo(appointment.getMemo())
+                        .isEnded(appointment.getIsEnded())
+                        .inviteUrl(appointment.getInviteUrl())
+                        .createdAt(appointment.getCreatedAt())
+                        .updatedAt(appointment.getUpdatedAt())
+                        .deletedAt(appointment.getDeletedAt())
+                        .build())
+                .toList();
+    }
+
+    public AppointmentSummaryResponse getAppointmentSummary(Integer year, Integer month, HttpServletRequest request) {
+        Integer memberId = authUtil.getMemberFromToken(request).getId();
+
+        Wallet wallet = walletRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new AppointmentException(ErrorCode.INVALID_WALLET));
+        
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new AppointmentException(ErrorCode.MEMBER_NOT_FOUND));
+
+        int count = appointmentParticipantRepository.countJoinedAppointmentsByMemberAndDate(memberId, year, month);
+
+        long spent = transactionRepository.sumSpentFromTransactions(wallet.getId(), year, month);
+
+        return AppointmentSummaryResponse.builder()
+                .totalAttendanceCount(count)
+                .totalSpent(spent)
+                .name(member.getName())
+                .imageUrl(member.getProfileImage())
+                .build();
+    }
 
     private Appointment validateHostAccess(Integer appointmentId, HttpServletRequest request) {
         Integer memberId = authUtil.getMemberFromToken(request).getId();
@@ -369,4 +449,5 @@ public class AppointmentService {
 
         return appointment;
     }
+
 }

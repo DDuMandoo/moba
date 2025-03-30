@@ -36,10 +36,12 @@ public enum SuccessCode {
     APPOINTMENT_IMAGE_UPLOAD_SUCCESS(2407, OK, "약속 이미지 업로드에 성공하였습니다"),
     APPOINTMENT_IMAGE_DELETE_SUCCESS(2408, OK, "약속 이미지 삭제에 성공하였습니다"),
     APPOINTMENT_PARTICIPANT_KICK_SUCCESS(2409, OK, "멤버를 강제 퇴장시켰습니다"),
+    APPOINTMENT_STATISTICS_SUCCESS(2410, OK, "약속 통계 조회에 성공하였습니다."),
 
     // ================= 약속 관련 성공 (2500번대) ==================
     WALLET_SENT_SUCCESS(2500, OK, "입력한 계좌로 1원 송금하는데 성공하였습니다"),
-    MAIN_ACCOUNT_SET_SUCCESS(2501, OK, "주계좌 변경 성공");
+    MAIN_ACCOUNT_SET_SUCCESS(2501, OK, "주계좌 변경 성공"),
+    ;
 
 
     private final int code;

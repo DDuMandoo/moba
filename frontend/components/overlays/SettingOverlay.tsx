@@ -20,6 +20,9 @@ import { router } from 'expo-router';
 import CustomAlert from '../CustomAlert';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
+const OVERLAY_WIDTH = 150;
+const RIGHT_PADDING = SCREEN_WIDTH * 0.05;
+const TARGET_LEFT = SCREEN_WIDTH - OVERLAY_WIDTH - RIGHT_PADDING;
 
 interface Props {
   visible: boolean;
@@ -36,7 +39,7 @@ export default function SettingOverlay({ visible, onClose }: Props) {
   useEffect(() => {
     if (visible) {
       Animated.timing(slideAnim, {
-        toValue: SCREEN_WIDTH * 0.95 - SCREEN_WIDTH * 0.55, // 오른쪽 padding 5%
+        toValue: TARGET_LEFT,
         duration: 300,
         easing: Easing.out(Easing.ease),
         useNativeDriver: false
@@ -72,7 +75,7 @@ export default function SettingOverlay({ visible, onClose }: Props) {
       console.warn('🚫 로그아웃 실패:', err);
     } finally {
       await clearTokens();
-      router.replace('/');
+      router.replace('/auth/login');
     }
   };
 
@@ -113,7 +116,7 @@ export default function SettingOverlay({ visible, onClose }: Props) {
           <Text style={styles.label}>로그 아웃</Text>
         </TouchableOpacity>
 
-        {/* 로그아웃 커스텀 Alert */}
+        {/* 커스텀 Alert */}
         <CustomAlert
           visible={logoutAlert}
           title="로그아웃"
@@ -132,7 +135,7 @@ const styles = StyleSheet.create({
   backdrop: {
     position: 'absolute',
     top: 0,
-    left: 70,
+    left: 0,
     width: '100%',
     height: '100%',
     backgroundColor: 'transparent',
@@ -141,7 +144,7 @@ const styles = StyleSheet.create({
   overlay: {
     position: 'absolute',
     top: 60,
-    width: 150,
+    width: OVERLAY_WIDTH,
     backgroundColor: Colors.white,
     borderRadius: 12,
     paddingVertical: 20,

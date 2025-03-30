@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import axios from 'axios';
+import axios from '@/app/axios'; // ✅ 수정됨
 
 interface UserProfile {
   name: string;
@@ -30,8 +30,10 @@ export const fetchUserProfile = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axios.get('/members');
-      return response.data.result; // ✅ 요기만 수정됨
+      console.log('✅ /members 응답:', response.data);
+      return response.data.result; // ← 응답 안에 result 감싸져 있음
     } catch (err: any) {
+      console.error('❌ /members 에러:', err.response?.status, err.response?.data);
       return rejectWithValue(err.response?.data || '유저 정보 요청 실패');
     }
   }

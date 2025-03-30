@@ -1,9 +1,10 @@
 import axios from 'axios';
-import Config from 'react-native-config';
+import Constants from 'expo-constants';
 
-// Axios 인스턴스 설정
+const API_URL = Constants.expoConfig?.extra?.API_URL;
+
 const axiosInstance = axios.create({
-  baseURL: Config.API_URL,  // .env 파일에서 설정한 API_URL을 사용
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },

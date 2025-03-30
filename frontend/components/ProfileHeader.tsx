@@ -12,11 +12,26 @@ interface Props {
 export default function ProfileHeader({ name, image, isLoading, isError }: Props) {
   const [imgError, setImgError] = useState(false);
 
+  // ✅ 디버깅용 로그
+  console.log('📢 [ProfileHeader Props]', {
+    name,
+    image,
+    isLoading,
+    isError,
+    imgError,
+  });
+
+  // ✅ 로딩 상태일 때
   if (isLoading) {
-    return <ActivityIndicator color={Colors.primary} />;
+    return (
+      <View style={{ alignItems: 'center', marginVertical: 20 }}>
+        <ActivityIndicator color={Colors.primary} />
+      </View>
+    );
   }
 
-  if (isError || !name) {
+  // ✅ 에러 상태 또는 이름 없음
+  if (isError || !name || name.trim() === '') {
     return (
       <Text style={{ fontSize: 16, fontWeight: 'bold', color: Colors.grayDarkText }}>
         유저 정보를 불러올 수 없습니다.
@@ -28,8 +43,8 @@ export default function ProfileHeader({ name, image, isLoading, isError }: Props
     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
       <Image
         source={
-          !image || imgError
-            ? require('@/assets/images/default-profile.png')
+          !image || image.trim() === '' || imgError
+            ? require('@/assets/images/default-profile.png') // 기본 이미지 fallback
             : { uri: image }
         }
         onError={() => setImgError(true)}

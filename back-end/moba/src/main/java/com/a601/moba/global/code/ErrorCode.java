@@ -57,10 +57,16 @@ public enum ErrorCode {
     APPOINTMENT_EXIT_FORBIDDEN(4410, FORBIDDEN, "방장은 약속방을 나갈 수 없습니다"),
     APPOINTMENT_KICK_FORBIDDEN(4410, FORBIDDEN, "방장을 강제로 퇴장시킬 수 없습니다."),
 
-    //================= 지갑 관련 에러 (4500번대) ==================
+    // ================= 지갑 관련 에러 (4500번대) ==================
     INVALID_WALLET(4500, BAD_REQUEST, "존재하지 않는 지갑입니다"),
     INVALID_VERIFICATION_ACCOUNT(4501, BAD_REQUEST, "존재하지 않는 계좌입니다"),
     INVALID_VERIFICATION_ACCOUNT_CODE(4502, BAD_REQUEST, "유효하지 않는 코드 입니다"),
+    INVALID_AMOUNT(4503, BAD_REQUEST, "입출금 금액은 0보다 커야 합니다"),
+    INSUFFICIENT_BALANCE(4504, BAD_REQUEST, "잔액이 부족합니다"),
+    TRANSFER_ACCOUNT_DUPLICATE(4505, BAD_REQUEST, "자기 자신한테는 이체할 수 없습니다"),
+    DUPLICATE_CONNECT_ACCOUNT(4506, BAD_REQUEST, "이미 연결된 계좌입니다"),
+    FAIL_CHARGE_ACCOUNT(4507, INTERNAL_SERVER_ERROR, "지갑 충전 중 문제가 발생했습니다"),
+
 
     // ================= S3 관련 에러 (4600번대) ==================
     S3_UPLOAD_FAILED(4600, INTERNAL_SERVER_ERROR, "S3 파일 업로드에 실패했습니다"),

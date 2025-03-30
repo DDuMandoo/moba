@@ -38,9 +38,14 @@ public enum SuccessCode {
     APPOINTMENT_PARTICIPANT_KICK_SUCCESS(2409, OK, "멤버를 강제 퇴장시켰습니다"),
     APPOINTMENT_STATISTICS_SUCCESS(2410, OK, "약속 통계 조회에 성공하였습니다."),
 
-    // ================= 약속 관련 성공 (2500번대) ==================
+    // ================= 지갑 관련 성공 (2500번대) ==================
     WALLET_SENT_SUCCESS(2500, OK, "입력한 계좌로 1원 송금하는데 성공하였습니다"),
-    MAIN_ACCOUNT_SET_SUCCESS(2501, OK, "주계좌 변경 성공"),
+    MAIN_ACCOUNT_SET_SUCCESS(2501, OK, "주계좌 변경 성공하였습니다"),
+    GET_ACCOUNT_LIST_SUCCESS(2502, OK, "계좌 리스트 조회 성공하였습니다"),
+    GET_WALLET_BALANCE_SUCCESS(2503, OK, "지갑 잔액 조회에 성공했습니다"),
+    CHARGE_WALLET_SUCCESS(2504, OK, "지갑 충전에 성공했습니다"),
+    EXCHANGE_WALLET_SUCCESS(2505, OK, "계좌로 송금에 성공했습니다"),
+    SEND_WALLET_SUCCESS(2506, OK, "지갑으로 송금에 성공했습니다"),
     ;
 
 

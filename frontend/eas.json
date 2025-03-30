@@ -1,0 +1,13 @@
+{
+    "build": {
+      "production": {
+        "env": {
+          "EXPO_PUBLIC_API_URL": "https://j12a601.p.ssafy.io/api"
+        },
+        "android": {
+          "buildType": "apk"
+        }
+      }
+    }
+  }
+  

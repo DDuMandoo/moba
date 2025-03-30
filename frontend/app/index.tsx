@@ -18,7 +18,7 @@ import { saveTokens } from '@/app/axiosInstance';
 import Constants from 'expo-constants';
 import CustomAlert from '@/components/CustomAlert';
 
-const BASE_URL = Constants.expoConfig?.extra?.API_URL;
+const BASE_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_API_URL;
 
 export default function LoginScreen() {
   const router = useRouter();

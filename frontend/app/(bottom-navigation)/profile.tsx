@@ -17,7 +17,7 @@ import PromiseCard from '@/components/PromiseCard';
 import SettingsOverlay from '@/components/overlays/SettingOverlay';
 import { dummyPromises } from '@/constants/dummy/dummyPromises';
 
-const BASE_URL = Constants.expoConfig?.extra?.API_URL;
+const BASE_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_API_URL;
 const tabs = ['전체', '진행중/예정', '종료'] as const;
 
 export default function MyPageScreen() {

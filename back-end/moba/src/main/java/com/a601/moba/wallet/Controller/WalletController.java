@@ -44,11 +44,15 @@ public class WalletController {
     private final WalletService walletService;
     private final AuthUtil authUtil;
 
+    public String getEmail() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication.getName();
+    }
+
     @PostMapping("/account")
     public ResponseEntity<JSONResponse<String>> connectAccount(
             @RequestBody ConnectAccountRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+        String email = getEmail();
 
         walletService.connectAccount(email,
                 request.account(),
@@ -61,8 +65,7 @@ public class WalletController {
     public ResponseEntity<JSONResponse<ConnectAccountResponse>> authAccount(
             @RequestBody AuthAccountRequest request
     ) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+        String email = getEmail();
 
         ConnectAccountResponse response = walletService.authAccount(
                 email,
@@ -77,8 +80,7 @@ public class WalletController {
     public ResponseEntity<JSONResponse<String>> changeMainAccount(
             @RequestBody ChangeMainAccountRequest request
     ) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+        String email = getEmail();
 
         walletService.changeMainAccount(email, request.account());
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.MAIN_ACCOUNT_SET_SUCCESS));
@@ -86,8 +88,7 @@ public class WalletController {
 
     @GetMapping("/account")
     public ResponseEntity<JSONResponse<GetAccountResponse>> getAccount() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+        String email = getEmail();
 
         GetAccountResponse response = walletService.getAccount(email);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.GET_ACCOUNT_LIST_SUCCESS, response));
@@ -95,8 +96,7 @@ public class WalletController {
 
     @GetMapping
     public ResponseEntity<JSONResponse<GetBalanceResponse>> getBalance() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+        String email = getEmail();
 
         GetBalanceResponse response = walletService.getBalance(email);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.GET_WALLET_BALANCE_SUCCESS, response));
@@ -106,8 +106,7 @@ public class WalletController {
     public ResponseEntity<JSONResponse<DepositWalletResponse>> deposit(
             @RequestBody DepositWalletRequest request
     ) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+        String email = getEmail();
 
         DepositWalletResponse response = walletService.deposit(
                 email,
@@ -121,8 +120,7 @@ public class WalletController {
     public ResponseEntity<JSONResponse<WithdrawWalletResponse>> withdraw(
             @RequestBody WithdrawWalletRequest request
     ) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+        String email = getEmail();
 
         WithdrawWalletResponse response = walletService.withdraw(
                 email,
@@ -136,8 +134,7 @@ public class WalletController {
     public ResponseEntity<JSONResponse<TransferWalletResponse>> transfer(
             @RequestBody TransferWalletRequest request
     ) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+        String email = getEmail();
 
         TransferWalletResponse response = walletService.transferWallet(
                 email,
@@ -152,8 +149,7 @@ public class WalletController {
     ResponseEntity<JSONResponse<String>> setPassword(
             @RequestBody SetPasswordRequest request
     ) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+        String email = getEmail();
 
         walletService.setPassword(email, request.password());
 
@@ -164,8 +160,7 @@ public class WalletController {
     ResponseEntity<JSONResponse<String>> auth(
             @RequestBody AuthWalletRequest request
     ) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+        String email = getEmail();
 
         walletService.auth(email, request.password());
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.AUTH_WALLET_SUCCESS));
@@ -177,8 +172,7 @@ public class WalletController {
             @RequestParam(required = false) Integer cursorId,
             @RequestParam(required = false) LocalDateTime cursorPayAt
     ) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+        String email = getEmail();
 
         Pageable pageable = PageRequest.of(0, size);
         GetTransactionResponse response = walletService.getTransaction(email, pageable, cursorId, cursorPayAt);
@@ -192,8 +186,7 @@ public class WalletController {
             @RequestParam(required = false) Integer cursorId,
             @RequestParam(required = false) LocalDateTime cursorPayAt
     ) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+        String email = getEmail();
 
         Pageable pageable = PageRequest.of(0, size);
         GetTransactionResponse response = walletService.getDepositTransaction(email, pageable, cursorId, cursorPayAt);
@@ -207,8 +200,7 @@ public class WalletController {
             @RequestParam(required = false) Integer cursorId,
             @RequestParam(required = false) LocalDateTime cursorPayAt
     ) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+        String email = getEmail();
 
         Pageable pageable = PageRequest.of(0, size);
         GetTransactionResponse response = walletService.getWithdrawTransaction(email, pageable, cursorId, cursorPayAt);

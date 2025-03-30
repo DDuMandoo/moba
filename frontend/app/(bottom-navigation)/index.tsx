@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import WalletStatus from '@/components/WalletStatus';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import axiosInstance from '@/app/axiosInstance';
 import Colors from '@/constants/Colors';
 
 interface UserProfile {
@@ -17,7 +17,7 @@ interface UserProfile {
 }
 
 const fetchUserProfile = async (): Promise<UserProfile> => {
-  const response = await axios.get('/api/members');
+  const response = await axiosInstance.get('/api/members');
   return response.data;
 };
 

@@ -26,19 +26,19 @@ export default function RootLayout() {
           <Stack.Screen name="index" options={{ headerShown: false }} />
 
           <Stack.Screen
-            name="signup"
+            name="auth/signup"
             options={{
               title: '회원가입'
             }}
           />
           <Stack.Screen
-            name="terms-agreements"
+            name="auth/terms-agreements"
             options={{
               title: '약관 동의'
             }}
           />
           <Stack.Screen
-            name="forgot-password"
+            name="auth/forgot-password"
             options={{
               title: '비밀번호 찾기'
             }}

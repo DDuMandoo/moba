@@ -15,11 +15,9 @@ import Constants from 'expo-constants';
 import ProfileWithEmail from '@/components/profile/ProfileWithEmail';
 import PromiseCard from '@/components/PromiseCard';
 import SettingsOverlay from '@/components/overlays/SettingOverlay';
-
 import { dummyPromises } from '@/constants/dummy/dummyPromises';
 
 const BASE_URL = Constants.expoConfig?.extra?.API_URL;
-
 const tabs = ['전체', '진행중/예정', '종료'] as const;
 
 export default function MyPageScreen() {
@@ -78,88 +76,94 @@ export default function MyPageScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      {/* 프로필 */}
-      <View style={styles.topSection}>
-        <View style={styles.profileBox}>
-          {user && (
-            <ProfileWithEmail
-              name={user.name}
-              email={user.email}
-              imageUri={user.image}
+    <View style={{ flex: 1 }}>
+      <ScrollView style={styles.container}>
+        {/* 상단 섹션 */}
+        <View style={styles.topSection}>
+          <View style={styles.profileBox}>
+            {user && (
+              <ProfileWithEmail
+                name={user.name}
+                email={user.email}
+                imageUri={user.image}
+              />
+            )}
+          </View>
+
+          {/* 설정 아이콘 */}
+          <TouchableOpacity onPress={() => setOverlayVisible(true)}>
+            <Ionicons name="settings-outline" size={28} color={Colors.logo} />
+          </TouchableOpacity>
+        </View>
+
+        {/* 요약 카드 */}
+        <View style={styles.summaryCard}>
+          <View style={styles.summaryRow}>
+            <Ionicons name="checkbox" size={20} color={Colors.logo} />
+            <Text style={styles.summaryText}>
+              이번달에 <Text style={styles.bold}>3</Text>번의 모임에 참여하셨어요.
+            </Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Ionicons name="checkbox" size={20} color={Colors.logo} />
+            <Text style={styles.summaryText}>
+              이번달 약속에 <Text style={styles.bold}>245,000원</Text>을 소비했습니다.
+            </Text>
+          </View>
+        </View>
+
+        {/* 나의 모임 */}
+        <Text style={styles.sectionTitle}>나의 모임</Text>
+
+        {/* 탭 필터 */}
+        <View style={styles.tabWrapper}>
+          <View style={styles.tabBar}>
+            {tabs.map((tab, i) => (
+              <TouchableOpacity
+                key={tab}
+                onPress={() => handleTabPress(tab, i)}
+                onLayout={(e) => handleTabLayout(e, i)}
+              >
+                <Text style={[styles.tabText, selectedTab === tab && styles.tabSelected]}>
+                  · {tab}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {tabLayouts.length === tabs.length && (
+            <Animated.View
+              style={{
+                position: 'absolute',
+                bottom: -2,
+                left: underlineX,
+                width: underlineWidth,
+                height: 2,
+                backgroundColor: Colors.logo
+              }}
             />
           )}
         </View>
-        <TouchableOpacity onPress={() => setOverlayVisible(true)} style={styles.settingIcon}>
-          <Ionicons name="settings-outline" size={28} color={Colors.logo} />
-        </TouchableOpacity>
 
-        <SettingsOverlay visible={overlayVisible} onClose={() => setOverlayVisible(false)} />
-      </View>
-
-      {/* 요약 카드 */}
-      <View style={styles.summaryCard}>
-        <View style={styles.summaryRow}>
-          <Ionicons name="checkbox" size={20} color={Colors.logo} />
-          <Text style={styles.summaryText}>
-            이번달에 <Text style={styles.bold}>3</Text>번의 모임에 참여하셨어요.
-          </Text>
-        </View>
-        <View style={styles.summaryRow}>
-          <Ionicons name="checkbox" size={20} color={Colors.logo} />
-          <Text style={styles.summaryText}>
-            이번달 약속에 <Text style={styles.bold}>245,000원</Text>을 소비했습니다.
-          </Text>
-        </View>
-      </View>
-
-      {/* 나의 모임 제목 */}
-      <Text style={styles.sectionTitle}>나의 모임</Text>
-
-      {/* 필터 탭 */}
-      <View style={styles.tabWrapper}>
-        <View style={styles.tabBar}>
-          {tabs.map((tab, i) => (
-            <TouchableOpacity
-              key={tab}
-              onPress={() => handleTabPress(tab, i)}
-              onLayout={(e) => handleTabLayout(e, i)}
-              style={styles.tabItem}
-            >
-              <Text style={[styles.tabText, selectedTab === tab && styles.tabSelected]}>
-                · {tab}
-              </Text>
-            </TouchableOpacity>
+        {/* 약속 카드 리스트 */}
+        <View style={styles.promiseList}>
+          {filteredPromises.map((promise) => (
+            <PromiseCard
+              key={promise.appointmentId}
+              appointmentId={promise.appointmentId}
+              imageUrl={promise.imageUrl}
+              title={promise.name}
+              time={promise.time}
+              location={promise.location}
+              participants={promise.participants}
+            />
           ))}
         </View>
+      </ScrollView>
 
-        {tabLayouts.length === tabs.length && (
-          <Animated.View
-            style={[
-              {
-                left: underlineX,
-                width: underlineWidth
-              }
-            ]}
-          />
-        )}
-      </View>
-
-      {/* 약속 리스트 */}
-      <View style={styles.promiseList}>
-        {filteredPromises.map((promise) => (
-          <PromiseCard
-            key={promise.appointmentId}
-            appointmentId={promise.appointmentId}
-            imageUrl={promise.imageUrl}
-            title={promise.name}
-            time={promise.time}
-            location={promise.location}
-            participants={promise.participants}
-          />
-        ))}
-      </View>
-    </ScrollView>
+      {/* ✅ 오버레이는 스크롤뷰 바깥에서 렌더링 */}
+      <SettingsOverlay visible={overlayVisible} onClose={() => setOverlayVisible(false)} />
+    </View>
   );
 }
 
@@ -177,9 +181,6 @@ const styles = StyleSheet.create({
   },
   profileBox: {
     flex: 1
-  },
-  settingIcon: {
-    padding: 8
   },
   summaryCard: {
     backgroundColor: Colors.white,
@@ -223,7 +224,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 14
   },
-  tabItem: {},
   tabText: {
     fontSize: 16,
     color: '#888'

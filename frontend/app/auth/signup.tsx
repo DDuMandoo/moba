@@ -131,7 +131,7 @@ export default function SignupScreen() {
       return showAlert('비밀번호 불일치', '비밀번호가 다릅니다.');
 
     router.push({
-      pathname: '/terms-agreements',
+      pathname: '/auth/terms-agreements',
       params: { email, password, name, image: image ?? '' }
     });
   };

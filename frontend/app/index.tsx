@@ -118,10 +118,10 @@ export default function LoginScreen() {
       />
 
       <View style={styles.footer}>
-        <TouchableOpacity onPress={() => router.push('/forgot-password')}>
+        <TouchableOpacity onPress={() => router.push('/auth/forgot-password')}>
           <Text style={styles.footerText}>비밀번호 찾기</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push('/signup')}>
+        <TouchableOpacity onPress={() => router.push('/auth/signup')}>
           <Text style={styles.footerText}>회원가입</Text>
         </TouchableOpacity>
       </View>

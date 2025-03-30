@@ -1,119 +1,130 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  View,
+  Animated,
+  Dimensions,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  StyleSheet,
-  Animated,
+  View,
   Easing,
-  Dimensions
+  Pressable
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { Ionicons, MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useDispatch, useSelector } from 'react-redux';
+import { toggleNotification, toggleLocation } from '@/redux/slices/permissionSlice';
+import { RootState } from '@/redux/store';
+import { savePermissions } from '@/utils/permissions';
 import Colors from '@/constants/Colors';
+import axiosInstance, { clearTokens } from '@/app/axiosInstance';
+import { router } from 'expo-router';
+import CustomAlert from '../CustomAlert';
 
-const { width } = Dimensions.get('window');
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
 interface Props {
   visible: boolean;
   onClose: () => void;
 }
 
-export default function SettingsOverlay({ visible, onClose }: Props) {
-  const router = useRouter();
+export default function SettingOverlay({ visible, onClose }: Props) {
+  const dispatch = useDispatch();
+  const { notification, location } = useSelector((state: RootState) => state.permissions);
+  const [logoutAlert, setLogoutAlert] = useState(false);
 
-  const [notificationOn, setNotificationOn] = useState(true);
-  const [locationOn, setLocationOn] = useState(true);
-
-  const opacity = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(-30)).current;
+  const slideAnim = useRef(new Animated.Value(SCREEN_WIDTH)).current;
 
   useEffect(() => {
     if (visible) {
-      Animated.parallel([
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true
-        }),
-        Animated.timing(translateY, {
-          toValue: 0,
-          duration: 200,
-          easing: Easing.out(Easing.ease),
-          useNativeDriver: true
-        })
-      ]).start();
+      Animated.timing(slideAnim, {
+        toValue: SCREEN_WIDTH * 0.95 - SCREEN_WIDTH * 0.55, // 오른쪽 padding 5%
+        duration: 300,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: false
+      }).start();
     } else {
-      opacity.setValue(0);
-      translateY.setValue(-30);
+      Animated.timing(slideAnim, {
+        toValue: SCREEN_WIDTH,
+        duration: 300,
+        easing: Easing.in(Easing.ease),
+        useNativeDriver: false
+      }).start();
     }
   }, [visible]);
+
+  const handleToggleNotification = () => {
+    dispatch(toggleNotification());
+    savePermissions({ notification: !notification, location });
+  };
+
+  const handleToggleLocation = () => {
+    dispatch(toggleLocation());
+    savePermissions({ notification, location: !location });
+  };
+
+  const handleEditProfile = () => {
+    router.push('/auth/profile-edit');
+  };
+
+  const handleLogout = async () => {
+    try {
+      await axiosInstance.post('/auth/signout');
+    } catch (err) {
+      console.warn('🚫 로그아웃 실패:', err);
+    } finally {
+      await clearTokens();
+      router.replace('/');
+    }
+  };
 
   if (!visible) return null;
 
   return (
-    <TouchableOpacity
-      style={styles.backdrop}
-      activeOpacity={1}
-      onPress={onClose}
-    >
-      <Animated.View
-        style={[
-          styles.menuBox,
-          {
-            opacity,
-            transform: [{ translateY }]
-          }
-        ]}
-      >
-        <TouchableOpacity
-          style={styles.item}
-          onPress={() => setNotificationOn(!notificationOn)}
-        >
-          <Feather
-            name={notificationOn ? 'bell' : 'bell-off'}
-            size={20}
-            color={Colors.grayDarkText}
-          />
-          <Text style={styles.text}>알림 설정</Text>
+    <Pressable style={styles.backdrop} onPress={onClose}>
+      <Animated.View style={[styles.overlay, { left: slideAnim }]}>
+        {/* 알림 설정 */}
+        <TouchableOpacity style={styles.row} onPress={handleToggleNotification}>
+          {notification ? (
+            <Ionicons name="notifications" size={20} color={Colors.secondary} />
+          ) : (
+            <Ionicons name="notifications-off" size={20} color={Colors.secondary} />
+          )}
+          <Text style={styles.label}>알림 설정</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.item}
-          onPress={() => setLocationOn(!locationOn)}
-        >
-          <Feather
-            name={locationOn ? 'map-pin' : 'map'}
-            size={20}
-            color={Colors.grayDarkText}
-          />
-          <Text style={styles.text}>위치 설정</Text>
+        {/* 위치 설정 */}
+        <TouchableOpacity style={styles.row} onPress={handleToggleLocation}>
+          {location ? (
+            <Ionicons name="location" size={20} color={Colors.secondary} />
+          ) : (
+            <MaterialIcons name="location-off" size={20} color={Colors.secondary} />
+          )}
+          <Text style={styles.label}>위치 설정</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.item}
-          onPress={() => {
-            onClose();
-            router.push('/profile-edit');
+        {/* 프로필 수정 */}
+        <TouchableOpacity style={styles.row} onPress={handleEditProfile}>
+          <MaterialCommunityIcons name="pencil-outline" size={20} color={Colors.secondary} />
+          <Text style={styles.label}>프로필 수정</Text>
+        </TouchableOpacity>
+
+        {/* 로그아웃 */}
+        <TouchableOpacity style={styles.row} onPress={() => setLogoutAlert(true)}>
+          <Ionicons name="log-out-outline" size={20} color={Colors.secondary} />
+          <Text style={styles.label}>로그 아웃</Text>
+        </TouchableOpacity>
+
+        {/* 로그아웃 커스텀 Alert */}
+        <CustomAlert
+          visible={logoutAlert}
+          title="로그아웃"
+          message="정말 로그아웃 하시겠습니까?"
+          onClose={() => {
+            setLogoutAlert(false);
+            handleLogout();
           }}
-        >
-          <Feather name="edit" size={20} color={Colors.grayDarkText} />
-          <Text style={styles.text}>프로필 수정</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.item}
-          onPress={() => {
-            onClose();
-            // SecureStore 삭제 로직 등
-            router.replace('/');
-          }}
-        >
-          <Feather name="log-out" size={20} color={Colors.grayDarkText} />
-          <Text style={styles.text}>로그아웃</Text>
-        </TouchableOpacity>
+        />
       </Animated.View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -121,32 +132,31 @@ const styles = StyleSheet.create({
   backdrop: {
     position: 'absolute',
     top: 0,
-    left: 0,
-    width,
+    left: 70,
+    width: '100%',
     height: '100%',
-    zIndex: 100
+    backgroundColor: 'transparent',
+    zIndex: 999
   },
-  menuBox: {
+  overlay: {
     position: 'absolute',
     top: 60,
-    right: 20,
+    width: 150,
     backgroundColor: Colors.white,
-    borderRadius: 14,
-    padding: 14,
-    gap: 14,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6
+    borderRadius: 12,
+    paddingVertical: 20,
+    paddingHorizontal: 18,
+    elevation: 6,
+    gap: 16
   },
-  item: {
+  row: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10
+    alignItems: 'center'
   },
-  text: {
+  label: {
+    flex: 1,
     fontSize: 16,
-    color: Colors.black
+    color: Colors.black,
+    marginLeft: 10
   }
 });

@@ -8,34 +8,24 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import axios from 'axios';
 import Colors from '@/constants/Colors';
 import { getBankMeta } from '@/constants/banks';
+import { useAppSelector } from '@/redux/hooks';
 
 interface Props {
   selectedAccountId: string | null;
-  setSelectedAccountId: (id: string) => void;
+  onSelectAccount: (id: string) => void;
 }
 
-interface Account {
-  account: string;
-  type: string;
-  id: string;
-}
-
-const fetchAccounts = async (): Promise<Account[]> => {
-  const res = await axios.get('/wallets/account');
-  return res.data.accounts;
-};
-
-export default function ChargeSourceList({ selectedAccountId, setSelectedAccountId }: Props) {
+export default function ChargeSourceList({
+  selectedAccountId,
+  onSelectAccount,
+}: Props) {
   const router = useRouter();
-  const { data, isLoading, isError } = useQuery<Account[]>({
-    queryKey: ['accounts'],
-    queryFn: fetchAccounts,
-  });
+  const accounts = useAppSelector((state) => state.account.list);
+  const isLoading = false; // 🔄 필요하면 리덕스 상태로 따로 관리 가능
+  const isError = false;   // 🔄 필요하면 에러 상태도 redux로 관리 가능
 
   return (
     <View style={styles.wrapper}>
@@ -53,19 +43,19 @@ export default function ChargeSourceList({ selectedAccountId, setSelectedAccount
         <ActivityIndicator color={Colors.primary} style={{ marginTop: 16 }} />
       ) : isError ? (
         <Text style={{ color: 'red', marginTop: 16 }}>계좌를 불러올 수 없습니다.</Text>
-      ) : data && data.length === 0 ? (
+      ) : accounts.length === 0 ? (
         <Text style={{ color: Colors.grayDarkText, paddingVertical: 24, textAlign: 'center' }}>
           연결된 계좌가 없습니다.
         </Text>
       ) : (
-        data?.map((acc) => {
+        accounts.map((acc) => {
           const bank = getBankMeta(acc.type);
           const selected = acc.id === selectedAccountId;
 
           return (
             <TouchableOpacity
               key={acc.id}
-              onPress={() => setSelectedAccountId(acc.id)}
+              onPress={() => onSelectAccount(acc.id)}
               style={[
                 styles.accountRow,
                 selected && { backgroundColor: Colors.grayBackground },

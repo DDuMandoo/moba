@@ -30,4 +30,5 @@ public interface AppointmentParticipantRepository extends JpaRepository<Appointm
             """)
     int countJoinedAppointmentsByMemberAndDate(Integer memberId, Integer year, Integer month);
 
+    boolean existsByAppointmentAndMemberIdAndState(Appointment appointment, Integer id, State state);
 }

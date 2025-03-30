@@ -12,7 +12,6 @@ import com.a601.moba.member.Entity.Member;
 import com.a601.moba.member.Service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -36,8 +35,8 @@ public class MemberController {
 
     @Operation(summary = "내 정보 조회", description = "현재 로그인한 회원의 정보를 조회합니다.")
     @GetMapping
-    public ResponseEntity<JSONResponse<MemberResponse>> getMyInfo(HttpServletRequest request) {
-        Member member = authUtil.getMemberFromToken(request);
+    public ResponseEntity<JSONResponse<MemberResponse>> getMyInfo() {
+        Member member = authUtil.getCurrentMember();
 
         MemberResponse response = new MemberResponse(
                 member.getId(),
@@ -52,10 +51,9 @@ public class MemberController {
     @Operation(summary = "회원 정보 수정", description = "회원 이름 또는 프로필 이미지를 수정합니다.")
     @PatchMapping("/update")
     public ResponseEntity<JSONResponse<MemberUpdateResponse>> updateMemberInfo(
-            @ModelAttribute MemberUpdateRequest request,
-            HttpServletRequest servletRequest
+            @ModelAttribute MemberUpdateRequest request
     ) {
-        MemberUpdateResponse response = memberService.updateMemberInfo(request, servletRequest);
+        MemberUpdateResponse response = memberService.updateMemberInfo(request);
         return ResponseEntity.ok(JSONResponse.onSuccess(response));
     }
 
@@ -70,8 +68,8 @@ public class MemberController {
 
     @Operation(summary = "회원 탈퇴", description = "현재 로그인한 회원을 탈퇴 처리합니다.")
     @DeleteMapping
-    public ResponseEntity<JSONResponse<Void>> deleteMember(HttpServletRequest request) {
-        memberService.deleteMember(request);
+    public ResponseEntity<JSONResponse<Void>> deleteMember() {
+        memberService.deleteMember();
         return ResponseEntity
                 .status(SuccessCode.MEMBER_DELETE_SUCCESS.getHttpStatus())
                 .body(JSONResponse.of(SuccessCode.MEMBER_DELETE_SUCCESS));

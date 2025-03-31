@@ -17,6 +17,7 @@ import com.a601.moba.appointment.Controller.Response.AppointmentSummaryResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentUpdateResponse;
 import com.a601.moba.appointment.Controller.Response.FriendSearchResponse;
 import com.a601.moba.appointment.Service.AppointmentImageService;
+import com.a601.moba.appointment.Service.AppointmentPlaceService;
 import com.a601.moba.appointment.Service.AppointmentSearchService;
 import com.a601.moba.appointment.Service.AppointmentService;
 import com.a601.moba.global.code.SuccessCode;
@@ -24,9 +25,9 @@ import com.a601.moba.global.response.JSONResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -58,14 +59,20 @@ public class AppointmentController {
     private final AppointmentService appointmentService;
     private final AppointmentSearchService appointmentSearchService;
     private final AppointmentImageService appointmentImageService;
+    private final AppointmentPlaceService appointmentPlaceService;
 
     @Operation(
             summary = "약속방 생성",
-            description = "약속방(채팅방)을 생성합니다. 약속 이름, 시간, 장소 등의 정보와 함께 대표 이미지를 업로드할 수 있습니다.",
+            description = "약속 이름, 시간, 장소 정보와 대표 이미지를 업로드합니다.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "약속 생성 요청 데이터 (JSON + 이미지)",
                     required = true,
-                    content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE)
+                    content = @Content(
+                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            encoding = {
+                                    @Encoding(name = "data", contentType = MediaType.APPLICATION_JSON_VALUE), // JSON 파트
+                                    @Encoding(name = "image", contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+                            }
+                    )
             )
     )
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -115,7 +122,13 @@ public class AppointmentController {
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "수정할 약속 정보 (JSON + 이미지)",
                     required = true,
-                    content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE)
+                    content = @Content(
+                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            encoding = {
+                                    @Encoding(name = "data", contentType = MediaType.APPLICATION_JSON_VALUE), // JSON 파트
+                                    @Encoding(name = "image", contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+                            }
+                    )
             ),
             responses = {
                     @ApiResponse(responseCode = "200", description = "약속방 정보를 수정하였습니다.")
@@ -174,10 +187,9 @@ public class AppointmentController {
     @GetMapping("/{appointmentId}/participants")
     public ResponseEntity<JSONResponse<AppointmentParticipantResponse>> getParticipants(
             @Parameter(description = "약속 ID", example = "1")
-            @PathVariable Integer appointmentId,
-            HttpServletRequest request
+            @PathVariable Integer appointmentId
     ) {
-        AppointmentParticipantResponse response = appointmentService.getParticipants(appointmentId, request);
+        AppointmentParticipantResponse response = appointmentService.getParticipants(appointmentId);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.APPOINTMENT_PARTICIPANTS_FETCH_SUCCESS, response));
     }
 
@@ -284,4 +296,15 @@ public class AppointmentController {
         Map<String, Object> result = appointmentImageService.getImages(appointmentId, size, cursorId);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.SEARCH_SUCCESS, result));
     }
+
+//    @Operation(summary = "장소 이름으로 장소 검색", description = "약속방 내에서 장소 이름으로 검색합니다.")
+//    @GetMapping("/places/search")
+//    public ResponseEntity<JSONResponse<?>> searchPlaces(
+//            @RequestParam String keyword,
+//            @RequestParam(defaultValue = "10") int size,
+//            @RequestParam(required = false) Integer cursorId) {
+//
+//        Map<String, Object> result = appointmentPlaceService.searchPlaces(keyword, size, cursorId);
+//        return ResponseEntity.ok(JSONResponse.of(SuccessCode.SEARCH_SUCCESS, result));
+//    }
 }

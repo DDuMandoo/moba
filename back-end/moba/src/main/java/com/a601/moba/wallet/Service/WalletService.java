@@ -158,7 +158,7 @@ public class WalletService {
             walletAccount.toggleMain();
         }
 
-        WalletAccount newMainAccount = walletAccountRepository.getWalletAccountByAccount(account)
+        WalletAccount newMainAccount = walletAccountRepository.getWalletAccountByAccountAndWallet(account, wallet)
                 .orElseThrow(() -> new WalletAuthException(ErrorCode.INVALID_VERIFICATION_ACCOUNT));
 
         newMainAccount.toggleMain();
@@ -395,6 +395,24 @@ public class WalletService {
                 .amount(amount)
                 .time(withdrawTransaction.getPayAt())
                 .build();
+    }
+
+    public void dutchpayTransfer(Wallet wallet, Wallet targetWallet, Transaction withdrawTransaction,
+                                 Transaction depositTransaction,
+                                 Long amount) {
+        try {
+            wallet.withdraw(amount); // 출금
+            log.info("🟢 출금 성공");
+
+            targetWallet.deposit(amount); // 입금
+            log.info("🟢 입금 성공");
+
+            withdrawTransaction.updateStatus(TransactionStatus.COMPLETED);
+            depositTransaction.updateStatus(TransactionStatus.COMPLETED);
+        } catch (Exception e) {
+            log.error("🔴 이체 실패: {}", e.getMessage());
+            throw new RuntimeException(e);
+        }
     }
 
     @Transactional

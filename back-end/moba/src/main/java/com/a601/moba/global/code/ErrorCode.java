@@ -74,6 +74,14 @@ public enum ErrorCode {
     S3_UPLOAD_FAILED(4600, INTERNAL_SERVER_ERROR, "S3 파일 업로드에 실패했습니다"),
     S3_DELETE_FAILED(4601, INTERNAL_SERVER_ERROR, "S3 파일 삭제에 실패했습니다"),
 
+    // ================= 더치페이 관련 에러 (4700번대) ==================
+    NOT_FOUNT_DUTCHPAY(4700, NOT_FOUND, "더치페이를 찾을 수 없습니다"),
+    NOT_FOUNT_DUTCHPAY_PARTICIPANT(4701, NOT_FOUND, "더치페이 참여자를 찾을 수 없습니다"),
+    NOT_MATCH_AMOUNT(4702, BAD_REQUEST, "정산이 완료되지 않았습니다"),
+    NOT_MATCH_PRICE(4703, BAD_REQUEST, "합산 금액이 일치하지 않습니다"),
+    INVALID_HOST(4704, BAD_REQUEST, "더치페이 호스트의 권한이 없습니다"),
+    ALREADY_COMPLETE_DUTCHPAY(4705, BAD_REQUEST, "이미 더치페이 완료한 참가자 입니다"),
+
     ;
     private final int code;
     private final HttpStatus httpStatus;

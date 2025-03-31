@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   ScrollView,
   View,
@@ -7,49 +7,60 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import WalletStatus from '@/components/WalletStatus';
-import { useQuery } from '@tanstack/react-query';
-import axiosInstance from '@/app/axiosInstance';
 import Colors from '@/constants/Colors';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { fetchUserProfile } from '@/redux/slices/userSlice';
+import ProfileHeader from '@/components/ProfileHeader';
 
-interface UserProfile {
-  name: string;
-  image: string;
-}
-
-const fetchUserProfile = async (): Promise<UserProfile> => {
-  const response = await axiosInstance.get('/api/members');
-  return response.data;
-};
 
 export default function WalletDetailPage() {
-  const { data, isLoading, isError } = useQuery<UserProfile>({
-    queryKey: ['userProfile'],
-    queryFn: fetchUserProfile,
-  });
+  const dispatch = useAppDispatch();
+  const { profile, isLoading, isError } = useAppSelector((state) => state.user);
+
+  useEffect(() => {
+    dispatch(fetchUserProfile());
+  }, []);
 
   return (
-    <ScrollView className="bg-gray-50" contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24 }}>
-
-  {/* 프로필 영역 */}
-  {isLoading ? (
-    <ActivityIndicator color={Colors.primary} />
-  ) : !data || isError ? (
-    <Text className="text-base font-bold text-gray-800">유저 정보를 불러올 수 없습니다.</Text>
-  ) : (
-    <View className="flex-row items-center space-x-3 self-start mb-4">
-      <Image
-        source={{ uri: data.image }}
-        className="w-14 h-14 rounded-full bg-gray-200"
+    <ScrollView
+      style={{ backgroundColor: Colors.background }}
+      contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 24 }}
+    >
+      {/* ✅ 프로필 */}
+      <ProfileHeader
+        name={profile?.name || ''}
+        image={profile?.image || ''}
+        isLoading={isLoading}
+        isError={isError}
       />
-      <Text className="text-lg text-gray-900 font-bold">{data.name} 님의 지갑</Text>
-    </View>
-  )}
 
-  {/* ✅ WalletStatus 중앙 정렬 */}
-  <View className="items-center w-full">
-    <WalletStatus />
-  </View>
-</ScrollView>
+      {/* 지갑 상태 */}
+      <View style={{ alignItems: 'center', width: '100%', marginTop: 24 }}>
+        <WalletStatus />
+      </View>
 
+      {/* 분석 카드 영역 */}
+      <View style={{
+        backgroundColor: Colors.white,
+        borderRadius: 16,
+        padding: 20,
+        marginTop: 24,
+      }}>
+        <Text style={{ fontSize: 16, fontWeight: 'bold', color: Colors.text }}>
+          내 약속
+        </Text>
+      </View>
+
+      <View style={{
+        backgroundColor: Colors.white,
+        borderRadius: 16,
+        padding: 20,
+        marginTop: 16,
+      }}>
+        <Text style={{ fontSize: 16, fontWeight: 'bold', color: Colors.text }}>
+          내 소비 패턴 분석
+        </Text>
+      </View>
+    </ScrollView>
   );
 }

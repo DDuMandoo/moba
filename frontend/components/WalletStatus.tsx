@@ -1,44 +1,25 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  ActivityIndicator,
-  useWindowDimensions,
-  Modal,
-  Pressable,
-  StyleSheet,
+  View, Text, ActivityIndicator, TouchableOpacity,
+  useWindowDimensions, Modal, Pressable, StyleSheet
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import Fonts from '@/constants/Fonts';
-import axios from 'axios';
-import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-
-interface WalletData {
-  balance: number;
-}
-
-const fetchWalletBalance = async (): Promise<WalletData> => {
-  const response = await axios.get('/wallets');
-  return response.data;
-};
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { fetchWalletBalance } from '@/redux/slices/walletSlice';
 
 export default function WalletStatus() {
-  const { data, isLoading } = useQuery<WalletData>({
-    queryKey: ['walletBalance'],
-    queryFn: fetchWalletBalance,
-  });
-
-  const router = useRouter();
-  const { width: screenWidth } = useWindowDimensions();
-  const containerWidth = Math.min(screenWidth * 0.9, 635);
-  const formattedBalance = data?.balance?.toLocaleString('ko-KR') ?? '0';
-
+  const dispatch = useAppDispatch();
+  const { balance, isLoading } = useAppSelector((state) => state.wallet);
   const [infoVisible, setInfoVisible] = useState(false);
-  const [buttonWidth, setButtonWidth] = useState<number | null>(null);
   const 정산내역Ref = useRef<View>(null);
+  const [buttonWidth, setButtonWidth] = useState<number | null>(null);
+
+  useEffect(() => {
+    dispatch(fetchWalletBalance());
+  }, [dispatch]);
 
   useEffect(() => {
     if (정산내역Ref.current) {
@@ -48,16 +29,19 @@ export default function WalletStatus() {
     }
   }, []);
 
+  const router = useRouter();
+  const { width: screenWidth } = useWindowDimensions();
+  const containerWidth = Math.min(screenWidth * 0.9, 635);
+  const formattedBalance = balance.toLocaleString('ko-KR');
+
   return (
-    <View
-      style={{
-        width: containerWidth,
-        backgroundColor: Colors.white,
-        borderRadius: 16,
-        padding: 20,
-        gap: 16,
-      }}
-    >
+    <View style={{
+      width: containerWidth,
+      backgroundColor: Colors.white,
+      borderRadius: 16,
+      padding: 20,
+      gap: 16,
+    }}>
       {/* 상단: 지갑 텍스트 + 금액 */}
       <View>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
@@ -69,20 +53,18 @@ export default function WalletStatus() {
             size={16}
             color={Colors.grayDarkText}
             style={{ marginLeft: 4 }}
-            onPress={() => setInfoVisible(true)} // ✅ 모달 오픈
+            onPress={() => setInfoVisible(true)}
           />
         </View>
         {isLoading ? (
           <ActivityIndicator size="small" color={Colors.primary} />
         ) : (
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text
-              style={{
-                fontSize: 24,
-                fontFamily: Fonts.extraBold,
-                color: Colors.text,
-              }}
-            >
+            <Text style={{
+              fontSize: 24,
+              fontFamily: Fonts.extraBold,
+              color: Colors.text,
+            }}>
               {formattedBalance} 원
             </Text>
             <Ionicons
@@ -96,12 +78,12 @@ export default function WalletStatus() {
         )}
       </View>
 
-      {/* 버튼 그룹 */}
+      {/* 버튼 그룹 복원 */}
       <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
         <TouchableOpacity
           ref={정산내역Ref}
           activeOpacity={0.8}
-          onPress={() => router.push('/wallet/history')}
+          onPress={() => router.push('/wallet/settlement/history')}
           style={{
             borderWidth: 1,
             borderColor: Colors.primary,
@@ -155,7 +137,7 @@ export default function WalletStatus() {
         </TouchableOpacity>
       </View>
 
-      {/* ✅ 화면 위에 뜨는 모달 */}
+      {/* 지갑 설명 모달 */}
       <Modal
         transparent
         visible={infoVisible}

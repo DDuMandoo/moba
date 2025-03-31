@@ -17,8 +17,8 @@ import CustomAlert from '@/components/CustomAlert';
 import dayjs from 'dayjs';
 import Colors from '@/constants/Colors';
 import type { AppDispatch } from '@/redux/store';
-import AppointmentConfirmModal from '@/components/modal/AppointmentConfirmModal';
 import CustomDateTimePicker from '@/components/modal/CustomDateTimePicker';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function AppointmentCreatePage() {
   const [name, setName] = useState('');
@@ -26,137 +26,173 @@ export default function AppointmentCreatePage() {
   const [dateTime, setDateTime] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [location, setLocation] = useState<{ latitude: number; longitude: number; memo?: string } | null>(null);
-  const [friends, setFriends] = useState<number[]>([]);
+  const [friends, setFriends] = useState<number[]>([]); // [1, 2, 3]
   const [friendInfos, setFriendInfos] = useState<{ id: number; name: string; image: string }[]>([]);
-
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
-  const [confirmVisible, setConfirmVisible] = useState(false);
-  const [createdId, setCreatedId] = useState<number | null>(null);
 
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
 
   const handleSelectImage = async () => {
-    const result = await launchImageLibraryAsync({ mediaTypes: MediaTypeOptions.Images, allowsEditing: true });
+    const result = await launchImageLibraryAsync({
+      mediaTypes: MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1
+    });
     if (!result.canceled && result.assets.length > 0) {
       setImage(result.assets[0].uri);
+      console.log('🖼 이미지 선택됨:', result.assets[0].uri);
     }
   };
 
   const handleOpenFriendModal = () => {
-    // TODO: 친구 선택 모달 열기 구현 예정
+    console.log('👥 참가자 선택 모달 열기 (TODO)');
+    // TODO: 친구 선택 모달 연결
   };
 
   const handleOpenLocationSearch = () => {
+    console.log('📍 장소 검색 화면 이동');
     router.push('/promises/locationSearch');
   };
 
   const handleSubmit = async () => {
-    if (!name) return;
+    if (!name.trim()) {
+      setAlertMessage('약속명을 입력해주세요!');
+      setAlertVisible(true);
+      return;
+    }
 
-    const payload = {
+    if (!dateTime) {
+      setAlertMessage('날짜 및 시간을 선택해주세요!');
+      setAlertVisible(true);
+      return;
+    }
+
+    const payload: any = {
       name,
-      time: dateTime ? new Date(dateTime).toISOString() : new Date().toISOString(),
-      latitude: location?.latitude ?? 0,
-      longitude: location?.longitude ?? 0,
-      memo: location?.memo || '',
-      friends,
+      time: dateTime.toISOString(),
     };
+
+    if (location?.latitude) payload.latitude = location.latitude;
+    if (location?.longitude) payload.longitude = location.longitude;
+    if (location?.memo?.trim()) payload.memo = location.memo;
+    if (friends.length > 0) payload.friends = friends;
 
     const formData = new FormData();
     formData.append('data', JSON.stringify(payload));
+
     if (image) {
       formData.append('image', {
         uri: image,
         type: 'image/jpeg',
-        name: 'appointment.jpg',
+        name: 'appointment.jpg'
       } as any);
     }
 
+    console.log('📨 FormData 전송 내용:');
+    formData.forEach((value, key) => {
+      console.log(`  ${key}:`, value);
+    });
+
     try {
       const result = await dispatch(createAppointment(formData)).unwrap();
-      setCreatedId(result.appointmentId);
-      setConfirmVisible(true);
-    } catch (error: any) {
-      setAlertMessage(error);
+      console.log('✅ 약속 생성 성공:', result);
+      router.replace(`/promises/${result.result.appointmentId}`);
+    } catch (err: any) {
+      console.error('❌ 약속 생성 실패:', err);
+      setAlertMessage(err?.message || '약속 생성에 실패했어요!');
       setAlertVisible(true);
     }
   };
 
-  const handleConfirm = () => {
-    if (!createdId) return;
-    setConfirmVisible(false);
-    router.replace(`/promises/${createdId}`);
-  };
-
   return (
-    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
-      <TouchableOpacity onPress={handleSelectImage} style={styles.imageBox} activeOpacity={0.8}>
-        {image ? (
-          <Image source={{ uri: image }} style={styles.image} resizeMode="cover" />
-        ) : (
-          <Text style={styles.imagePlaceholder}>+ 사진 첨부</Text>
-        )}
-      </TouchableOpacity>
-
-      <Text style={styles.label}>약속명 *</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="약속명을 입력해주세요."
-        value={name}
-        onChangeText={setName}
-      />
-
-      <Text style={styles.label}>참가자 선택</Text>
-      <TouchableOpacity onPress={handleOpenFriendModal} style={styles.input} activeOpacity={0.7}>
-        <Text style={styles.placeholderText}>👥 참가자 검색</Text>
-      </TouchableOpacity>
-
-      <Text style={styles.label}>날짜 및 시간 선택</Text>
-      <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.input} activeOpacity={0.7}>
-        <Text style={dateTime ? styles.text : styles.placeholderText}>
-          {dateTime ? dayjs(dateTime).format('YYYY년 M월 D일 HH:mm') : '📅 날짜 및 시간 선택'}
-        </Text>
-      </TouchableOpacity>
-
-      <CustomDateTimePicker
-        visible={showDatePicker}
-        initialValue={dateTime || new Date()}
-        onClose={() => setShowDatePicker(false)}
-        onConfirm={(val) => setDateTime(val)}
-      />
-
-      <Text style={styles.label}>장소 선택</Text>
-      <TouchableOpacity onPress={handleOpenLocationSearch} style={styles.input} activeOpacity={0.7}>
-        <Text style={styles.placeholderText}>📍 장소 검색</Text>
-      </TouchableOpacity>
-
-      <View style={styles.buttonBox}>
-        <Button.Large title="약속 생성" onPress={handleSubmit} disabled={!name} />
+    <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
+      <View style={styles.card}>
+        <TouchableOpacity onPress={handleSelectImage} style={styles.imageBox} activeOpacity={0.8}>
+          {image ? (
+            <Image source={{ uri: image }} style={styles.image} resizeMode="cover" />
+          ) : (
+            <Text style={styles.imagePlaceholder}>약속 대표 사진을 첨부해주세요.</Text>
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.imageButton} onPress={handleSelectImage}>
+          <Text style={styles.imageButtonText}>📂 사진 첨부</Text>
+        </TouchableOpacity>
       </View>
 
-      <AppointmentConfirmModal
-        visible={confirmVisible}
-        onClose={() => setConfirmVisible(false)}
-        onConfirm={handleConfirm}
-        data={{
-          name,
-          time: dateTime ? dayjs(dateTime).format('YYYY년 M월 D일 HH:mm') : '-',
-          location: location?.memo || '-',
-          participants: friendInfos
-        }}
+      <View style={styles.card}>
+        <Text style={styles.label}>약속명 <Text style={{ color: Colors.secondary }}>*</Text></Text>
+        <TextInput
+          style={styles.input}
+          placeholder="약속명을 입력해주세요."
+          value={name}
+          onChangeText={setName}
+          placeholderTextColor={Colors.grayLightText}
+        />
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.label}>참가자 선택</Text>
+        <Text style={styles.subText}>약속을 만들고 URL을 통해서도 참가자를 초대할 수 있어요!</Text>
+        <TouchableOpacity onPress={handleOpenFriendModal} style={styles.selectBox} activeOpacity={0.7}>
+          <Ionicons name="people-outline" size={20} color={Colors.grayDarkText} />
+          <Text style={styles.selectText}>참가자 검색</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.label}>날짜 및 시간 선택 <Text style={{ color: Colors.secondary }}>*</Text></Text>
+        <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.selectBox} activeOpacity={0.7}>
+          <Ionicons name="calendar-outline" size={20} color={Colors.grayDarkText} />
+          <Text style={styles.selectText}>
+            {dateTime ? dayjs(dateTime).format('YYYY년 M월 D일 HH:mm') : '날짜 및 시간 선택'}
+          </Text>
+        </TouchableOpacity>
+        <CustomDateTimePicker
+          visible={showDatePicker}
+          initialValue={dateTime || new Date()}
+          onClose={() => setShowDatePicker(false)}
+          onConfirm={(val) => setDateTime(val)}
+        />
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.label}>장소 선택</Text>
+        <TouchableOpacity onPress={handleOpenLocationSearch} style={styles.selectBox} activeOpacity={0.7}>
+          <Ionicons name="location-outline" size={20} color={Colors.grayDarkText} />
+          <Text style={styles.selectText}>장소 검색</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.buttonBox}>
+        <Button.Large
+          title="약속 생성"
+          onPress={handleSubmit}
+          disabled={!name.trim() || !dateTime}
+        />
+      </View>
+
+      <CustomAlert
+        visible={alertVisible}
+        title="에러"
+        message={alertMessage}
+        onClose={() => setAlertVisible(false)}
       />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  scrollContainer: {
+    padding: '5%',
+    paddingBottom: 20
+  },
+  card: {
     backgroundColor: Colors.white,
-    paddingHorizontal: 20,
-    paddingVertical: 24
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20
   },
   imageBox: {
     height: 160,
@@ -171,14 +207,31 @@ const styles = StyleSheet.create({
     borderRadius: 12
   },
   imagePlaceholder: {
-    color: '#aaa'
+    color: Colors.grayLightText,
+    fontSize: 14
+  },
+  imageButton: {
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: Colors.grayLightText,
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center'
+  },
+  imageButtonText: {
+    color: Colors.text,
+    fontSize: 16
   },
   label: {
-    marginTop: 24,
-    marginBottom: 8,
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.black
+    color: Colors.text,
+    marginBottom: 8
+  },
+  subText: {
+    fontSize: 13,
+    color: Colors.grayDarkText,
+    marginBottom: 8
   },
   input: {
     borderWidth: 1,
@@ -186,13 +239,21 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12
   },
-  placeholderText: {
-    color: '#888'
+  selectBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 12,
+    padding: 12
   },
-  text: {
-    color: Colors.black
+  selectText: {
+    color: Colors.grayDarkText,
+    fontSize: 15
   },
   buttonBox: {
-    marginTop: 40
+    marginTop: 20
   }
 });

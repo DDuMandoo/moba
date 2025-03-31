@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/Button';
 import CustomAlert from '@/components/CustomAlert';
 import LoadingModal from '@/components/modal/LoadingModal';
 
-const BASE_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_API_URL;
+const BASE_URL = Constants.expoConfig?.extra?.API_URL;
 
 export default function SignupScreen() {
   const router = useRouter();

@@ -17,7 +17,7 @@ import { saveTokens } from '@/app/axiosInstance';
 import Constants from 'expo-constants';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
-const BASE_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_API_URL;
+const BASE_URL = Constants.expoConfig?.extra?.API_URL;
 
 const showAlert = (title: string, message?: string) => {
   if (Platform.OS === 'web') {

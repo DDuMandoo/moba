@@ -17,7 +17,7 @@ import LoadingModal from '@/components/modal/LoadingModal';
 import PasswordSentModal from '@/components/modal/PasswordSentModal';
 import { useRouter } from 'expo-router';
 
-const BASE_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_API_URL;
+const BASE_URL = Constants.expoConfig?.extra?.API_URL;
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();

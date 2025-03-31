@@ -14,7 +14,7 @@ import axiosInstance from '@/app/axiosInstance';
 import Constants from 'expo-constants';
 import ProfileWithEmail from '@/components/profile/ProfileWithEmail';
 import PromiseCard from '@/components/PromiseCard';
-import SettingsOverlay from '@/components/overlays/SettingOverlay';
+import SettingsOverlay from '@/components/modal/SettingOverlay';
 import { dummyPromises } from '@/constants/dummy/dummyPromises';
 
 const BASE_URL = Constants.expoConfig?.extra?.API_URL;
@@ -150,7 +150,6 @@ export default function MyPageScreen() {
           {filteredPromises.map((promise) => (
             <PromiseCard
               key={promise.appointmentId}
-              appointmentId={promise.appointmentId}
               imageUrl={promise.imageUrl}
               title={promise.name}
               time={promise.time}

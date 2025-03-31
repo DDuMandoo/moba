@@ -2,3 +2,4 @@ cors:
   allowed-origins:
     - http://localhost:8081
     - https://j12a601.p.ssafy.io
+    - http://localhost:8080

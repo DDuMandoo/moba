@@ -35,10 +35,8 @@ public class Appointment extends BaseTimeEntity {
     @Column(nullable = false)
     private LocalDateTime time;
 
-    @Column(nullable = false)
     private Double latitude;
 
-    @Column(nullable = false)
     private Double longitude;
 
     @Column

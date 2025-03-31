@@ -48,6 +48,10 @@ public enum SuccessCode {
     CHARGE_WALLET_SUCCESS(2504, OK, "지갑 충전에 성공했습니다"),
     EXCHANGE_WALLET_SUCCESS(2505, OK, "계좌로 송금에 성공했습니다"),
     SEND_WALLET_SUCCESS(2506, OK, "지갑으로 송금에 성공했습니다"),
+    SET_PASSWORD_SUCCESS(2507, OK, "간편 비밀번호 설정을 완료했습니다"),
+    AUTH_WALLET_SUCCESS(2508, OK, "간편 비밀번호 인증에 성공했습니다"),
+    WALLET_GET_SUCCESS(2509, OK, "지갑 거래 내역 조회에 성공했습니다"),
+
     ;
 
 

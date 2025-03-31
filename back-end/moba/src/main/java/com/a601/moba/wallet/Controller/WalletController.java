@@ -25,8 +25,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -44,17 +42,10 @@ public class WalletController {
     private final WalletService walletService;
     private final AuthUtil authUtil;
 
-    public String getEmail() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication.getName();
-    }
-
     @PostMapping("/account")
     public ResponseEntity<JSONResponse<String>> connectAccount(
             @RequestBody ConnectAccountRequest request) {
-        String email = getEmail();
-
-        walletService.connectAccount(email,
+        walletService.connectAccount(
                 request.account(),
                 request.bank());
 
@@ -65,10 +56,7 @@ public class WalletController {
     public ResponseEntity<JSONResponse<ConnectAccountResponse>> authAccount(
             @RequestBody AuthAccountRequest request
     ) {
-        String email = getEmail();
-
         ConnectAccountResponse response = walletService.authAccount(
-                email,
                 request.code(),
                 request.account(),
                 request.bank());
@@ -80,25 +68,19 @@ public class WalletController {
     public ResponseEntity<JSONResponse<String>> changeMainAccount(
             @RequestBody ChangeMainAccountRequest request
     ) {
-        String email = getEmail();
-
-        walletService.changeMainAccount(email, request.account());
+        walletService.changeMainAccount(request.account());
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.MAIN_ACCOUNT_SET_SUCCESS));
     }
 
     @GetMapping("/account")
     public ResponseEntity<JSONResponse<GetAccountResponse>> getAccount() {
-        String email = getEmail();
-
-        GetAccountResponse response = walletService.getAccount(email);
+        GetAccountResponse response = walletService.getAccount();
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.GET_ACCOUNT_LIST_SUCCESS, response));
     }
 
     @GetMapping
     public ResponseEntity<JSONResponse<GetBalanceResponse>> getBalance() {
-        String email = getEmail();
-
-        GetBalanceResponse response = walletService.getBalance(email);
+        GetBalanceResponse response = walletService.getBalance();
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.GET_WALLET_BALANCE_SUCCESS, response));
     }
 
@@ -106,10 +88,7 @@ public class WalletController {
     public ResponseEntity<JSONResponse<DepositWalletResponse>> deposit(
             @RequestBody DepositWalletRequest request
     ) {
-        String email = getEmail();
-
         DepositWalletResponse response = walletService.deposit(
-                email,
                 request.account(),
                 request.amount());
 
@@ -120,10 +99,7 @@ public class WalletController {
     public ResponseEntity<JSONResponse<WithdrawWalletResponse>> withdraw(
             @RequestBody WithdrawWalletRequest request
     ) {
-        String email = getEmail();
-
         WithdrawWalletResponse response = walletService.withdraw(
-                email,
                 request.account(),
                 request.amount());
 
@@ -134,10 +110,7 @@ public class WalletController {
     public ResponseEntity<JSONResponse<TransferWalletResponse>> transfer(
             @RequestBody TransferWalletRequest request
     ) {
-        String email = getEmail();
-
         TransferWalletResponse response = walletService.transferWallet(
-                email,
                 request.memberId(),
                 request.amount());
 
@@ -149,9 +122,7 @@ public class WalletController {
     ResponseEntity<JSONResponse<String>> setPassword(
             @RequestBody SetPasswordRequest request
     ) {
-        String email = getEmail();
-
-        walletService.setPassword(email, request.password());
+        walletService.setPassword(request.password());
 
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.SET_PASSWORD_SUCCESS));
     }
@@ -160,9 +131,7 @@ public class WalletController {
     ResponseEntity<JSONResponse<String>> auth(
             @RequestBody AuthWalletRequest request
     ) {
-        String email = getEmail();
-
-        walletService.auth(email, request.password());
+        walletService.auth(request.password());
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.AUTH_WALLET_SUCCESS));
     }
 
@@ -172,10 +141,8 @@ public class WalletController {
             @RequestParam(required = false) Integer cursorId,
             @RequestParam(required = false) LocalDateTime cursorPayAt
     ) {
-        String email = getEmail();
-
         Pageable pageable = PageRequest.of(0, size);
-        GetTransactionResponse response = walletService.getTransaction(email, pageable, cursorId, cursorPayAt);
+        GetTransactionResponse response = walletService.getTransaction(pageable, cursorId, cursorPayAt);
 
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.WALLET_GET_SUCCESS, response));
     }
@@ -186,10 +153,8 @@ public class WalletController {
             @RequestParam(required = false) Integer cursorId,
             @RequestParam(required = false) LocalDateTime cursorPayAt
     ) {
-        String email = getEmail();
-
         Pageable pageable = PageRequest.of(0, size);
-        GetTransactionResponse response = walletService.getDepositTransaction(email, pageable, cursorId, cursorPayAt);
+        GetTransactionResponse response = walletService.getDepositTransaction(pageable, cursorId, cursorPayAt);
 
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.WALLET_GET_SUCCESS, response));
     }
@@ -200,10 +165,8 @@ public class WalletController {
             @RequestParam(required = false) Integer cursorId,
             @RequestParam(required = false) LocalDateTime cursorPayAt
     ) {
-        String email = getEmail();
-
         Pageable pageable = PageRequest.of(0, size);
-        GetTransactionResponse response = walletService.getWithdrawTransaction(email, pageable, cursorId, cursorPayAt);
+        GetTransactionResponse response = walletService.getWithdrawTransaction(pageable, cursorId, cursorPayAt);
 
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.WALLET_GET_SUCCESS, response));
     }

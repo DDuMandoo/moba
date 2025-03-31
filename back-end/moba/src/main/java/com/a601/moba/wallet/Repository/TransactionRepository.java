@@ -9,7 +9,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
                 SELECT COALESCE(SUM(t.amount), 0)
                 FROM Transaction t
                 WHERE t.wallet.id = :walletId
-                  AND t.type = 'D'
+                  AND t.type = 'W'
                   AND t.status = 'COMPLETED'
                   AND (:year IS NULL OR YEAR(t.payAt) = :year)
                   AND (:month IS NULL OR MONTH(t.payAt) = :month)

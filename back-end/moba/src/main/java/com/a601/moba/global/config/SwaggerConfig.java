@@ -24,7 +24,7 @@ public class SwaggerConfig {
     public OpenAPI openAPI() {
         return new OpenAPI()
                 .addSecurityItem(new SecurityRequirement().addList("Authorization"))
-//                .servers(List.of(new Server().url("https://j12a601.p.ssafy.io")));
-                .servers(List.of(new Server().url("http://localhost:8080")));
+                .servers(List.of(new Server().url("https://j12a601.p.ssafy.io")));
+//                .servers(List.of(new Server().url("http://localhost:8080")));
     }
 }

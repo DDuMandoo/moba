@@ -73,7 +73,7 @@ public class DutchpayService {
 
     public Dutchpay getDutchpayById(Integer id) {
         return dutchpayRepository.findById(id)
-                .orElseThrow(() -> new DutchpayException(ErrorCode.NOT_FOUNT_DUTCHPAY));
+                .orElseThrow(() -> new DutchpayException(ErrorCode.NOT_FOUND_DUTCHPAY));
     }
 
     @Transactional
@@ -181,7 +181,7 @@ public class DutchpayService {
 
         DutchpayParticipant dutchpayParticipant = dutchpayParticipantRepository.findById(
                         new DutchpayParticipantId(dutchpay, participantWallet))
-                .orElseThrow(() -> new DutchpayException(ErrorCode.NOT_FOUNT_DUTCHPAY_PARTICIPANT));
+                .orElseThrow(() -> new DutchpayException(ErrorCode.NOT_FOUND_DUTCHPAY_PARTICIPANT));
 
         if (dutchpayParticipant.isStatus()) {
             throw new DutchpayException(ErrorCode.ALREADY_COMPLETE_DUTCHPAY);
@@ -216,7 +216,7 @@ public class DutchpayService {
 
         DutchpayParticipant dutchpayParticipant = dutchpayParticipantRepository.findById(
                         new DutchpayParticipantId(dutchpay, wallet))
-                .orElseThrow(() -> new DutchpayException(ErrorCode.NOT_FOUNT_DUTCHPAY_PARTICIPANT));
+                .orElseThrow(() -> new DutchpayException(ErrorCode.NOT_FOUND_DUTCHPAY_PARTICIPANT));
 
         walletService.dutchpayTransfer(wallet, hostWallet, dutchpayParticipant.getWithdrawTransaction(),
                 dutchpayParticipant.getDepositTransaction(),

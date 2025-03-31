@@ -1,6 +1,7 @@
 package com.a601.moba.wallet.Service;
 
 import com.a601.moba.auth.Exception.AuthException;
+import com.a601.moba.auth.Util.AuthUtil;
 import com.a601.moba.global.code.ErrorCode;
 import com.a601.moba.global.response.JSONResponse;
 import com.a601.moba.member.Entity.Member;
@@ -48,6 +49,7 @@ public class WalletService {
     private final TransactionRepository transactionRepository;
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthUtil authUtil;
 
     @Value("${moba.bank.base.url}")
     private String BANK_URL;
@@ -73,13 +75,9 @@ public class WalletService {
                 .orElseThrow(() -> new WalletAuthException(ErrorCode.INVALID_WALLET));
     }
 
-    public Member getMember(String email) {
-        return memberRepository.findByEmail(email)
-                .orElseThrow(() -> new AuthException(ErrorCode.MEMBER_NOT_FOUND));
-    }
-
     @Transactional
-    public void connectAccount(String email, String account, String bank) {
+    public void connectAccount(String account, String bank) {
+        Member member = authUtil.getCurrentMember();
         if (walletAccountRepository.existsByAccount(account)) {
             throw new WalletAuthException(ErrorCode.DUPLICATE_CONNECT_ACCOUNT);
         }
@@ -103,12 +101,12 @@ public class WalletService {
         log.info("🟢 " + response.getBody().result());
 
         // 인증 코드 저장
-        walletRedisService.saveCode(email, code);
+        walletRedisService.saveCode(member.getEmail(), code);
     }
 
     @Transactional
-    public ConnectAccountResponse authAccount(String email, String code, String account, String bank) {
-        Member member = getMember(email);
+    public ConnectAccountResponse authAccount(String code, String account, String bank) {
+        Member member = authUtil.getCurrentMember();
         if (!code.equals(walletRedisService.getCode(member.getEmail()))) {
             throw new WalletAuthException(ErrorCode.INVALID_VERIFICATION_ACCOUNT_CODE);
         }
@@ -150,8 +148,8 @@ public class WalletService {
     }
 
     @Transactional
-    public void changeMainAccount(String email, String account) {
-        Member member = getMember(email);
+    public void changeMainAccount(String account) {
+        Member member = authUtil.getCurrentMember();
         Wallet wallet = getWallet(member);
         WalletAccount walletAccount = walletAccountRepository.getWalletAccountByWalletAndIsMainTrue(wallet)
                 .orElse(null);
@@ -167,8 +165,8 @@ public class WalletService {
     }
 
     @Transactional
-    public GetAccountResponse getAccount(String email) {
-        Member member = getMember(email);
+    public GetAccountResponse getAccount() {
+        Member member = authUtil.getCurrentMember();
         Wallet wallet = getWallet(member);
 
         List<WalletAccount> accounts = walletAccountRepository.getAllByWallet(wallet);
@@ -187,8 +185,8 @@ public class WalletService {
     }
 
     @Transactional
-    public GetBalanceResponse getBalance(String email) {
-        Member member = getMember(email);
+    public GetBalanceResponse getBalance() {
+        Member member = authUtil.getCurrentMember();
         Wallet wallet = getWallet(member);
 
         return GetBalanceResponse.builder()
@@ -197,8 +195,8 @@ public class WalletService {
     }
 
     @Transactional
-    public DepositWalletResponse deposit(String email, String account, Long amount) {
-        Member member = getMember(email);
+    public DepositWalletResponse deposit(String account, Long amount) {
+        Member member = authUtil.getCurrentMember();
         Wallet wallet = getWallet(member);
         WalletAccount walletAccount = walletAccountRepository.getWalletAccountByAccount(account)
                 .orElseThrow(() -> new WalletAuthException(ErrorCode.INVALID_VERIFICATION_ACCOUNT));
@@ -252,8 +250,8 @@ public class WalletService {
     }
 
     @Transactional
-    public WithdrawWalletResponse withdraw(String email, String account, Long amount) {
-        Member member = getMember(email);
+    public WithdrawWalletResponse withdraw(String account, Long amount) {
+        Member member = authUtil.getCurrentMember();
         Wallet wallet = getWallet(member);
         WalletAccount walletAccount = walletAccountRepository.getWalletAccountByAccount(account)
                 .orElseThrow(() -> new WalletAuthException(ErrorCode.INVALID_VERIFICATION_ACCOUNT));
@@ -345,8 +343,8 @@ public class WalletService {
     }
 
     @Transactional
-    public TransferWalletResponse transferWallet(String email, Integer targetId, Long amount) {
-        Member member = getMember(email);
+    public TransferWalletResponse transferWallet(Integer targetId, Long amount) {
+        Member member = authUtil.getCurrentMember();
         Wallet wallet = getWalletForUpdate(member);
 
         Member target = memberRepository.getMemberById(targetId)
@@ -400,8 +398,8 @@ public class WalletService {
     }
 
     @Transactional
-    public void setPassword(String email, String password) {
-        Member member = getMember(email);
+    public void setPassword(String password) {
+        Member member = authUtil.getCurrentMember();
         Wallet wallet = getWallet(member);
 
         if (password.length() != 6) {
@@ -413,8 +411,8 @@ public class WalletService {
     }
 
     @Transactional
-    public void auth(String email, String password) {
-        Member member = getMember(email);
+    public void auth(String password) {
+        Member member = authUtil.getCurrentMember();
         Wallet wallet = getWallet(member);
 
         if (!passwordEncoder.matches(password, wallet.getPassword())) {
@@ -422,9 +420,9 @@ public class WalletService {
         }
     }
 
-    public GetTransactionResponse getTransaction(String email, Pageable pageable, Integer cursorId,
+    public GetTransactionResponse getTransaction(Pageable pageable, Integer cursorId,
                                                  LocalDateTime cursorPayAt) {
-        Member member = getMember(email);
+        Member member = authUtil.getCurrentMember();
         Wallet wallet = getWallet(member);
 
         List<Transaction> transactions = transactionRepository.findTransactions(wallet.getId(), cursorPayAt, cursorId,
@@ -433,9 +431,9 @@ public class WalletService {
         return convertToResponse(transactions);
     }
 
-    public GetTransactionResponse getDepositTransaction(String email, Pageable pageable, Integer cursorId,
+    public GetTransactionResponse getDepositTransaction(Pageable pageable, Integer cursorId,
                                                         LocalDateTime cursorPayAt) {
-        Member member = getMember(email);
+        Member member = authUtil.getCurrentMember();
         Wallet wallet = getWallet(member);
 
         List<Transaction> transactions = transactionRepository.findDepositTransactions(wallet.getId(), cursorPayAt,
@@ -444,9 +442,9 @@ public class WalletService {
         return convertToResponse(transactions);
     }
 
-    public GetTransactionResponse getWithdrawTransaction(String email, Pageable pageable, Integer cursorId,
+    public GetTransactionResponse getWithdrawTransaction(Pageable pageable, Integer cursorId,
                                                          LocalDateTime cursorPayAt) {
-        Member member = getMember(email);
+        Member member = authUtil.getCurrentMember();
         Wallet wallet = getWallet(member);
 
         List<Transaction> transactions = transactionRepository.findWithdrawTransactions(wallet.getId(), cursorPayAt,

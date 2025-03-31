@@ -2,9 +2,11 @@ import React from 'react';
 import { ScrollView, View, Text } from 'react-native';
 import PromiseCard from '@/components/PromiseCard';
 import Colors from '@/constants/Colors';
+import { useRouter } from 'expo-router';
 
 export default function SettlementHistoryPage() {
-  // 🔁 임시 mock 데이터
+  const router = useRouter();
+
   const mockData = [
     {
       appointmentId: 1,
@@ -34,7 +36,6 @@ export default function SettlementHistoryPage() {
         'https://avatars.githubusercontent.com/u/1?v=4',
       ],
     },
-    // 추가 데이터 생략...
   ];
 
   return (
@@ -42,11 +43,22 @@ export default function SettlementHistoryPage() {
       style={{ flex: 1, backgroundColor: Colors.grayBackground }}
       contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
     >
-      <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 20 }}>정산 내역</Text>
+      <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 20 }}>
+        정산 내역
+      </Text>
 
-      <View style={{ gap: 16 }}>
+      <View style={{ gap: 1 }}>
         {mockData.map((item) => (
-          <PromiseCard key={item.appointmentId} {...item} />
+          <PromiseCard
+            key={item.appointmentId}
+            {...item}
+            onPress={() =>
+              router.push({
+                pathname: '/wallet/settlement/send/[id]',
+                params: { id: String(item.appointmentId) },
+              })
+            }
+          />
         ))}
       </View>
     </ScrollView>

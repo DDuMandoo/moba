@@ -52,6 +52,10 @@ public enum SuccessCode {
     AUTH_WALLET_SUCCESS(2508, OK, "간편 비밀번호 인증에 성공했습니다"),
     WALLET_GET_SUCCESS(2509, OK, "지갑 거래 내역 조회에 성공했습니다"),
 
+    // ================= 더치페이 관련 성공 (2700번대) ==================
+    CREATE_DUTCHPAY_SUCCESS(2700, OK, "더치페이 생성을 성공했습니다"),
+    COMPLETE_DUTCHPAY_SUCCESS(2701, OK, "해당 참가자의 더치페이를 완료 처리했습니다"),
+
     ;
 
 

@@ -68,6 +68,7 @@ public enum ErrorCode {
     FAIL_CHARGE_ACCOUNT(4507, INTERNAL_SERVER_ERROR, "지갑 충전 중 문제가 발생했습니다"),
     INVALID_PASSWORD_FORM(4508, BAD_REQUEST, "간편 비밀번호는 6자여야 합니다"),
     INVALID_WALLET_PASSWORD(4509, BAD_REQUEST, "비밀번호가 틀렸습니다"),
+    NOT_FOUND_TRANSACTION(4510, NOT_FOUND, "존재하지 않는 거래 내역입니다"),
 
     // ================= S3 관련 에러 (4600번대) ==================
     S3_UPLOAD_FAILED(4600, INTERNAL_SERVER_ERROR, "S3 파일 업로드에 실패했습니다"),

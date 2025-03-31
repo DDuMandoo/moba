@@ -5,6 +5,7 @@ import com.a601.moba.auth.Util.AuthUtil;
 import com.a601.moba.global.code.SuccessCode;
 import com.a601.moba.global.response.JSONResponse;
 import com.a601.moba.member.Controller.Request.MemberUpdateRequest;
+import com.a601.moba.member.Controller.Request.PasswordAuthRequest;
 import com.a601.moba.member.Controller.Request.PasswordResetRequest;
 import com.a601.moba.member.Controller.Response.MemberResponse;
 import com.a601.moba.member.Controller.Response.MemberUpdateResponse;
@@ -73,5 +74,14 @@ public class MemberController {
         return ResponseEntity
                 .status(SuccessCode.MEMBER_DELETE_SUCCESS.getHttpStatus())
                 .body(JSONResponse.of(SuccessCode.MEMBER_DELETE_SUCCESS));
+    }
+
+    @Operation(summary = "비밀번호 인증", description = "회원 정보 수정 전에 비밀번호를 인증합니다.")
+    @PostMapping("/authentication")
+    public ResponseEntity<JSONResponse<Boolean>> authenticatePassword(
+            @RequestBody PasswordAuthRequest request) {
+
+        boolean isValid = memberService.authenticatePassword(request.password());
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.PASSWORD_AUTHENTICATION_SUCCESS, isValid));
     }
 }

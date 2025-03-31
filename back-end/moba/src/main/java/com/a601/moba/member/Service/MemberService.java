@@ -58,6 +58,18 @@ public class MemberService {
         member.delete();
     }
 
+    public boolean authenticatePassword(String rawPassword) {
+        if (rawPassword == null || rawPassword.isBlank()) {
+            return false;
+        }
+
+        Member member = authUtil.getCurrentMember();
+        String encodedPassword = member.getPassword();
+
+        return passwordEncoder.matches(rawPassword, encodedPassword);
+    }
+
+
     public String uploadImage(MultipartFile image) {
         return s3Service.uploadFile(image);
     }

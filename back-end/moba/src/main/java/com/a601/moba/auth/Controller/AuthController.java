@@ -136,4 +136,6 @@ public class AuthController {
         boolean isDuplicated = authService.isEmailDuplicated(request.email());
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.REQUEST_SUCCESS, isDuplicated));
     }
+
+    
 }

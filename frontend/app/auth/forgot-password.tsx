@@ -13,8 +13,8 @@ import Colors from '@/constants/Colors';
 import axiosInstance from '@/app/axiosInstance';
 import Constants from 'expo-constants';
 import CustomAlert from '@/components/CustomAlert';
-import LoadingModal from '@/components/LoadingModal';
-import PasswordSentModal from '@/components/PasswordSentModal';
+import LoadingModal from '@/components/modal/LoadingModal';
+import PasswordSentModal from '@/components/modal/PasswordSentModal';
 import { useRouter } from 'expo-router';
 
 const BASE_URL = Constants.expoConfig?.extra?.API_URL;

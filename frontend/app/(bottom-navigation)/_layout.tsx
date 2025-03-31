@@ -4,17 +4,24 @@ import { Tabs, useRouter } from 'expo-router';
 import { View, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
+import { useNavigationState } from '@react-navigation/native';
 
 export default function BottomTabLayout() {
   const router = useRouter();
+   // 현재 네비게이션 스택에서 뒤로 갈 수 있는지 확인
+   const canGoBack = useNavigationState((state) => state?.routes?.length > 1);
 
   return (
     <>
       {/* 헤더 */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Feather name="chevron-left" size={24} color={Colors.secondary} />
-        </TouchableOpacity>
+        {canGoBack ? (
+          <TouchableOpacity onPress={() => router.back()}>
+            <Feather name="chevron-left" size={24} color={Colors.secondary} />
+          </TouchableOpacity>
+        ) : (
+          <View style={{ width: 24 }} /> // 빈 공간으로 여백 유지
+        )}
 
         <Image
           source={require('@/assets/icons/header/Logo.png')}

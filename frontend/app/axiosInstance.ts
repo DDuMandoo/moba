@@ -4,7 +4,9 @@ import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 
-const API_URL = Constants.expoConfig?.extra?.API_URL;
+// const API_URL = Constants.expoConfig?.extra?.API_URL;
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
 
 console.log('🌐 API_URL from Constants:', API_URL);
 
@@ -53,6 +55,7 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;

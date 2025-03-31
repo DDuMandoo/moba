@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import axiosInstance from '@/app/axiosInstance';
 import Colors from '@/constants/Colors';
-import LoadingModal from '@/components/LoadingModal';
+import LoadingModal from '@/components/modal/LoadingModal';
 import { Feather } from '@expo/vector-icons';
 
 export default function PromiseDetailScreen() {

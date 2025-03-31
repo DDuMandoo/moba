@@ -19,6 +19,7 @@ import Colors from '@/constants/Colors';
 import type { AppDispatch } from '@/redux/store';
 import CustomDateTimePicker from '@/components/modal/CustomDateTimePicker';
 import { Ionicons } from '@expo/vector-icons';
+import { Asset } from 'expo-asset';
 
 export default function AppointmentCreatePage() {
   const [name, setName] = useState('');
@@ -62,42 +63,62 @@ export default function AppointmentCreatePage() {
       setAlertVisible(true);
       return;
     }
-
+  
     if (!dateTime) {
       setAlertMessage('날짜 및 시간을 선택해주세요!');
       setAlertVisible(true);
       return;
     }
-
-    const payload: any = {
+  
+    console.log('약속 요청!');
+  
+    const payload = {
       name,
       time: dateTime.toISOString(),
+      latitude: location?.latitude || 37.5665,
+      longitude: location?.longitude || 126.978,
+      memo: location?.memo || '기본 장소',
+      friends: friends.length ? friends : [2, 3, 4],
     };
-
-    if (location?.latitude) payload.latitude = location.latitude;
-    if (location?.longitude) payload.longitude = location.longitude;
-    if (location?.memo?.trim()) payload.memo = location.memo;
-    if (friends.length > 0) payload.friends = friends;
-
+    
     const formData = new FormData();
+    
+    // ✅ 핵심: JSON string을 그냥 append
     formData.append('data', JSON.stringify(payload));
-
+    
+    // ✅ 이미지가 있다면 파일로 추가
     if (image) {
+      // 사용자가 선택한 이미지가 있을 경우
       formData.append('image', {
         uri: image,
         type: 'image/jpeg',
-        name: 'appointment.jpg'
+        name: 'appointment.jpg',
       } as any);
+    } else {
+      // 기본 이미지 사용
+      const asset = Asset.fromModule(require('../../assets/images/login_image.png'));
+      await asset.downloadAsync(); // 로컬 파일로 만들기
+      if (asset.localUri) {
+        formData.append('image', {
+          uri: asset.localUri,
+          type: 'image/png',
+          name: 'default.png',
+        } as any);
+      }
     }
-
+    
+    
+  
     console.log('📨 FormData 전송 내용:');
     formData.forEach((value, key) => {
       console.log(`  ${key}:`, value);
     });
-
+  
     try {
       const result = await dispatch(createAppointment(formData)).unwrap();
       console.log('✅ 약속 생성 성공:', result);
+  
+      // ✅ 약속 ID로 상세 페이지 이동
       router.replace(`/promises/${result.result.appointmentId}`);
     } catch (err: any) {
       console.error('❌ 약속 생성 실패:', err);
@@ -105,6 +126,8 @@ export default function AppointmentCreatePage() {
       setAlertVisible(true);
     }
   };
+  
+  
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">

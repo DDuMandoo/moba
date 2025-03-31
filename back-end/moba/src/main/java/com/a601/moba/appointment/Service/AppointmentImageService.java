@@ -62,7 +62,6 @@ public class AppointmentImageService {
             responses.add(AppointmentImageUploadResponse.builder()
                     .appointmentId(appointment.getId())
                     .imageId(saved.getId())
-                    .imageUrl(saved.getImageUrl())
                     .build());
         }
 

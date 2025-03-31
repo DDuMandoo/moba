@@ -5,7 +5,6 @@ import lombok.Builder;
 @Builder
 public record AppointmentImageUploadResponse(
         Integer appointmentId,
-        Integer imageId,
-        String imageUrl
+        Integer imageId
 ) {
 }

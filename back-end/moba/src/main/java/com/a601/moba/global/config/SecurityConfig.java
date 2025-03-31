@@ -7,6 +7,7 @@ import com.a601.moba.auth.Service.AuthRedisService;
 import com.a601.moba.auth.Service.JwtProvider;
 import com.a601.moba.global.config.properties.CorsProperties;
 import com.a601.moba.global.filter.NotFoundPreFilter;
+import com.a601.moba.member.Repository.MemberRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -43,10 +44,12 @@ public class SecurityConfig {
                                                    AuthRedisService redisService,
                                                    JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
                                                    JwtAccessDeniedHandler jwtAccessDeniedHandler,
+                                                   MemberRepository memberRepository,
                                                    List<HandlerMapping> handlerMappings) throws Exception {
 
         NotFoundPreFilter notFoundPreFilter = new NotFoundPreFilter(handlerMappings);
-        JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtProvider, redisService);
+        JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtProvider, redisService,
+                memberRepository);
 
         http
                 .cors(Customizer.withDefaults()) // CORS 설정 활성화

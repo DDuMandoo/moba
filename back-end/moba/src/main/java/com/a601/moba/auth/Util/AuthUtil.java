@@ -7,6 +7,7 @@ import com.a601.moba.member.Entity.Member;
 import com.a601.moba.member.Repository.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -37,4 +38,21 @@ public class AuthUtil {
         return memberRepository.findByEmail(email)
                 .orElseThrow(() -> new AuthException(ErrorCode.UNAUTHORIZED_ACCESS));
     }
+
+    public Member getCurrentMember() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AuthException(ErrorCode.UNAUTHORIZED_ACCESS);
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof Member member) {
+            return member;
+        }
+
+        throw new AuthException(ErrorCode.UNAUTHORIZED_ACCESS);
+    }
+
 }

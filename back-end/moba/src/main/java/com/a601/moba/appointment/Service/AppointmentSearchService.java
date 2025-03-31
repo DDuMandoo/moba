@@ -123,5 +123,4 @@ public class AppointmentSearchService {
         return new AppointmentSearchResponse(results, nextCursorId);
     }
 
-
 }

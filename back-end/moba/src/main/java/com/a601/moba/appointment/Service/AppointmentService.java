@@ -54,8 +54,7 @@ public class AppointmentService {
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
 
-    public AppointmentCreateResponse create(AppointmentCreateRequest request, MultipartFile image,
-                                            HttpServletRequest httpRequest) {
+    public AppointmentCreateResponse create(AppointmentCreateRequest request, MultipartFile image) {
         String inviteCode = inviteCodeGenerator.generate()
                 .orElseThrow(() -> new AppointmentException(ErrorCode.INVITE_CODE_GENERATION_FAILED));
 
@@ -78,7 +77,7 @@ public class AppointmentService {
         appointmentRepository.saveAndFlush(appointment);
 
         Integer appointmentId = appointment.getId();
-        Integer hostMemberId = authUtil.getMemberFromToken(httpRequest).getId();
+        Integer hostMemberId = authUtil.getCurrentMember().getId();
 
         AppointmentParticipant hostParticipant = AppointmentParticipant.builder()
                 .appointment(appointment)
@@ -105,8 +104,8 @@ public class AppointmentService {
     }
 
     @Transactional
-    public AppointmentJoinResponse join(AppointmentJoinRequest request, HttpServletRequest httpRequest) {
-        Integer memberId = authUtil.getMemberFromToken(httpRequest).getId();
+    public AppointmentJoinResponse join(AppointmentJoinRequest request) {
+        Integer memberId = authUtil.getCurrentMember().getId();
 
         Appointment appointment = appointmentRepository.findById(request.appointmentId())
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
@@ -159,8 +158,8 @@ public class AppointmentService {
                 .build();
     }
 
-    public AppointmentDetailResponse getDetail(Integer appointmentId, HttpServletRequest request) {
-        Integer memberId = authUtil.getMemberFromToken(request).getId();
+    public AppointmentDetailResponse getDetail(Integer appointmentId) {
+        Integer memberId = authUtil.getCurrentMember().getId();
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
@@ -208,8 +207,8 @@ public class AppointmentService {
 
 
     @Transactional
-    public void leave(Integer appointmentId, HttpServletRequest request) {
-        Integer memberId = authUtil.getMemberFromToken(request).getId();
+    public void leave(Integer appointmentId) {
+        Integer memberId = authUtil.getCurrentMember().getId();
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
@@ -228,9 +227,8 @@ public class AppointmentService {
     @Transactional
     public AppointmentUpdateResponse update(Integer appointmentId,
                                             AppointmentUpdateRequest request,
-                                            MultipartFile image,
-                                            HttpServletRequest httpRequest) {
-        Integer memberId = authUtil.getMemberFromToken(httpRequest).getId();
+                                            MultipartFile image) {
+        Integer memberId = authUtil.getCurrentMember().getId();
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
@@ -269,15 +267,16 @@ public class AppointmentService {
                 .build();
     }
 
+
     @Transactional
-    public void deleteImage(Integer appointmentId, HttpServletRequest request) {
-        Appointment appointment = validateHostAccess(appointmentId, request);
+    public void deleteImage(Integer appointmentId) {
+        Appointment appointment = validateHostAccess(appointmentId);
         appointment.uploadImage(null);
     }
 
     @Transactional
-    public void end(Integer appointmentId, HttpServletRequest httpRequest) {
-        Appointment appointment = validateHostAccess(appointmentId, httpRequest);
+    public void end(Integer appointmentId) {
+        Appointment appointment = validateHostAccess(appointmentId);
         appointment.end();
     }
 
@@ -331,12 +330,12 @@ public class AppointmentService {
 
 
     @Transactional
-    public AppointmentDelegateResponse delegateHost(Integer appointmentId, AppointmentDelegateRequest request,
-                                                    HttpServletRequest httpRequest) {
-        Appointment appointment = validateHostAccess(appointmentId, httpRequest);
+    public AppointmentDelegateResponse delegateHost(Integer appointmentId, AppointmentDelegateRequest request) {
+        Member currentMember = authUtil.getCurrentMember();
+        Appointment appointment = validateHostAccess(appointmentId);
 
         AppointmentParticipant currentHost = appointmentParticipantRepository
-                .findByAppointmentAndMemberId(appointment, authUtil.getMemberFromToken(httpRequest).getId())
+                .findByAppointmentAndMemberId(appointment, currentMember.getId())
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED));
 
         AppointmentParticipant newHost = appointmentParticipantRepository
@@ -347,6 +346,7 @@ public class AppointmentService {
             throw new AppointmentException(ErrorCode.INVALID_REQUEST);
         }
 
+        // 권한 위임
         currentHost.updateRole(Role.PARTICIPANT);
         newHost.updateRole(Role.HOST);
 
@@ -364,9 +364,10 @@ public class AppointmentService {
                 .build();
     }
 
+
     @Transactional
-    public void kickParticipant(Integer appointmentId, AppointmentKickRequest request, HttpServletRequest httpRequest) {
-        Appointment appointment = validateHostAccess(appointmentId, httpRequest);
+    public void kickParticipant(Integer appointmentId, AppointmentKickRequest request) {
+        Appointment appointment = validateHostAccess(appointmentId);
 
         AppointmentParticipant target = appointmentParticipantRepository
                 .findByAppointmentAndMemberId(appointment, request.memberId())
@@ -379,9 +380,8 @@ public class AppointmentService {
         target.updateState(State.KICKED);
     }
 
-    public List<AppointmentListItemResponse> getMyAppointments(Integer year, Integer month,
-                                                               HttpServletRequest request) {
-        Integer memberId = authUtil.getMemberFromToken(request).getId();
+    public List<AppointmentListItemResponse> getMyAppointments(Integer year, Integer month) {
+        Integer memberId = authUtil.getCurrentMember().getId();
 
         List<AppointmentParticipant> participants = appointmentParticipantRepository
                 .findAllByMemberIdAndState(memberId, State.JOINED);
@@ -412,17 +412,15 @@ public class AppointmentService {
                 .toList();
     }
 
-    public AppointmentSummaryResponse getAppointmentSummary(Integer year, Integer month, HttpServletRequest request) {
-        Integer memberId = authUtil.getMemberFromToken(request).getId();
 
-        Wallet wallet = walletRepository.findByMemberId(memberId)
+    public AppointmentSummaryResponse getAppointmentSummary(Integer year, Integer month) {
+        Member member = authUtil.getCurrentMember();
+
+        Wallet wallet = walletRepository.findByMemberId(member.getId())
                 .orElseThrow(() -> new AppointmentException(ErrorCode.INVALID_WALLET));
-        
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new AppointmentException(ErrorCode.MEMBER_NOT_FOUND));
 
-        int count = appointmentParticipantRepository.countJoinedAppointmentsByMemberAndDate(memberId, year, month);
-
+        int count = appointmentParticipantRepository.countJoinedAppointmentsByMemberAndDate(member.getId(), year,
+                month);
         long spent = transactionRepository.sumSpentFromTransactions(wallet.getId(), year, month);
 
         return AppointmentSummaryResponse.builder()
@@ -433,8 +431,8 @@ public class AppointmentService {
                 .build();
     }
 
-    private Appointment validateHostAccess(Integer appointmentId, HttpServletRequest request) {
-        Integer memberId = authUtil.getMemberFromToken(request).getId();
+    private Appointment validateHostAccess(Integer appointmentId) {
+        Integer memberId = authUtil.getCurrentMember().getId();
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
@@ -449,5 +447,6 @@ public class AppointmentService {
 
         return appointment;
     }
+
 
 }

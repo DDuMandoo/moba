@@ -8,6 +8,7 @@ import com.a601.moba.appointment.Controller.Request.AppointmentUpdateRequest;
 import com.a601.moba.appointment.Controller.Response.AppointmentCreateResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentDelegateResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentDetailResponse;
+import com.a601.moba.appointment.Controller.Response.AppointmentImageUploadResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentJoinResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentListItemResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentParticipantResponse;
@@ -15,6 +16,7 @@ import com.a601.moba.appointment.Controller.Response.AppointmentSearchResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentSummaryResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentUpdateResponse;
 import com.a601.moba.appointment.Controller.Response.FriendSearchResponse;
+import com.a601.moba.appointment.Service.AppointmentImageService;
 import com.a601.moba.appointment.Service.AppointmentSearchService;
 import com.a601.moba.appointment.Service.AppointmentService;
 import com.a601.moba.global.code.SuccessCode;
@@ -29,6 +31,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -54,6 +57,7 @@ public class AppointmentController {
 
     private final AppointmentService appointmentService;
     private final AppointmentSearchService appointmentSearchService;
+    private final AppointmentImageService appointmentImageService;
 
     @Operation(
             summary = "약속방 생성",
@@ -70,21 +74,18 @@ public class AppointmentController {
             @RequestPart("data") @Valid AppointmentCreateRequest request,
 
             @Parameter(description = "대표 이미지 파일 (선택)")
-            @RequestPart(value = "image", required = false) MultipartFile image,
-
-            HttpServletRequest httpRequest
+            @RequestPart(value = "image", required = false) MultipartFile image
     ) {
-        AppointmentCreateResponse response = appointmentService.create(request, image, httpRequest);
+        AppointmentCreateResponse response = appointmentService.create(request, image);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.APPOINTMENT_CREAT_SUCCESS, response));
     }
 
     @Operation(summary = "약속방 참여", description = "약속방에 참여합니다.")
     @PostMapping("/join")
     public ResponseEntity<JSONResponse<AppointmentJoinResponse>> join(
-            @RequestBody @Parameter(description = "약속 참여 요청") AppointmentJoinRequest request,
-            HttpServletRequest httpRequest
+            @RequestBody @Parameter(description = "약속 참여 요청") AppointmentJoinRequest request
     ) {
-        AppointmentJoinResponse response = appointmentService.join(request, httpRequest);
+        AppointmentJoinResponse response = appointmentService.join(request);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.APPOINTMENT_JOIN_SUCCESS, response));
     }
 
@@ -92,10 +93,9 @@ public class AppointmentController {
     @GetMapping("/{appointmentId}")
     public ResponseEntity<JSONResponse<AppointmentDetailResponse>> getAppointment(
             @Parameter(description = "조회할 약속 ID", example = "1")
-            @PathVariable Integer appointmentId,
-            HttpServletRequest httpRequest
+            @PathVariable Integer appointmentId
     ) {
-        AppointmentDetailResponse response = appointmentService.getDetail(appointmentId, httpRequest);
+        AppointmentDetailResponse response = appointmentService.getDetail(appointmentId);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.APPOINTMENT_READ_SUCCESS, response));
     }
 
@@ -103,10 +103,9 @@ public class AppointmentController {
     @PatchMapping("/{appointmentId}/leave")
     public ResponseEntity<JSONResponse<Void>> leave(
             @Parameter(description = "약속 ID", example = "1")
-            @PathVariable Integer appointmentId,
-            HttpServletRequest request
+            @PathVariable Integer appointmentId
     ) {
-        appointmentService.leave(appointmentId, request);
+        appointmentService.leave(appointmentId);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.APPOINTMENT_EXIT_SUCCESS));
     }
 
@@ -127,10 +126,9 @@ public class AppointmentController {
             @Parameter(description = "약속 ID", example = "1")
             @PathVariable Integer appointmentId,
             @RequestPart("data") @Valid AppointmentUpdateRequest request,
-            @RequestPart(value = "image", required = false) MultipartFile image,
-            HttpServletRequest httpRequest) {
+            @RequestPart(value = "image", required = false) MultipartFile image) {
 
-        AppointmentUpdateResponse response = appointmentService.update(appointmentId, request, image, httpRequest);
+        AppointmentUpdateResponse response = appointmentService.update(appointmentId, request, image);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.APPOINTMENT_UPDATE_SUCCESS, response));
     }
 
@@ -143,10 +141,9 @@ public class AppointmentController {
     )
     @DeleteMapping("/{appointmentId}/image")
     public ResponseEntity<JSONResponse<Void>> deleteAppointmentImage(
-            @PathVariable Integer appointmentId,
-            HttpServletRequest request) {
+            @PathVariable Integer appointmentId) {
 
-        appointmentService.deleteImage(appointmentId, request);
+        appointmentService.deleteImage(appointmentId);
 
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.APPOINTMENT_IMAGE_DELETE_SUCCESS));
     }
@@ -161,10 +158,9 @@ public class AppointmentController {
     @DeleteMapping("/{appointmentId}")
     public ResponseEntity<JSONResponse<Void>> end(
             @Parameter(description = "종료할 약속 ID", example = "1")
-            @PathVariable Integer appointmentId,
-            HttpServletRequest request
+            @PathVariable Integer appointmentId
     ) {
-        appointmentService.end(appointmentId, request);
+        appointmentService.end(appointmentId);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.APPOINTMENT_END_SUCCESS));
     }
 
@@ -196,10 +192,9 @@ public class AppointmentController {
     public ResponseEntity<JSONResponse<AppointmentDelegateResponse>> delegateHost(
             @Parameter(description = "약속 ID", example = "1")
             @PathVariable Integer appointmentId,
-            @RequestBody @Valid AppointmentDelegateRequest request,
-            HttpServletRequest httpRequest
+            @RequestBody @Valid AppointmentDelegateRequest request
     ) {
-        AppointmentDelegateResponse response = appointmentService.delegateHost(appointmentId, request, httpRequest);
+        AppointmentDelegateResponse response = appointmentService.delegateHost(appointmentId, request);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.REQUEST_SUCCESS, response));
     }
 
@@ -214,10 +209,9 @@ public class AppointmentController {
     public ResponseEntity<JSONResponse<Void>> kickParticipant(
             @Parameter(description = "약속방 ID", example = "1")
             @PathVariable Integer appointmentId,
-            @RequestBody @Valid AppointmentKickRequest request,
-            HttpServletRequest httpRequest
+            @RequestBody @Valid AppointmentKickRequest request
     ) {
-        appointmentService.kickParticipant(appointmentId, request, httpRequest);
+        appointmentService.kickParticipant(appointmentId, request);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.APPOINTMENT_PARTICIPANT_KICK_SUCCESS));
     }
 
@@ -225,10 +219,9 @@ public class AppointmentController {
     @GetMapping
     public ResponseEntity<JSONResponse<List<AppointmentListItemResponse>>> getMyAppointments(
             @Parameter(description = "연도") @RequestParam(required = false) Integer year,
-            @Parameter(description = "월") @RequestParam(required = false) Integer month,
-            HttpServletRequest request
+            @Parameter(description = "월") @RequestParam(required = false) Integer month
     ) {
-        List<AppointmentListItemResponse> response = appointmentService.getMyAppointments(year, month, request);
+        List<AppointmentListItemResponse> response = appointmentService.getMyAppointments(year, month);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.APPOINTMENT_READ_SUCCESS, response));
     }
 
@@ -236,10 +229,9 @@ public class AppointmentController {
     @GetMapping("/summary")
     public ResponseEntity<JSONResponse<AppointmentSummaryResponse>> getAppointmentSummary(
             @RequestParam(required = false) Integer year,
-            @RequestParam(required = false) Integer month,
-            HttpServletRequest request
+            @RequestParam(required = false) Integer month
     ) {
-        AppointmentSummaryResponse response = appointmentService.getAppointmentSummary(year, month, request);
+        AppointmentSummaryResponse response = appointmentService.getAppointmentSummary(year, month);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.APPOINTMENT_STATISTICS_SUCCESS, response));
     }
 
@@ -268,5 +260,28 @@ public class AppointmentController {
 
         AppointmentSearchResponse response = appointmentSearchService.searchAppointments(keyword, size, cursorId);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.SEARCH_SUCCESS, response));
+    }
+
+    @Operation(summary = "약속 이미지 업로드", description = "약속 참여자가 약속방에 여러 이미지를 업로드합니다.")
+    @PostMapping(value = "/{appointmentId}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<JSONResponse<?>> uploadAppointmentImages(
+            @PathVariable Integer appointmentId,
+            @RequestPart("images") List<MultipartFile> images) {
+
+        List<AppointmentImageUploadResponse> response = appointmentImageService.uploadImages(appointmentId, images);
+        return ResponseEntity.ok(
+                JSONResponse.of(SuccessCode.APPOINTMENT_IMAGE_UPLOAD_SUCCESS, Map.of("images", response))
+        );
+    }
+
+    @Operation(summary = "약속 이미지 목록 조회", description = "해당 약속의 업로드된 이미지들을 커서 기반으로 조회")
+    @GetMapping("/{appointmentId}/images")
+    public ResponseEntity<JSONResponse<?>> getAppointmentImages(
+            @PathVariable Integer appointmentId,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Integer cursorId) {
+
+        Map<String, Object> result = appointmentImageService.getImages(appointmentId, size, cursorId);
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.SEARCH_SUCCESS, result));
     }
 }

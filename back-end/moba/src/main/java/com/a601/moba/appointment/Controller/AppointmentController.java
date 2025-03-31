@@ -297,14 +297,27 @@ public class AppointmentController {
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.SEARCH_SUCCESS, result));
     }
 
-//    @Operation(summary = "장소 이름으로 장소 검색", description = "약속방 내에서 장소 이름으로 검색합니다.")
-//    @GetMapping("/places/search")
-//    public ResponseEntity<JSONResponse<?>> searchPlaces(
-//            @RequestParam String keyword,
-//            @RequestParam(defaultValue = "10") int size,
-//            @RequestParam(required = false) Integer cursorId) {
+    @Operation(summary = "장소 이름으로 장소 검색", description = "약속방 내에서 장소 이름으로 검색합니다.")
+    @GetMapping("/places/search")
+    public ResponseEntity<JSONResponse<?>> searchPlaces(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Integer cursorId) {
+
+        Map<String, Object> result = appointmentPlaceService.searchPlaces(keyword, size, cursorId);
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.SEARCH_SUCCESS, result));
+    }
+
+//    @Operation(summary = "선택 장소 추가", description = "방장만 장소를 추가할 수 있습니다.")
+//    @PostMapping("/{appointmentId}/places/{placeId}")
+//    public ResponseEntity<JSONResponse<?>> addPlaceToAppointment(
+//            @PathVariable Integer appointmentId,
+//            @PathVariable Integer placeId) {
 //
-//        Map<String, Object> result = appointmentPlaceService.searchPlaces(keyword, size, cursorId);
-//        return ResponseEntity.ok(JSONResponse.of(SuccessCode.SEARCH_SUCCESS, result));
+//        Map<String, Object> result = appointmentPlaceService.addPlaceToAppointment(appointmentId, placeId);
+//        return ResponseEntity
+//                .status(SuccessCode.PLACE_ADD_SUCCESS.getHttpStatus())
+//                .body(JSONResponse.of(SuccessCode.PLACE_ADD_SUCCESS, result));
 //    }
+
 }

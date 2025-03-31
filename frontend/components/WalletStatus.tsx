@@ -83,7 +83,7 @@ export default function WalletStatus() {
         <TouchableOpacity
           ref={정산내역Ref}
           activeOpacity={0.8}
-          onPress={() => router.push('/wallet/history')}
+          onPress={() => router.push('/wallet/settlement/history')}
           style={{
             borderWidth: 1,
             borderColor: Colors.primary,

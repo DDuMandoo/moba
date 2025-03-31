@@ -7,7 +7,6 @@ import com.a601.moba.global.service.S3Service;
 import com.a601.moba.member.Controller.Request.MemberUpdateRequest;
 import com.a601.moba.member.Controller.Response.MemberUpdateResponse;
 import com.a601.moba.member.Entity.Member;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,33 +22,34 @@ public class MemberService {
     private final S3Service s3Service;
 
     @Transactional
-    public MemberUpdateResponse updateMemberInfo(MemberUpdateRequest request, HttpServletRequest servletRequest) {
-        Member member = authUtil.getMemberFromToken(servletRequest);
+    public MemberUpdateResponse updateMemberInfo(MemberUpdateRequest request) {
+        Member member = authUtil.getCurrentMember();
 
-        if (request.getName() != null && !request.getName().isBlank()) {
-            member.updateName(request.getName());
+        if (request.name() != null && !request.name().isBlank()) {
+            member.updateName(request.name());
         }
 
-        if (request.getPassword() != null && !request.getPassword().isBlank()) {
-            String encoded = passwordEncoder.encode(request.getPassword());
+        if (request.password() != null && !request.password().isBlank()) {
+            String encoded = passwordEncoder.encode(request.password());
             member.changePassword(encoded);
         }
 
-        if (request.getImage() != null && !request.getImage().isEmpty()) {
-            String imageUrl = uploadImage(request.getImage());
+        if (request.image() != null && !request.image().isEmpty()) {
+            String imageUrl = uploadImage(request.image());
             member.updateProfileImage(imageUrl);
         }
 
-        return new MemberUpdateResponse(
-                member.getId(),
-                member.getName(),
-                member.getProfileImage()
-        );
+        return MemberUpdateResponse.builder()
+                .memberId(member.getId())
+                .name(member.getName())
+                .image(member.getProfileImage())
+                .build();
     }
 
+
     @Transactional
-    public void deleteMember(HttpServletRequest request) {
-        Member member = authUtil.getMemberFromToken(request);
+    public void deleteMember() {
+        Member member = authUtil.getCurrentMember();
 
         if (member.isDeleted()) {
             throw new AuthException(ErrorCode.ALREADY_DELETED_MEMBER);
@@ -57,6 +57,18 @@ public class MemberService {
 
         member.delete();
     }
+
+    public boolean authenticatePassword(String rawPassword) {
+        if (rawPassword == null || rawPassword.isBlank()) {
+            return false;
+        }
+
+        Member member = authUtil.getCurrentMember();
+        String encodedPassword = member.getPassword();
+
+        return passwordEncoder.matches(rawPassword, encodedPassword);
+    }
+
 
     public String uploadImage(MultipartFile image) {
         return s3Service.uploadFile(image);

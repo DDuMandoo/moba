@@ -1,15 +1,12 @@
 package com.a601.moba.member.Controller.Request;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Builder;
 import org.springframework.web.multipart.MultipartFile;
 
-@Getter
-@Setter
-@NoArgsConstructor
-public class MemberUpdateRequest {
-    private String name;
-    private String password;
-    private MultipartFile image;
+@Builder
+public record MemberUpdateRequest(
+        String name,
+        String password,
+        MultipartFile image
+) {
 }

@@ -1,11 +1,11 @@
 package com.a601.moba.global.response;
 
+import com.a601.moba.global.code.ErrorCode;
+import com.a601.moba.global.code.SuccessCode;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.a601.moba.global.code.ErrorCode;
-import com.a601.moba.global.code.SuccessCode;
 
 @JsonPropertyOrder({"isSuccess", "code", "message", "result"})
 public record JSONResponse<T>(

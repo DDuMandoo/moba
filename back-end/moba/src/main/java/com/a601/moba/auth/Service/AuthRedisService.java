@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
-public class RedisService {
+public class AuthRedisService {
 
     private final StringRedisTemplate redisTemplate;
 

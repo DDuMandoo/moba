@@ -3,10 +3,11 @@ package com.a601.moba.global.config;
 import com.a601.moba.auth.Exception.JwtAccessDeniedHandler;
 import com.a601.moba.auth.Exception.JwtAuthenticationEntryPoint;
 import com.a601.moba.auth.Filter.JwtAuthenticationFilter;
+import com.a601.moba.auth.Service.AuthRedisService;
 import com.a601.moba.auth.Service.JwtProvider;
-import com.a601.moba.auth.Service.RedisService;
 import com.a601.moba.global.config.properties.CorsProperties;
 import com.a601.moba.global.filter.NotFoundPreFilter;
+import com.a601.moba.member.Repository.MemberRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -40,13 +41,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    JwtProvider jwtProvider,
-                                                   RedisService redisService,
+                                                   AuthRedisService redisService,
                                                    JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
                                                    JwtAccessDeniedHandler jwtAccessDeniedHandler,
+                                                   MemberRepository memberRepository,
                                                    List<HandlerMapping> handlerMappings) throws Exception {
 
         NotFoundPreFilter notFoundPreFilter = new NotFoundPreFilter(handlerMappings);
-        JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtProvider, redisService);
+        JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtProvider, redisService,
+                memberRepository);
 
         http
                 .cors(Customizer.withDefaults()) // CORS 설정 활성화
@@ -65,6 +68,7 @@ public class SecurityConfig {
                                 ).permitAll()
                                 .requestMatchers("/api/auth/signin").permitAll()
                                 .requestMatchers("/api/auth/signup").permitAll()
+                                .requestMatchers("/api/auth/*/profile-image").permitAll()
                                 .requestMatchers("/api/auth/email").permitAll()
                                 .requestMatchers("/api/auth/kakao/callback").permitAll()
 //                        .requestMatchers("/api/auth/social/kakao").permitAll()

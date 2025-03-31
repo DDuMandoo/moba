@@ -1,13 +1,12 @@
 package com.a601.moba.member.Controller.Response;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
 
-@Getter
-@AllArgsConstructor
-public class MemberResponse {
-    private Integer memberId;
-    private String email;
-    private String name;
-    private String image;
+@Builder
+public record MemberResponse(
+        Integer memberId,
+        String email,
+        String name,
+        String image
+) {
 }

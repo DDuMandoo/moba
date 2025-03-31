@@ -9,7 +9,12 @@ spring:
       - classpath:application-kakao.yml
       - classpath:application-s3.yml
       - classpath:application-cors.yml
+<<<<<<< HEAD
       - classpath:application-firebase.yml
+=======
+      - classpath:application-wallet.yml
+      #      - classpath:application-firebase.yml
+>>>>>>> 379ba3e8cb18b9abb8b36726f1f3a57e4f5d15e8
       #      - classpath:application-mongo.yml
       #      - classpath:application-elastic.yml
       - optional:file:.env[.properties]

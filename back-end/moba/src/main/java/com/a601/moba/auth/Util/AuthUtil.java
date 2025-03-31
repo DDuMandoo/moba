@@ -7,7 +7,6 @@ import com.a601.moba.member.Entity.Member;
 import com.a601.moba.member.Repository.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
@@ -28,25 +27,6 @@ public class AuthUtil {
         return null;
     }
 
-
-    // 현재 로그인한 사용자의 이메일 가져오기 (SecurityContext 활용)
-    public String getAuthenticatedUserEmail() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
-            throw new AuthException(ErrorCode.UNAUTHORIZED_ACCESS);
-        }
-        return authentication.getName(); // 이메일 반환
-    }
-
-    // 현재 로그인한 사용자의 이메일 가져오기 (Access Token 기반)
-    public String getUserEmailFromToken(HttpServletRequest request) {
-        String token = getAccessToken(request);
-        if (token == null || !jwtProvider.isTokenValid(token)) {
-            throw new AuthException(ErrorCode.UNAUTHORIZED_ACCESS);
-        }
-        return jwtProvider.getEmailFromToken(token);
-    }
-
     // Access Token을 기반으로 사용자(현재 유저) 객체 불러오기
     public Member getMemberFromToken(HttpServletRequest request) {
         String token = getAccessToken(request);
@@ -58,4 +38,21 @@ public class AuthUtil {
         return memberRepository.findByEmail(email)
                 .orElseThrow(() -> new AuthException(ErrorCode.UNAUTHORIZED_ACCESS));
     }
+
+    public Member getCurrentMember() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AuthException(ErrorCode.UNAUTHORIZED_ACCESS);
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof Member member) {
+            return member;
+        }
+
+        throw new AuthException(ErrorCode.UNAUTHORIZED_ACCESS);
+    }
+
 }

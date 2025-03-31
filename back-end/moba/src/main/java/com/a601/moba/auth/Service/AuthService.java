@@ -7,9 +7,12 @@ import com.a601.moba.auth.Controller.Response.SignupResponse;
 import com.a601.moba.auth.Exception.AuthException;
 import com.a601.moba.email.Service.EmailService;
 import com.a601.moba.global.code.ErrorCode;
+import com.a601.moba.global.exception.CommonException;
+import com.a601.moba.global.service.S3Service;
 import com.a601.moba.member.Entity.Member;
 import com.a601.moba.member.Repository.MemberRepository;
 import com.a601.moba.member.Service.MemberService;
+import com.a601.moba.wallet.Service.WalletService;
 import java.util.Optional;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
@@ -30,10 +33,11 @@ public class AuthService {
     private final JwtProvider jwtProvider;
     private final PasswordEncoder passwordEncoder;
     private final StringRedisTemplate redisTemplate;
-    private final RedisService redisService;
+    private final AuthRedisService redisService;
     private final EmailService emailService;
-    private final MemberService memberService;
     private final KakaoOAuthClient kakaoOAuthClient;
+    private final WalletService walletService;
+    private final S3Service s3Service;
 
     @Transactional
     public AuthResponse signin(String email, String password) {
@@ -94,7 +98,14 @@ public class AuthService {
         }
 
         // 신규 회원
-        Member newMember = new Member(email, null, name, image);
+        Member newMember = Member.builder()
+                .email(email)
+                .password(null)
+                .name(name)
+                .profileImage(image)
+                .isDeleted(false)
+                .build();
+
         newMember.updateSocialId(socialId);
         memberRepository.save(newMember);
 
@@ -161,7 +172,7 @@ public class AuthService {
     }
 
     @Transactional
-    public SignupResponse signup(String email, String password, String name, MultipartFile image) {
+    public SignupResponse signup(String email, String password, String name) {
         Optional<Member> existingMember = memberRepository.findByEmail(email);
         if (existingMember.isPresent()) {
             throw new AuthException(ErrorCode.EMAIL_ALREADY_EXISTS);
@@ -172,15 +183,39 @@ public class AuthService {
         }
 
         String encodedPassword = passwordEncoder.encode(password);
-        String imageUrl = memberService.uploadImage(image);
 
-        Member newMember = new Member(email, encodedPassword, name, imageUrl);
+        Member newMember = Member.builder()
+                .email(email)
+                .password(encodedPassword)
+                .name(name)
+                .isDeleted(false)
+                .build();
+
         memberRepository.save(newMember);
         emailService.deleteEmailVerified(email);
 
-        return new SignupResponse(newMember.getId(), newMember.getEmail(), newMember.getName(),
-                newMember.getProfileImage());
+        walletService.create(newMember);
+
+        return SignupResponse.builder()
+                .memberId(newMember.getId())
+                .email(newMember.getEmail())
+                .name(newMember.getName())
+                .build();
     }
+
+    @Transactional
+    public void uploadProfileImage(Integer memberId, MultipartFile image) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CommonException(ErrorCode.MEMBER_NOT_FOUND));
+
+        String imageUrl = null;
+        if (image != null && !image.isEmpty()) {
+            imageUrl = s3Service.uploadFile(image);
+        }
+
+        member.updateProfileImage(imageUrl);
+    }
+
 
     @Transactional
     public void signout(String accessToken) {

@@ -56,6 +56,7 @@ public enum ErrorCode {
     APPOINTMENT_PARTICIPANT_LIMIT_EXCEEDED(4409, BAD_REQUEST, "약속방 참여 인원 제한을 초과하였습니다"),
     APPOINTMENT_EXIT_FORBIDDEN(4410, FORBIDDEN, "방장은 약속방을 나갈 수 없습니다"),
     APPOINTMENT_KICK_FORBIDDEN(4410, FORBIDDEN, "방장을 강제로 퇴장시킬 수 없습니다."),
+    APPOINTMENT_PLACE_NOT_FOUND(4411, NOT_FOUND, "약속 장소 리스트에서 해당 장소를 찾을 수 없습니다"),
     // ================= 장소 관련 에러 (4450번대) ==================
     PLACE_NOT_FOUND(4450, NOT_FOUND, "해당 장소를 찾을 수 없습니다"),
 

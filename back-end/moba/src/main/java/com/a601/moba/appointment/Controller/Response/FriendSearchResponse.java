@@ -12,7 +12,7 @@ public record FriendSearchResponse(
 ) {
     public static FriendSearchResponse of(String keyword, List<Member> members, Integer cursorId) {
         List<SimpleMember> resultList = members.stream()
-                .map(m -> new SimpleMember(m.getId(), m.getName(), m.getEmail()))
+                .map(m -> new SimpleMember(m.getId(), m.getName(), m.getEmail(), m.getProfileImage()))
                 .toList();
 
         return FriendSearchResponse.builder()
@@ -22,6 +22,6 @@ public record FriendSearchResponse(
                 .build();
     }
 
-    public record SimpleMember(Integer memberId, String name, String email) {
+    public record SimpleMember(Integer memberId, String name, String email, String profileImage) {
     }
 }

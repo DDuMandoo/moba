@@ -1,7 +1,5 @@
 package com.a601.moba.email.Service;
 
-import com.a601.moba.global.code.ErrorCode;
-import com.a601.moba.global.exception.CommonException;
 import com.a601.moba.member.Repository.MemberRepository;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -28,9 +26,6 @@ public class EmailService {
 
     // 인증 코드 전송
     public void sendVerificationCode(String email) {
-        if (memberRepository.existsByEmail(email)) {
-            throw new CommonException(ErrorCode.EMAIL_ALREADY_EXISTS);
-        }
         String code = generateVerificationCode();
 
         try {

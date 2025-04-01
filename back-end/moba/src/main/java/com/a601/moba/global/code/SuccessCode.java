@@ -39,6 +39,7 @@ public enum SuccessCode {
     APPOINTMENT_IMAGE_DELETE_SUCCESS(2408, OK, "약속 이미지 삭제에 성공하였습니다"),
     APPOINTMENT_PARTICIPANT_KICK_SUCCESS(2409, OK, "멤버를 강제 퇴장시켰습니다"),
     APPOINTMENT_STATISTICS_SUCCESS(2410, OK, "약속 통계 조회에 성공하였습니다."),
+    PLACE_ADD_SUCCESS(2411, OK, "가고 싶은 장소 추가에 성공했습니다"),
 
     // ================= 지갑 관련 성공 (2500번대) ==================
     WALLET_SENT_SUCCESS(2500, OK, "입력한 계좌로 1원 송금하는데 성공하였습니다"),
@@ -52,12 +53,13 @@ public enum SuccessCode {
     AUTH_WALLET_SUCCESS(2508, OK, "간편 비밀번호 인증에 성공했습니다"),
     WALLET_GET_SUCCESS(2509, OK, "지갑 거래 내역 조회에 성공했습니다"),
 
-    // ================= 푸시 알림 관련 성공 (2600번대) ==================
-    SAVE_FCM_TOKEN_SUCCESS(2600, OK, "fcm토큰 저장에 성공했습니다."),
-    DELETE_FCM_TOKEN_SUCCESS(2601, OK, "fcm토큰 삭제에 성공했습니다."),
-    SUCCESS_FCM_TOKEN_TEST(2602, OK, "fcm토큰 테스트에 성공했습니다."),
-    GET_NOTIFICATION_LIST(2603, OK, "알림 리스트를 가져오는데 성공했습니다."),
-    READ_NOTIFICATION(2604, OK, "알림을 읽는데 성공했습니다.");
+
+    // ================= 더치페이 관련 성공 (2700번대) ==================
+    CREATE_DUTCHPAY_SUCCESS(2700, OK, "더치페이 생성을 성공했습니다"),
+    COMPLETE_DUTCHPAY_SUCCESS(2701, OK, "해당 참가자의 더치페이를 완료 처리했습니다"),
+
+    ;
+
 
     private final int code;
     private final HttpStatus httpStatus;

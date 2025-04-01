@@ -56,6 +56,8 @@ public enum ErrorCode {
     APPOINTMENT_PARTICIPANT_LIMIT_EXCEEDED(4409, BAD_REQUEST, "약속방 참여 인원 제한을 초과하였습니다"),
     APPOINTMENT_EXIT_FORBIDDEN(4410, FORBIDDEN, "방장은 약속방을 나갈 수 없습니다"),
     APPOINTMENT_KICK_FORBIDDEN(4410, FORBIDDEN, "방장을 강제로 퇴장시킬 수 없습니다."),
+    // ================= 장소 관련 에러 (4450번대) ==================
+    PLACE_NOT_FOUND(4450, NOT_FOUND, "해당 장소를 찾을 수 없습니다"),
 
     // ================= 지갑 관련 에러 (4500번대) ==================
     INVALID_WALLET(4500, BAD_REQUEST, "존재하지 않는 지갑입니다"),
@@ -68,17 +70,22 @@ public enum ErrorCode {
     FAIL_CHARGE_ACCOUNT(4507, INTERNAL_SERVER_ERROR, "지갑 충전 중 문제가 발생했습니다"),
     INVALID_PASSWORD_FORM(4508, BAD_REQUEST, "간편 비밀번호는 6자여야 합니다"),
     INVALID_WALLET_PASSWORD(4509, BAD_REQUEST, "비밀번호가 틀렸습니다"),
+    NOT_FOUND_TRANSACTION(4510, NOT_FOUND, "존재하지 않는 거래 내역입니다"),
 
     // ================= S3 관련 에러 (4600번대) ==================
     S3_UPLOAD_FAILED(4600, INTERNAL_SERVER_ERROR, "S3 파일 업로드에 실패했습니다"),
     S3_DELETE_FAILED(4601, INTERNAL_SERVER_ERROR, "S3 파일 삭제에 실패했습니다"),
 
-    // ================= S3 관련 에러 (4700번대) ==================
-    FCM_TOKEN_NOT_FOUND(4701, BAD_REQUEST, "FCM 토큰이 존재하지 않습니다"),
-    FCM_SEND_FAILED(4702, INTERNAL_SERVER_ERROR, "FCM 알림 전송에 실패했습니다"),
-    FCM_INVALID_TOKEN(4703, BAD_REQUEST, "유효하지 않은 FCM 토큰입니다"),
-    FCM_TOKEN_SAVE_FAILED(4704, INTERNAL_SERVER_ERROR, "FCM 토큰 저장에 실패했습니다"),
-    FCM_TOKEN_DELETE_FAILED(4705, INTERNAL_SERVER_ERROR, "FCM 토큰 삭제에 실패했습니다");
+
+    // ================= 더치페이 관련 에러 (4700번대) ==================
+    NOT_FOUND_DUTCHPAY(4700, NOT_FOUND, "더치페이를 찾을 수 없습니다"),
+    NOT_FOUND_DUTCHPAY_PARTICIPANT(4701, NOT_FOUND, "더치페이 참여자를 찾을 수 없습니다"),
+    NOT_MATCH_AMOUNT(4702, BAD_REQUEST, "정산이 완료되지 않았습니다"),
+    NOT_MATCH_PRICE(4703, BAD_REQUEST, "합산 금액이 일치하지 않습니다"),
+    INVALID_HOST(4704, BAD_REQUEST, "더치페이 호스트의 권한이 없습니다"),
+    ALREADY_COMPLETE_DUTCHPAY(4705, BAD_REQUEST, "이미 더치페이 완료한 참가자 입니다"),
+
+    ;
     private final int code;
     private final HttpStatus httpStatus;
     private final String message;

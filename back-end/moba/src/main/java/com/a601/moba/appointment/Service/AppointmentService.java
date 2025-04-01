@@ -30,7 +30,6 @@ import com.a601.moba.member.Repository.MemberRepository;
 import com.a601.moba.wallet.Entity.Wallet;
 import com.a601.moba.wallet.Repository.TransactionRepository;
 import com.a601.moba.wallet.Repository.WalletRepository;
-import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -281,8 +280,8 @@ public class AppointmentService {
     }
 
     @Transactional(readOnly = true)
-    public AppointmentParticipantResponse getParticipants(Integer appointmentId, HttpServletRequest request) {
-        Integer memberId = authUtil.getMemberFromToken(request).getId();
+    public AppointmentParticipantResponse getParticipants(Integer appointmentId) {
+        Integer memberId = authUtil.getCurrentMember().getId();
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));

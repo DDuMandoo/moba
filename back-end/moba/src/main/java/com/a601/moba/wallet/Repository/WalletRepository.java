@@ -19,5 +19,4 @@ public interface WalletRepository extends JpaRepository<Wallet, Member> {
     Optional<Wallet> getByMemberForUpdate(@Param("member") Member member);
 
     Optional<Wallet> findByMemberId(Integer memberId);
-
 }

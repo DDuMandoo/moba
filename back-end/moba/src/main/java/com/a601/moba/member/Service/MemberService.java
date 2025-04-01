@@ -24,7 +24,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
 
     @Transactional
-    public MemberUpdateResponse updateMemberInfo(MemberUpdateRequest request) {
+    public MemberUpdateResponse updateMemberInfo(MemberUpdateRequest request, MultipartFile profileImage) {
         Member member = authUtil.getCurrentMember();
         Member updateMember = memberRepository.findByEmail(member.getEmail())
                 .orElseThrow(() -> new AuthException(ErrorCode.MEMBER_NOT_FOUND));
@@ -38,8 +38,8 @@ public class MemberService {
             updateMember.changePassword(encoded);
         }
 
-        if (request.image() != null && !request.image().isEmpty()) {
-            String imageUrl = uploadImage(request.image());
+        if (profileImage != null && !profileImage.isEmpty()) {
+            String imageUrl = uploadImage(profileImage);
             updateMember.updateProfileImage(imageUrl);
         }
 

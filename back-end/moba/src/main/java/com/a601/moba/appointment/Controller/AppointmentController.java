@@ -258,21 +258,32 @@ public class AppointmentController {
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.SEARCH_SUCCESS, response));
     }
 
+    @Operation(summary = "참가자 이름으로 참가자 검색", description = "키워드(이름 또는 이메일)로 참가자를 검색합니다.")
     @GetMapping("/search/member")
     public ResponseEntity<JSONResponse<?>> searchMembers(
+            @Parameter(description = "검색할 이름 또는 이메일")
             @RequestParam(required = false) String keyword,
+
+            @Parameter(description = "한 번에 불러올 개수 (기본값: 10)")
             @RequestParam(defaultValue = "10") @Min(0) int size,
+
+            @Parameter(description = "마지막으로 불러온 memberId (커서)")
             @RequestParam(required = false) Integer cursorId) {
 
         Map<String, Object> result = appointmentSearchService.searchMembersByKeyword(keyword, cursorId, size);
-
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.SEARCH_SUCCESS, result));
     }
 
+    @Operation(summary = "참가자 이름으로 약속 검색", description = "키워드(이름 또는 이메일)로 해당 참가자가 포함된 약속을 검색합니다.")
     @GetMapping("/search/appointment")
     public ResponseEntity<JSONResponse<?>> searchAppointments(
+            @Parameter(description = "검색할 이름 또는 이메일")
             @RequestParam(required = false) String keyword,
+
+            @Parameter(description = "한 번에 불러올 개수 (기본값: 10)")
             @RequestParam(defaultValue = "10") @Min(0) int size,
+
+            @Parameter(description = "마지막으로 불러온 appointmentId (커서)")
             @RequestParam(required = false) Integer cursorId) {
 
         Map<String, Object> result = appointmentSearchService.searchAppointmentsByKeyword(keyword, cursorId, size);
@@ -306,7 +317,7 @@ public class AppointmentController {
     @Operation(summary = "장소 이름으로 장소 검색", description = "약속방 내에서 장소 이름으로 검색합니다.")
     @GetMapping("/places/search")
     public ResponseEntity<JSONResponse<?>> searchPlaces(
-            @RequestParam String keyword,
+            @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Integer cursorId) {
 

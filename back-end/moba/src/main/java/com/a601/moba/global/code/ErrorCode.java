@@ -42,6 +42,7 @@ public enum ErrorCode {
     EMAIL_ALREADY_VERIFIED(4302, CONFLICT, "이미 인증된 이메일입니다."),
     EMAIL_NOT_VERIFIED(4303, FORBIDDEN, "검증되지 않은 이메일입니다."),
     TOO_MANY_PASSWORD_RESET_REQUESTS(4304, TOO_MANY_REQUESTS, "비밀번호 재설정 요청이 너무 많습니다."),
+    PASSWORD_RESET_FAILED(4304, TOO_MANY_REQUESTS, "비밀번호 재설정에 실패하였습니다"),
 
     // ================= 약속 관련 에러 (4400번대) ==================
     INVITE_CODE_GENERATION_FAILED(4400, INTERNAL_SERVER_ERROR, "초대 코드 생성에 실패했습니다"),

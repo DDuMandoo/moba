@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
 
 @Getter
 @Entity
@@ -27,5 +28,6 @@ public class FcmToken {
     @ManyToOne(fetch = FetchType.LAZY)
     private Member member;
 
+    @CreatedDate
     private LocalDateTime createdAt;
 }

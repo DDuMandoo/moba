@@ -13,12 +13,15 @@ import jakarta.persistence.ManyToOne;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
 
 @Entity
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
 public class Notification {
 
     @Id
@@ -37,6 +40,7 @@ public class Notification {
     private String content;
 
     @Column(nullable = false, updatable = false)
+    @CreatedDate
     private LocalDateTime createdAt;
 
     private LocalDateTime readAt;
@@ -51,7 +55,14 @@ public class Notification {
     @Enumerated(EnumType.STRING)
     private Type type;
 
+    public void markAsRead() {
+        if (!this.isRead) {
+            this.isRead = true;
+            this.readAt = LocalDateTime.now();
+        }
+    }
+
     public enum Type {
-        CHAT, PAY, INVITE, REMINDER;
+        PAY, INVITE, REMINDER;
     }
 }

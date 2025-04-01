@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   ScrollView,
@@ -6,59 +6,27 @@ import {
   Platform,
   Modal,
 } from 'react-native';
-import { Button } from '@/components/ui/Button';
-import ChargeAmountInput from '@/components/charge/ChargeAmountInput';
-import ChargeSourceList from '@/components/charge/ChargeSourceList';
-import TransferConfirmModal from '@/components/transfer/TransferConfirmModal';
 import Colors from '@/constants/Colors';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { selectAccount, setAccountList } from '@/redux/slices/accountSlice';
-import { setAmount as setChargeAmount } from '@/redux/slices/chargeSlice';
-import axiosInstance from '@/app/axiosInstance';
-import { fetchWalletBalance } from '@/redux/slices/walletSlice';
+import { selectAccount } from '@/redux/slices/accountSlice';
+import { setAmount as setTransferAmount } from '@/redux/slices/chargeSlice'; // ✅ 재활용
+import ChargeAmountInput from '@/components/charge/ChargeAmountInput';
+import ChargeSourceList from '@/components/charge/ChargeSourceList';
+import { Button } from '@/components/ui/Button';
+import TransferConfirmModal from '@/components/transfer/TransferConfirmModal';
 
-export default function ChargePage() {
+export default function TransferPage() {
   const dispatch = useAppDispatch();
   const selectedAccountId = useAppSelector((state) => state.account.selectedAccountId);
   const [amount, setAmount] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
 
-  // ✅ 계좌 목록 불러오기
-  useEffect(() => {
-    const fetchAccounts = async () => {
-      try {
-        const res = await axiosInstance.get('/wallets/account');
-        const accounts = res.data.result?.accounts ?? [];
-        console.log('💳 [ChargePage] 계좌 목록 불러옴:', accounts);
-        dispatch(setAccountList(accounts));
-      } catch (err) {
-        console.error('❌ [ChargePage] 계좌 불러오기 실패:', err);
-      }
-    };
-
-    fetchAccounts();
-  }, []);
-
-  // ✅ amount 값 Redux에 반영
-  useEffect(() => {
-    dispatch(setChargeAmount(amount));
-  }, [amount]);
-
   const isAmountValid = amount >= 10000 && amount <= 1000000;
-  const isReadyToCharge = isAmountValid && !!selectedAccountId;
+  const isReady = isAmountValid && !!selectedAccountId;
 
-  useEffect(() => {
-    console.log('🟢 [ChargePage] 충전 버튼 조건:', {
-      amount,
-      isAmountValid,
-      selectedAccountId,
-      enabled: isReadyToCharge,
-    });
-  }, [amount, selectedAccountId]);
-
-  const handleCharge = () => {
-    if (isReadyToCharge) {
-      console.log('🚀 [ChargePage] 충전 버튼 클릭됨');
+  const handleTransfer = () => {
+    if (isReady) {
+      dispatch(setTransferAmount(amount));
       setModalVisible(true);
     }
   };
@@ -69,26 +37,24 @@ export default function ChargePage() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
-        contentContainerStyle={{ padding: 20, paddingBottom: 120 }}
+        contentContainerStyle={{ padding: 20, paddingBottom: 140 }}
         showsVerticalScrollIndicator={false}
       >
-        <ChargeAmountInput amount={amount} setAmount={setAmount}  label="입금 금액" />
+        <ChargeAmountInput amount={amount} setAmount={setAmount} label="송금 금액" />
         <ChargeSourceList
           selectedAccountId={selectedAccountId}
-          onSelectAccount={(id) => {
-            console.log('✅ 계좌 선택됨:', id);
-            dispatch(selectAccount(id));
-          }}
+          onSelectAccount={(id) => dispatch(selectAccount(id))}
         />
       </ScrollView>
 
-      <View style={{ position: 'absolute', bottom: 20, width: '100%', alignItems: 'center' }}>
+      <View style={{ position: 'absolute', bottom: 20, width: '100%', paddingHorizontal: 20 }}>
         <Button.Large
           title="송금"
-          onPress={handleCharge}
-          disabled={!isReadyToCharge}
+          disabled={!isReady}
+          onPress={handleTransfer}
           style={{
-            backgroundColor: isReadyToCharge ? Colors.primary : Colors.grayLightText,
+            backgroundColor: isReady ? Colors.primary : Colors.grayLightText,
+            borderRadius: 12,
           }}
         />
       </View>
@@ -96,16 +62,10 @@ export default function ChargePage() {
       <Modal
         visible={modalVisible}
         transparent
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setModalVisible(false)}
       >
-        <TransferConfirmModal
-          onClose={() => {
-            console.log('🟢 [ChargePage] 충전 완료, 지갑 금액 갱신 요청');
-            setModalVisible(false);
-            dispatch(fetchWalletBalance());
-          }}
-        />
+        <TransferConfirmModal onClose={() => setModalVisible(false)} />
       </Modal>
     </KeyboardAvoidingView>
   );

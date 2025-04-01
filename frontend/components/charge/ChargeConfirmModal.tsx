@@ -3,8 +3,8 @@ import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   ActivityIndicator,
+  StyleSheet,
   Image,
   useWindowDimensions,
 } from 'react-native';
@@ -17,60 +17,52 @@ import { getBankMeta } from '@/constants/banks';
 import { Button } from '@/components/ui/Button';
 import { useRouter } from 'expo-router';
 
-
 interface Props {
   onClose: () => void;
 }
 
-export default function ChargeConfirmModal({ onClose }: Props) {
+export default function TransferConfirmModal({ onClose }: Props) {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const { width, height } = useWindowDimensions();
 
   const { selectedAccountId, list: accounts } = useAppSelector((state) => state.account);
   const amount = useAppSelector((state) => state.charge.amount);
   const balance = useAppSelector((state) => state.wallet.balance);
 
-  const [isLoading, setIsLoading] = useState(true);
-  const { height: screenHeight, width: screenWidth } = useWindowDimensions();
-
   const selectedAccount = accounts.find(
     (acc) => `${acc.type}-${acc.account}` === selectedAccountId
   );
+  console.log('🧾 선택된 계좌 ID:', selectedAccountId);
+  console.log('📄 계좌 목록:', accounts);
+  console.log('🔍 선택된 계좌:', selectedAccount);
+
   const accountNumber = selectedAccount?.account || '';
   const bankMeta = getBankMeta(selectedAccount?.type || '');
-  const formattedAmount = amount.toLocaleString('ko-KR');
-  const formattedBalance = balance.toLocaleString('ko-KR');
+
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const charge = async () => {
-      if (!accountNumber || !amount) {
-        console.warn('❌ 충전 실패 - account 또는 amount 없음', { accountNumber, amount });
-        setIsLoading(false);
-        return;
-      }
-
+    const transfer = async () => {
       try {
-        console.log('🚀 [ChargeConfirmModal] 충전 요청 전송:', {
-          account: accountNumber,
+        const me = await axiosInstance.get('/members');
+        const myId = me.data.result.memberId;
+        console.log('✅ 내 ID:', myId);
+
+        await axiosInstance.post('/wallets/transfer', {
+          memberId: myId,
           amount,
         });
 
-        const res = await axiosInstance.post('/wallets/deposit', {
-          account: accountNumber,
-          amount,
-        });
-
-        console.log('✅ [ChargeConfirmModal] 충전 성공:', res.data);
         await dispatch(fetchWalletBalance());
-        console.log('🔄 지갑 잔액 갱신 완료');
       } catch (err) {
-        console.error('❌ [ChargeConfirmModal] 충전 실패:', err);
+        console.error('❌ 송금 실패:', err);
       } finally {
         setIsLoading(false);
       }
     };
 
-    charge();
+    transfer();
   }, []);
 
   return (
@@ -79,9 +71,9 @@ export default function ChargeConfirmModal({ onClose }: Props) {
         style={[
           styles.modalBox,
           {
-            width: screenWidth * 0.85,
-            paddingVertical: screenHeight * 0.035,
-            paddingHorizontal: screenWidth * 0.06,
+            width: width * 0.85,
+            paddingVertical: height * 0.035,
+            paddingHorizontal: width * 0.06,
           },
         ]}
       >
@@ -98,12 +90,12 @@ export default function ChargeConfirmModal({ onClose }: Props) {
             </View>
 
             <Text style={styles.title}>
-              {formattedAmount}원을{'\n'}충전 완료 했어요
+              {amount.toLocaleString()}원을 송금했어요
             </Text>
 
             <View style={{ marginTop: 24, width: '100%' }}>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>충전계좌</Text>
+                <Text style={styles.infoLabel}>송금 계좌</Text>
                 <View style={styles.accountInfo}>
                   <Image source={bankMeta.logo} style={styles.bankLogo} />
                   <Text style={styles.accountText}>
@@ -114,18 +106,18 @@ export default function ChargeConfirmModal({ onClose }: Props) {
 
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>거래 후 잔액</Text>
-                <Text style={styles.amountText}>{formattedBalance}원</Text>
+                <Text style={styles.amountText}>{balance.toLocaleString()}원</Text>
               </View>
             </View>
 
-            <View style={{ marginTop: screenHeight * 0.04 }}>
-              <Button.Medium 
-                title="확인" 
+            <View style={{ marginTop: height * 0.04 }}>
+              <Button.Medium
+                title="확인"
                 onPress={() => {
                   onClose();
                   router.replace('/(bottom-navigation)');
                 }}
-                />
+              />
             </View>
           </View>
         )}
@@ -140,7 +132,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.3)',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
   },
   modalBox: {
     backgroundColor: Colors.white,
@@ -173,6 +164,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.grayDarkText,
   },
+  amountText: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: Colors.text,
+  },
   accountInfo: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -185,12 +181,6 @@ const styles = StyleSheet.create({
   },
   accountText: {
     fontSize: 14,
-    
-    color: Colors.text,
-  },
-  amountText: {
-    fontSize: 15,
-    fontWeight: 'bold',
     color: Colors.text,
   },
 });

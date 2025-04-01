@@ -152,7 +152,8 @@ export default function CustomDateTimePicker({ visible, onClose, onConfirm, init
                   calendarBackground: Colors.white,
                   textDayFontFamily: 'NanumSquareRound',
                   textMonthFontFamily: 'NanumSquareRound-Bold',
-                  textDayHeaderFontFamily: 'NanumSquareRound-Bold'
+                  textDayHeaderFontFamily: 'NanumSquareRound-Bold',
+                  todayTextColor: Colors.logo,
                 }}
               />
             </>
@@ -161,7 +162,6 @@ export default function CustomDateTimePicker({ visible, onClose, onConfirm, init
           {step === 'hour' && (
             <>
               <Text style={styles.title}>🕒 시간 선택</Text>
-              <View style={styles.clockWrapper}>{renderClockFace('hour')}</View>
               <View style={styles.ampmRow}>
                 <TouchableOpacity
                   style={[styles.ampmButton, ampm === 'AM' && styles.ampmSelected]}
@@ -176,6 +176,7 @@ export default function CustomDateTimePicker({ visible, onClose, onConfirm, init
                   <Text style={[styles.ampmText, ampm === 'PM' && styles.ampmTextSelected]}>오후</Text>
                 </TouchableOpacity>
               </View>
+              <View style={styles.clockWrapper}>{renderClockFace('hour')}</View>
             </>
           )}
 
@@ -212,14 +213,14 @@ const styles = StyleSheet.create({
   modalBox: {
     backgroundColor: Colors.white,
     borderRadius: 20,
-    padding: 24,
+    padding: '5%',
     width: '90%'
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '700',
-    color: Colors.logo,
-    marginBottom: 12,
+    color: Colors.secondary,
+    marginBottom: 5,
     alignSelf: 'center'
   },
   headerContainer: {
@@ -227,25 +228,25 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
-    paddingHorizontal: 12
+    paddingHorizontal: 5
   },
   icon: {
-    width: 16,
-    height: 16,
+    width: 12,
+    height: 12,
     resizeMode: 'contain',
     marginHorizontal: 2,
-    padding: 4,
+    padding: 10
   },
-  
   monthText: {
-    fontSize: 16,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: Colors.primary
+    color: Colors.secondary,
+    marginBottom: 8
   },
   weekRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 4
+    marginTop: 8,
   },
   weekText: {
     fontSize: 14,
@@ -254,14 +255,16 @@ const styles = StyleSheet.create({
   },
   clockWrapper: {
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    marginLeft: -40
   },
   clockContainer: {
     width: 200,
     height: 200,
     borderRadius: 100,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    alignSelf: 'center' // ✅ 5, 7. 원형 시계 가운데 정렬
   },
   clockNumber: {
     position: 'absolute',
@@ -277,14 +280,14 @@ const styles = StyleSheet.create({
   },
   ampmRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 16,
-    gap: 12
+    justifyContent: 'center', // ✅ 4. 가운데 정렬
+    marginTop: 10,
+    gap: 5
   },
   ampmButton: {
     paddingVertical: 6,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+    paddingHorizontal: 12,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: Colors.grayLightText
   },
@@ -303,7 +306,7 @@ const styles = StyleSheet.create({
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginTop: 20
+    marginTop: 30
   },
   cancel: {
     fontSize: 16,

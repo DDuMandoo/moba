@@ -7,68 +7,59 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
-import { getBankMeta } from '@/constants/banks';
 import { useAppSelector } from '@/redux/hooks';
+import { getBankMeta } from '@/constants/banks';
 
 interface Props {
   selectedAccountId: string | null;
   onSelectAccount: (id: string) => void;
+  title?: string;
+  showAddButton?: boolean;
+  addButtonText?: string;
+  onPressAddAccount?: () => void;
 }
 
-export default function ChargeSourceList({
+export default function AccountListSection({
   selectedAccountId,
   onSelectAccount,
+  title = '계좌 목록',
+  showAddButton = true,
+  addButtonText = '계좌연결',
+  onPressAddAccount,
 }: Props) {
-  const router = useRouter();
   const accounts = useAppSelector((state) => state.account.list);
-  const isLoading = false;
-  const isError = false;
+  const isLoading = false; // 필요 시 로딩 처리 연결
+  const isError = false;   // 필요 시 에러 처리 연결
 
   return (
     <View style={styles.wrapper}>
       <View style={styles.headerRow}>
-        <Text style={styles.sectionTitle}>충전수단</Text>
-        <TouchableOpacity
-          onPress={() => router.push('/wallet/account/add')}
-          style={styles.addButton}
-        >
-          <Text style={styles.addText}>계좌연결</Text>
-        </TouchableOpacity>
+        <Text style={styles.sectionTitle}>{title}</Text>
+        {showAddButton && (
+          <TouchableOpacity onPress={onPressAddAccount} style={styles.addButton}>
+            <Text style={styles.addText}>{addButtonText}</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {isLoading ? (
         <ActivityIndicator color={Colors.primary} style={{ marginTop: 16 }} />
       ) : isError ? (
-        <Text style={{ color: 'red', marginTop: 16 }}>
-          계좌를 불러올 수 없습니다.
-        </Text>
+        <Text style={styles.errorText}>계좌를 불러올 수 없습니다.</Text>
       ) : !Array.isArray(accounts) || accounts.length === 0 ? (
-        <Text
-          style={{
-            color: Colors.grayDarkText,
-            paddingVertical: 24,
-            textAlign: 'center',
-          }}
-        >
-          연결된 계좌가 없습니다.
-        </Text>
+        <Text style={styles.emptyText}>연결된 계좌가 없습니다.</Text>
       ) : (
         accounts.map((acc, index) => {
           const bank = getBankMeta(acc.type);
-          const fallbackId = `${acc.type}-${acc.account}`;
-          const accountId = acc.id ?? fallbackId;
+          const accountId = acc.id ?? `${acc.type}-${acc.account}`;
           const selected = accountId === selectedAccountId;
-          const key = acc.id ?? `${acc.type}-${acc.account}-${index}`;
+          const key = `${accountId}-${index}`;
 
           return (
             <TouchableOpacity
               key={key}
-              onPress={() => {
-                console.log('✅ 계좌 선택됨:', accountId);
-                onSelectAccount(accountId);
-              }}
+              onPress={() => onSelectAccount(accountId)}
               style={[
                 styles.accountRow,
                 selected && { backgroundColor: Colors.grayBackground },
@@ -76,7 +67,7 @@ export default function ChargeSourceList({
             >
               <Image
                 source={bank.logo}
-                style={{ width: 24, height: 24, marginRight: 12 }}
+                style={styles.bankLogo}
                 resizeMode="contain"
               />
               <View>
@@ -120,12 +111,27 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 13,
   },
+  errorText: {
+    color: 'red',
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  emptyText: {
+    color: Colors.grayDarkText,
+    paddingVertical: 24,
+    textAlign: 'center',
+  },
   accountRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderColor: '#E6E4E3',
+  },
+  bankLogo: {
+    width: 24,
+    height: 24,
+    marginRight: 12,
   },
   bankName: {
     fontSize: 15,

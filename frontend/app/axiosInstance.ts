@@ -44,6 +44,9 @@ axiosInstance.interceptors.request.use(
     const token = await getRefreshToken();
     console.log('🧪 요청 보낼 때 RefreshToken:', token); // 👈 이거 넣어봐!
 
+    console.log(`📡 [Request] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
+    console.log('🧾 요청 헤더:', config.headers);
+    console.log('📦 요청 바디:', config.data);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -75,7 +78,7 @@ axiosInstance.interceptors.response.use(
         const { accessToken, refreshToken: newRefreshToken } = res.data.result;
         await saveTokens(accessToken, newRefreshToken);
 
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        originalRequest.headers.Authorization = `Bearer ${refreshToken}`;
         return axiosInstance(originalRequest);
       } catch (err) {
         console.error('🔴 토큰 갱신 실패', err);

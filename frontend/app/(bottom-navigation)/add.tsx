@@ -106,8 +106,9 @@ export default function AppointmentCreatePage() {
           'Content-Type': 'multipart/form-data',
         },
       });
+      const appointmentId = res?.data?.result?.appointmentId;
       console.log('✅ 약속 생성 성공:', res.data);
-      router.replace(`/promises/${res.data.reasult.appointmentId}`);
+      router.replace(`/promises/${appointmentId}`);
     } catch (err: any) {
       console.error('❌ 약속 생성 실패:', err);
       setAlertMessage(err?.response?.data?.message || '약속 생성에 실패했어요!');

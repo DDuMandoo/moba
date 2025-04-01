@@ -15,7 +15,10 @@ export default function ProfileWithEmail({ name, email, imageUri }: ProfileWithE
   return (
     <View style={styles.container}>
       <View style={styles.imageBox}>
-        <Image source={{ uri: imageUri }} style={styles.image} />
+        <Image
+          source={imageUri ? { uri: imageUri } : require('@/assets/images/default-profile.png')}
+          style={styles.image}
+        />
       </View>
       <View style={styles.textContainer}>
         <Text style={styles.name}>{name} 님</Text>
@@ -43,8 +46,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   image: {
-    width: 32,
-    height: 32,
+    width: '100%',
+    height: '100%',
     borderRadius: 16,
   },
   textContainer: {

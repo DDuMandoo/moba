@@ -57,6 +57,8 @@ public enum SuccessCode {
     // ================= 더치페이 관련 성공 (2700번대) ==================
     CREATE_DUTCHPAY_SUCCESS(2700, OK, "더치페이 생성을 성공했습니다"),
     COMPLETE_DUTCHPAY_SUCCESS(2701, OK, "해당 참가자의 더치페이를 완료 처리했습니다"),
+    READ_DEMAND_DUTCHPAY_SUCCESS(2702, OK, "사용자가 생성한 더치페이 조회에 성공했습니다"),
+    READ_RECEIPT_DUTCHPAY_SUCCESS(2702, OK, "사용자가 요청받은 더치페이 조회에 성공했습니다"),
 
     ;
 

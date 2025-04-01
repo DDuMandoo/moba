@@ -37,11 +37,11 @@ public class AppointmentPlaceService {
     private final AppointmentParticipantRepository appointmentParticipantRepository;
 
     public Map<String, Object> searchPlaces(String keyword, int size, Integer cursorId) {
+        Map<String, Object> result = new HashMap<>();
         if (keyword == null || keyword.trim().isBlank()) {
-            return Map.of(
-                    "results", Collections.emptyList(),
-                    "cursorId", null
-            );
+            result.put("results", Collections.emptyList());
+            result.put("cursorId", null);
+            return result;
         }
 
         List<Place> places = placeRepository.searchByNameWithCursor(

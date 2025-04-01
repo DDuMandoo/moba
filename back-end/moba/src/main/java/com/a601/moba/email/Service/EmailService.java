@@ -30,7 +30,7 @@ public class EmailService {
     private final MemberRepository memberRepository;
 
     private static final String EMAIL_SUBJECT = "[MOBA] 이메일 인증 코드 발송";
-    private static final String EMAIL_LOGO_URL = "https://moba-image.s3.ap-northeast-2.amazonaws.com/profile/4a7e58b3-fdf1-43e4-9663-764d74f4e41e.jpg\n";
+    private static final String EMAIL_LOGO_URL = "https://moba-image.s3.ap-northeast-2.amazonaws.com/profile/%EB%A1%9C%EA%B7%B8%EC%9D%B8+%EC%9D%B4%EB%AF%B8%EC%A7%80.png\n";
     private static final String EMAIL_HTML_TEMPLATE =
             "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 25px; border: 1px solid #d2b48c; border-radius: 12px; background: #f5f0e6; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);'>"
                     + "<div style='text-align: center;'>"

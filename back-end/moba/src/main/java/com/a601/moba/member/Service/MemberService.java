@@ -7,6 +7,7 @@ import com.a601.moba.global.service.S3Service;
 import com.a601.moba.member.Controller.Request.MemberUpdateRequest;
 import com.a601.moba.member.Controller.Response.MemberUpdateResponse;
 import com.a601.moba.member.Entity.Member;
+import com.a601.moba.member.Repository.MemberRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,29 +21,32 @@ public class MemberService {
     private final AuthUtil authUtil;
     private final PasswordEncoder passwordEncoder;
     private final S3Service s3Service;
+    private final MemberRepository memberRepository;
 
     @Transactional
     public MemberUpdateResponse updateMemberInfo(MemberUpdateRequest request) {
         Member member = authUtil.getCurrentMember();
+        Member updateMember = memberRepository.findByEmail(member.getEmail())
+                .orElseThrow(() -> new AuthException(ErrorCode.MEMBER_NOT_FOUND));
 
         if (request.name() != null && !request.name().isBlank()) {
-            member.updateName(request.name());
+            updateMember.updateName(request.name());
         }
 
         if (request.password() != null && !request.password().isBlank()) {
             String encoded = passwordEncoder.encode(request.password());
-            member.changePassword(encoded);
+            updateMember.changePassword(encoded);
         }
 
         if (request.image() != null && !request.image().isEmpty()) {
             String imageUrl = uploadImage(request.image());
-            member.updateProfileImage(imageUrl);
+            updateMember.updateProfileImage(imageUrl);
         }
 
         return MemberUpdateResponse.builder()
-                .memberId(member.getId())
-                .name(member.getName())
-                .image(member.getProfileImage())
+                .memberId(updateMember.getId())
+                .name(updateMember.getName())
+                .image(updateMember.getProfileImage())
                 .build();
     }
 

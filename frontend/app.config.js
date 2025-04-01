@@ -10,10 +10,12 @@ export default {
     scheme: 'myapp',
     userInterfaceStyle: 'automatic',
     newArchEnabled: true,
+    owner: 'erin523',
     ios: {
       supportsTablet: true
     },
     android: {
+      package: 'com.erin523.frontend',
       adaptiveIcon: {
         foregroundImage: './assets/images/adaptive-icon.png',
         backgroundColor: '#ffffff'
@@ -34,13 +36,25 @@ export default {
           resizeMode: 'contain',
           backgroundColor: '#ffffff'
         }
+      ],
+      [
+        'expo-build-properties',
+        {
+          android: {
+            useAndroidX: true,
+            enableJetifier: true
+          }
+        }
       ]
     ],
     experiments: {
       typedRoutes: true
     },
     extra: {
-      API_URL: process.env.API_URL || 'http://j12a601.p.ssafy.io/api'
+      eas: {
+        projectId: '96b90ddf-c230-437d-8d4c-8f56db76acc8'
+      },
+      API_URL: process.env.EXPO_PUBLIC_API_URL || 'http://j12a601.p.ssafy.io/api'
     }
   }
 };

@@ -3,7 +3,7 @@ import React from 'react';
 import { Stack } from 'expo-router';
 import LayoutInner from './LayoutInner';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import Colors from '@/constants/Colors'; // ✅ 색상 상수 사용
+import Colors from '@/constants/Colors';
 
 const queryClient = new QueryClient();
 
@@ -13,36 +13,20 @@ export default function RootLayout() {
       <LayoutInner>
         <Stack
           screenOptions={{
-            headerTintColor: Colors.primary,           // 🔸 뒤로가기 아이콘 색
-            headerTitleStyle: { color: Colors.primary }, // 🔸 타이틀 텍스트 색
-            headerTitleAlign: 'center',                 // 🔸 타이틀 중앙정렬
-            headerShadowVisible: false,                 // 🔸 하단 선 제거 (iOS)
+            headerTintColor: Colors.primary,
+            headerTitleStyle: { color: Colors.primary },
+            headerTitleAlign: 'center',
+            headerShadowVisible: false,
             headerStyle: {
-              backgroundColor: Colors.background        // 🔸 헤더 배경색 (선택사항)
+              backgroundColor: Colors.background
             }
           }}
         >
           <Stack.Screen name="(bottom-navigation)" options={{ headerShown: false }} />
+          <Stack.Screen name="auth" options={{ headerShown: false }} />
           <Stack.Screen name="index" options={{ headerShown: false }} />
-
-          <Stack.Screen
-            name="auth/signup"
-            options={{
-              title: '회원가입'
-            }}
-          />
-          <Stack.Screen
-            name="auth/terms-agreements"
-            options={{
-              title: '약관 동의'
-            }}
-          />
-          <Stack.Screen
-            name="auth/forgot-password"
-            options={{
-              title: '비밀번호 찾기'
-            }}
-          />
+          <Stack.Screen name="promises" options={{ headerShown: false }} />
+          <Stack.Screen name="wallet" options={{ headerShown: false }} />
         </Stack>
       </LayoutInner>
     </QueryClientProvider>

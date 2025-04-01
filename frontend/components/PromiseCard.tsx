@@ -2,34 +2,29 @@ import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
-import { format, parseISO, isValid } from 'date-fns';
-import { ko } from 'date-fns/locale';
-import { useRouter } from 'expo-router';
 
 interface Props {
-  appointmentId: number;
   imageUrl: string;
   title: string;
   time: string;
   location?: string;
   amount?: string;
   participants: string[];
+  onPress?: () => void;
 }
 
 export default function PromiseCard({
-  appointmentId,
   imageUrl,
   title,
   time,
   location,
   amount,
-  participants
+  participants,
+  onPress,
 }: Props) {
-  const router = useRouter();
   const displayExtraInfo = location || amount;
 
-  // ✅ 날짜 포맷 처리
-  let formattedTime = '포맷안됨';
+  let formattedTime = '-';
   try {
     const date = new Date(time);
     if (!isNaN(date.getTime())) {
@@ -42,31 +37,23 @@ export default function PromiseCard({
         hour12: false,
       });
     }
-  } catch {
-    formattedTime = '-';
-  }
-
-  const handlePress = () => {
-    router.push({
-      pathname: '/promises/[id]',
-      params: { id: String(appointmentId) }
-    });
-  };
+  } catch {}
 
   return (
-    <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
-      <View style={styles.container}>
+    <View style={styles.wrapper}>
+      <TouchableOpacity onPress={onPress} activeOpacity={0.9} style={styles.container}>
         <Image source={{ uri: imageUrl }} style={styles.image} />
+
         <View style={styles.content}>
           <Text style={styles.title}>{title}</Text>
 
-          <View style={styles.row}>
+          <View style={styles.metaRow}>
             <Feather name="clock" size={16} color={Colors.black} />
             <Text style={styles.metaText}>{formattedTime}</Text>
           </View>
 
           {displayExtraInfo && (
-            <View style={styles.row}>
+            <View style={styles.metaRow}>
               <Feather
                 name={location ? 'map' : 'credit-card'}
                 size={16}
@@ -79,7 +66,7 @@ export default function PromiseCard({
           )}
 
           <View style={styles.participantsRow}>
-            <Feather name="users" size={16} color={Colors.black} style={{ marginRight: 8 }} />
+            <Feather name="users" size={16} color={Colors.black} />
             <View style={styles.profileGroup}>
               {participants.map((uri, index) => (
                 <Image key={index} source={{ uri }} style={styles.profileImage} />
@@ -87,58 +74,68 @@ export default function PromiseCard({
             </View>
           </View>
         </View>
-      </View>
-    </TouchableOpacity>
+
+        <Feather name="chevron-right" size={20} color={Colors.primary} />
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    borderRadius: 12,
+    backgroundColor: Colors.white,
+    padding: 10,
+    marginBottom: 12,
+  },
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: '5%',
-    gap: 15,
-    backgroundColor: Colors.white,
-    borderRadius: 10
+    gap: 16,
   },
   image: {
-    width: 110,
-    height: 110,
-    borderRadius: 10
+    width: 90,
+    height: 90,
+    borderRadius: 10,
   },
   content: {
     flex: 1,
-    justifyContent: 'space-between'
+    justifyContent: 'center',
   },
   title: {
-    fontSize: 22,
-    fontWeight: '500',
-    color: Colors.black
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.black,
+    marginBottom: 4,
   },
-  row: {
+  metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginTop: 4
+    marginTop: 4,
   },
   metaText: {
-    fontSize: 16,
-    color: Colors.black
+    fontSize: 14,
+    color: Colors.black,
+    marginLeft: 6,
+    lineHeight: 18, 
+    textAlignVertical: 'center', 
   },
   participantsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 6
+    marginTop: 4,
+    gap: 6,
   },
   profileGroup: {
     flexDirection: 'row',
-    gap: 5
+    marginLeft: 6,
+    gap: 5,
   },
   profileImage: {
-    width: 30,
-    height: 30,
+    width: 26,
+    height: 26,
     borderRadius: 9,
     borderWidth: 0.4,
-    borderColor: Colors.logo
-  }
+    borderColor: Colors.logo,
+  },
 });

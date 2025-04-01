@@ -17,7 +17,7 @@ import Constants from 'expo-constants';
 import Colors from '@/constants/Colors';
 import { Button } from '@/components/ui/Button';
 import CustomAlert from '@/components/CustomAlert';
-import LoadingModal from '@/components/LoadingModal';
+import LoadingModal from '@/components/modal/LoadingModal';
 
 const BASE_URL = Constants.expoConfig?.extra?.API_URL;
 

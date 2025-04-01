@@ -11,17 +11,20 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import axiosInstance from '@/app/axiosInstance';
-import Constants from 'expo-constants';
 import ProfileWithEmail from '@/components/profile/ProfileWithEmail';
 import PromiseCard from '@/components/PromiseCard';
-import SettingsOverlay from '@/components/overlays/SettingOverlay';
-import { dummyPromises } from '@/constants/dummy/dummyPromises';
+import SettingsOverlay from '@/components/modal/SettingOverlay';
+import { useRouter } from 'expo-router';
 
-const BASE_URL = Constants.expoConfig?.extra?.API_URL;
 const tabs = ['전체', '진행중/예정', '종료'] as const;
 
 export default function MyPageScreen() {
   const [user, setUser] = useState<any>(null);
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [summary, setSummary] = useState<{ totalAttendanceCount: number; totalSpent: number }>({
+    totalAttendanceCount: 0,
+    totalSpent: 0
+  });
   const [selectedTab, setSelectedTab] = useState<typeof tabs[number]>('전체');
   const [tabLayouts, setTabLayouts] = useState<{ x: number; width: number }[]>([]);
   const [overlayVisible, setOverlayVisible] = useState(false);
@@ -29,23 +32,37 @@ export default function MyPageScreen() {
   const underlineX = useRef(new Animated.Value(0)).current;
   const underlineWidth = useRef(new Animated.Value(0)).current;
 
-  const filteredPromises = dummyPromises.filter((p) => {
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+
+        const [appointmentsRes, summaryRes, userRes] = await Promise.all([
+          axiosInstance.get(`/appointments`),
+          axiosInstance.get(`/appointments/summary?year=${year}&month=${month}`),
+          axiosInstance.get(`/members`)
+        ]);
+
+        setAppointments(appointmentsRes.data.result || []);
+        setSummary(summaryRes.data.result || { totalAttendanceCount: 0, totalSpent: 0 });
+        setUser(userRes.data.result);
+      } catch (err) {
+        console.error('❌ 데이터 불러오기 실패', err);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const filteredPromises = appointments.filter((p) => {
     if (selectedTab === '전체') return true;
     if (selectedTab === '진행중/예정') return !p.isEnded;
     if (selectedTab === '종료') return p.isEnded;
   });
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await axiosInstance.get(`${BASE_URL}/members`);
-        setUser(res.data.result);
-      } catch (e) {
-        console.error('❌ 유저 정보 불러오기 실패', e);
-      }
-    };
-    fetchUser();
-  }, []);
 
   const handleTabPress = (tab: typeof tabs[number], index: number) => {
     setSelectedTab(tab);
@@ -101,13 +118,13 @@ export default function MyPageScreen() {
           <View style={styles.summaryRow}>
             <Ionicons name="checkbox" size={20} color={Colors.logo} />
             <Text style={styles.summaryText}>
-              이번달에 <Text style={styles.bold}>3</Text>번의 모임에 참여하셨어요.
+              이번달에 <Text style={styles.bold}>{summary.totalAttendanceCount}</Text>번의 모임에 참여하셨어요.
             </Text>
           </View>
           <View style={styles.summaryRow}>
             <Ionicons name="checkbox" size={20} color={Colors.logo} />
             <Text style={styles.summaryText}>
-              이번달 약속에 <Text style={styles.bold}>245,000원</Text>을 소비했습니다.
+              이번달 약속에 <Text style={styles.bold}>{summary.totalSpent.toLocaleString()}원</Text>을 소비했습니다.
             </Text>
           </View>
         </View>
@@ -150,18 +167,17 @@ export default function MyPageScreen() {
           {filteredPromises.map((promise) => (
             <PromiseCard
               key={promise.appointmentId}
-              appointmentId={promise.appointmentId}
               imageUrl={promise.imageUrl}
               title={promise.name}
               time={promise.time}
-              location={promise.location}
-              participants={promise.participants}
+              location={promise.memo}
+              participants={[]} // 참여자 정보 추가 예정 시 수정
+              onPress={() => router.push(`/promises/${promise.appointmentId}`)}
             />
           ))}
         </View>
       </ScrollView>
 
-      {/* ✅ 오버레이는 스크롤뷰 바깥에서 렌더링 */}
       <SettingsOverlay visible={overlayVisible} onClose={() => setOverlayVisible(false)} />
     </View>
   );
@@ -233,6 +249,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold'
   },
   promiseList: {
-    gap: 16
+    gap: 2,
+    marginBottom: 20
   }
 });

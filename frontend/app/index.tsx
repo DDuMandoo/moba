@@ -13,12 +13,14 @@ import { Button } from '@/components/ui/Button';
 import Colors from '@/constants/Colors';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import axiosInstance from '@/app/axiosInstance';
+import axios from 'axios';
 import { saveTokens } from '@/app/axiosInstance';
 import Constants from 'expo-constants';
 import CustomAlert from '@/components/CustomAlert';
 
-const BASE_URL = Constants.expoConfig?.extra?.API_URL;
+// const BASE_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_API_URL;
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -38,31 +40,46 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     Keyboard.dismiss();
   
+    console.log('📤 로그인 요청 전:', `${BASE_URL}/auth/signin`, email, password);
+  
     if (!isEmailValid(email)) {
+      console.log('❌ 이메일 형식 오류');
       showAlert('이메일 오류', '유효한 이메일 주소를 입력해주세요.');
       return;
     }
   
     try {
       setLoading(true);
+      console.log('🚀 로그인 요청 시작');
   
-      const response = await axiosInstance.post(`${BASE_URL}/auth/signin`, { email, password });
+      const response = await axios.post(`${BASE_URL}/auth/signin`, { email, password }, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+  
+      console.log('✅ 로그인 성공 응답:', response.data);
   
       if (response.status === 200) {
         const { accessToken, refreshToken } = response.data.result;
         await saveTokens(accessToken, refreshToken);
+
+        console.log('💾 토큰 저장 완료');
   
         router.replace('/(bottom-navigation)');
+        console.log('➡️ 라우팅 완료');
       } else {
+        console.log('⚠️ 로그인 실패 응답:', response.status);
         showAlert('로그인 실패', '이메일 혹은 비밀번호를 다시 확인해주세요!');
       }
     } catch (error: any) {
+      console.log('🧨 axios error:', JSON.stringify(error, null, 2));
       const message = error?.response?.data?.message || '서버 오류가 발생했습니다.';
       showAlert('로그인 실패', message);
     } finally {
+      console.log('🔚 로그인 요청 종료');
       setLoading(false);
     }
   };
+  
 
   return (
     <View style={styles.container}>
@@ -118,10 +135,10 @@ export default function LoginScreen() {
       />
 
       <View style={styles.footer}>
-        <TouchableOpacity onPress={() => router.push('/auth/forgot-password')}>
+        <TouchableOpacity onPress={() => router.push({ pathname: '/auth/forgot-password' })}>
           <Text style={styles.footerText}>비밀번호 찾기</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push('/auth/signup')}>
+        <TouchableOpacity onPress={() => router.push({ pathname: '/auth/signup' })}>
           <Text style={styles.footerText}>회원가입</Text>
         </TouchableOpacity>
       </View>

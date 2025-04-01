@@ -11,7 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { Button } from '@/components/ui/Button';
-import TermsModal from '@/components/TermsModal';
+import TermsModal from '@/components/modal/TermsModal';
 import axiosInstance from '@/app/axiosInstance';
 import { saveTokens } from '@/app/axiosInstance';
 import Constants from 'expo-constants';

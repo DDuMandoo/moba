@@ -1,6 +1,8 @@
 package com.a601.moba.appointment.Service;
 
 import com.a601.moba.appointment.Controller.Response.AppointmentSearchResponse;
+import com.a601.moba.appointment.Controller.Response.AppointmentSearchWithMembersResponse;
+import com.a601.moba.appointment.Controller.Response.MemberSearchResponse;
 import com.a601.moba.appointment.Entity.Appointment;
 import com.a601.moba.appointment.Entity.AppointmentParticipant;
 import com.a601.moba.appointment.Repository.AppointmentParticipantRepository;
@@ -8,10 +10,7 @@ import com.a601.moba.appointment.Repository.AppointmentRepository;
 import com.a601.moba.auth.Util.AuthUtil;
 import com.a601.moba.member.Entity.Member;
 import com.a601.moba.member.Repository.MemberRepository;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -56,89 +55,71 @@ public class AppointmentSearchService {
     }
 
     @Transactional(readOnly = true)
-    public Map<String, Object> searchMembersByKeyword(String keyword, Integer cursorId, int size) {
-        Map<String, Object> result = new HashMap<>();
-
+    public MemberSearchResponse searchMembersByKeyword(String keyword, Integer cursorId, int size) {
         if (keyword == null || keyword.trim().isBlank()) {
-            result.put("members", Collections.emptyList());
-            result.put("cursorId", null);
-            return result;
+            return new MemberSearchResponse(List.of(), null);
         }
 
         List<Member> members = memberRepository.searchByKeywordWithCursor(
                 keyword.toLowerCase(), cursorId, PageRequest.of(0, size)
         );
 
-        List<Map<String, Object>> memberList = members.stream()
-                .map(m -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("memberId", m.getId());
-                    map.put("name", m.getName());
-                    map.put("email", m.getEmail());
-                    map.put("profileImage", m.getProfileImage());
-                    return map;
-                })
+        List<MemberSearchResponse.MemberInfo> memberInfos = members.stream()
+                .map(m -> MemberSearchResponse.MemberInfo.builder()
+                        .memberId(m.getId())
+                        .name(m.getName())
+                        .email(m.getEmail())
+                        .profileImage(m.getProfileImage())
+                        .build())
                 .toList();
 
         Integer nextCursorId = members.isEmpty() ? null : members.get(members.size() - 1).getId();
-        
-        return Map.of(
-                "members", memberList,
-                "cursorId", nextCursorId
-        );
+
+        return new MemberSearchResponse(memberInfos, nextCursorId);
     }
 
+
     @Transactional(readOnly = true)
-    public Map<String, Object> searchAppointmentsByKeyword(String keyword, Integer cursorId, int size) {
-        Map<String, Object> result = new HashMap<>();
+    public AppointmentSearchWithMembersResponse searchAppointmentsByKeyword(String keyword, Integer cursorId,
+                                                                            int size) {
         if (keyword == null || keyword.trim().isBlank()) {
-            result.put("appointments", Collections.emptyList());
-            result.put("cursorId", null);
-            return result;
+            return new AppointmentSearchWithMembersResponse(List.of(), null);
         }
 
         List<Appointment> appointments = appointmentRepository.findByMemberKeyword(
                 keyword.toLowerCase(), cursorId, PageRequest.of(0, size)
         );
 
-        List<Map<String, Object>> appointmentList = appointments.stream()
+        List<AppointmentSearchWithMembersResponse.AppointmentInfo> appointmentList = appointments.stream()
                 .map(a -> {
-                    Map<String, Object> appointmentMap = new HashMap<>();
-                    appointmentMap.put("appointmentId", a.getId());
-                    appointmentMap.put("name", a.getName());
-                    appointmentMap.put("time", a.getTime());
-                    appointmentMap.put("imageUrl", a.getImage());
-                    appointmentMap.put("isEnded", a.getIsEnded());
-
                     List<AppointmentParticipant> participants = appointmentParticipantRepository.findByAppointmentId(
                             a.getId());
 
-                    List<Map<String, Object>> memberList = participants.stream()
-                            .map(p -> {
-                                Member m = memberRepository.findById(p.getMemberId()).orElse(null);
-                                if (m == null) {
-                                    return null;
-                                }
-                                Map<String, Object> mMap = new HashMap<>();
-                                mMap.put("memberId", m.getId());
-                                mMap.put("name", m.getName());
-                                mMap.put("email", m.getEmail());
-                                mMap.put("profileImage", m.getProfileImage());
-                                return mMap;
-                            })
+                    List<AppointmentSearchWithMembersResponse.MemberInfo> members = participants.stream()
+                            .map(p -> memberRepository.findById(p.getMemberId()).orElse(null))
+                            .map(m -> AppointmentSearchWithMembersResponse.MemberInfo.builder()
+                                    .memberId(m.getId())
+                                    .name(m.getName())
+                                    .email(m.getEmail())
+                                    .profileImage(m.getProfileImage())
+                                    .build())
                             .toList();
 
-                    appointmentMap.put("members", memberList);
-                    return appointmentMap;
+                    return AppointmentSearchWithMembersResponse.AppointmentInfo.builder()
+                            .appointmentId(a.getId())
+                            .name(a.getName())
+                            .time(a.getTime())
+                            .imageUrl(a.getImage())
+                            .isEnded(a.getIsEnded())
+                            .members(members)
+                            .build();
                 })
                 .toList();
 
         Integer nextCursorId = appointments.isEmpty() ? null : appointments.get(appointments.size() - 1).getId();
 
-        return Map.of(
-                "appointments", appointmentList,
-                "cursorId", nextCursorId
-        );
+        return new AppointmentSearchWithMembersResponse(appointmentList, nextCursorId);
     }
+
 
 }

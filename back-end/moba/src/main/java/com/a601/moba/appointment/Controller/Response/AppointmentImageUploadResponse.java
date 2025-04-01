@@ -7,4 +7,7 @@ public record AppointmentImageUploadResponse(
         Integer appointmentId,
         Integer imageId
 ) {
+    @Builder
+    public AppointmentImageUploadResponse {
+    }
 }

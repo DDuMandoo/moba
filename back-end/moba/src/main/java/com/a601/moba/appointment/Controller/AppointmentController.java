@@ -6,16 +6,23 @@ import com.a601.moba.appointment.Controller.Request.AppointmentJoinRequest;
 import com.a601.moba.appointment.Controller.Request.AppointmentKickRequest;
 import com.a601.moba.appointment.Controller.Request.AppointmentPlaceOrderUpdateRequest;
 import com.a601.moba.appointment.Controller.Request.AppointmentUpdateRequest;
+import com.a601.moba.appointment.Controller.Response.AddAppointmentPlaceResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentCreateResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentDelegateResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentDetailResponse;
-import com.a601.moba.appointment.Controller.Response.AppointmentImageUploadResponse;
+import com.a601.moba.appointment.Controller.Response.AppointmentImageListResponse;
+import com.a601.moba.appointment.Controller.Response.AppointmentImageUploadListResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentJoinResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentListItemResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentParticipantResponse;
+import com.a601.moba.appointment.Controller.Response.AppointmentPlaceListResponse;
+import com.a601.moba.appointment.Controller.Response.AppointmentPlaceOrderUpdateResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentSearchResponse;
+import com.a601.moba.appointment.Controller.Response.AppointmentSearchWithMembersResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentSummaryResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentUpdateResponse;
+import com.a601.moba.appointment.Controller.Response.MemberSearchResponse;
+import com.a601.moba.appointment.Controller.Response.PlaceSearchResponse;
 import com.a601.moba.appointment.Service.AppointmentImageService;
 import com.a601.moba.appointment.Service.AppointmentPlaceService;
 import com.a601.moba.appointment.Service.AppointmentSearchService;
@@ -31,7 +38,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import java.util.List;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -249,7 +255,7 @@ public class AppointmentController {
 
     @Operation(summary = "약속명으로 약속 검색")
     @GetMapping("/search")
-    public ResponseEntity<JSONResponse<?>> search(
+    public ResponseEntity<JSONResponse<AppointmentSearchResponse>> search(
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "10") @Min(0) int size,
             @RequestParam(required = false) Integer cursorId) {
@@ -260,7 +266,7 @@ public class AppointmentController {
 
     @Operation(summary = "참가자 이름으로 참가자 검색", description = "키워드(이름 또는 이메일)로 참가자를 검색합니다.")
     @GetMapping("/search/member")
-    public ResponseEntity<JSONResponse<?>> searchMembers(
+    public ResponseEntity<JSONResponse<MemberSearchResponse>> searchMembers(
             @Parameter(description = "검색할 이름 또는 이메일")
             @RequestParam(required = false) String keyword,
 
@@ -270,13 +276,14 @@ public class AppointmentController {
             @Parameter(description = "마지막으로 불러온 memberId (커서)")
             @RequestParam(required = false) Integer cursorId) {
 
-        Map<String, Object> result = appointmentSearchService.searchMembersByKeyword(keyword, cursorId, size);
+        MemberSearchResponse result = appointmentSearchService.searchMembersByKeyword(keyword, cursorId, size);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.SEARCH_SUCCESS, result));
     }
 
+
     @Operation(summary = "참가자 이름으로 약속 검색", description = "키워드(이름 또는 이메일)로 해당 참가자가 포함된 약속을 검색합니다.")
     @GetMapping("/search/appointment")
-    public ResponseEntity<JSONResponse<?>> searchAppointments(
+    public ResponseEntity<JSONResponse<AppointmentSearchWithMembersResponse>> searchAppointments(
             @Parameter(description = "검색할 이름 또는 이메일")
             @RequestParam(required = false) String keyword,
 
@@ -286,56 +293,61 @@ public class AppointmentController {
             @Parameter(description = "마지막으로 불러온 appointmentId (커서)")
             @RequestParam(required = false) Integer cursorId) {
 
-        Map<String, Object> result = appointmentSearchService.searchAppointmentsByKeyword(keyword, cursorId, size);
-        return ResponseEntity.ok(JSONResponse.of(SuccessCode.SEARCH_SUCCESS, result));
+        AppointmentSearchWithMembersResponse response = appointmentSearchService.searchAppointmentsByKeyword(keyword,
+                cursorId, size);
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.SEARCH_SUCCESS, response));
     }
 
 
     @Operation(summary = "약속 이미지 업로드", description = "약속 참여자가 약속방에 여러 이미지를 업로드합니다.")
     @PostMapping(value = "/{appointmentId}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<JSONResponse<?>> uploadAppointmentImages(
+    public ResponseEntity<JSONResponse<AppointmentImageUploadListResponse>> uploadAppointmentImages(
             @PathVariable Integer appointmentId,
             @RequestPart("images") List<MultipartFile> images) {
 
-        List<AppointmentImageUploadResponse> response = appointmentImageService.uploadImages(appointmentId, images);
+        AppointmentImageUploadListResponse response = appointmentImageService.uploadImages(appointmentId, images);
         return ResponseEntity.ok(
-                JSONResponse.of(SuccessCode.APPOINTMENT_IMAGE_UPLOAD_SUCCESS, Map.of("images", response))
+                JSONResponse.of(SuccessCode.APPOINTMENT_IMAGE_UPLOAD_SUCCESS, response)
         );
     }
 
+
     @Operation(summary = "약속 이미지 목록 조회", description = "해당 약속의 업로드된 이미지들을 커서 기반으로 조회")
     @GetMapping("/{appointmentId}/images")
-    public ResponseEntity<JSONResponse<?>> getAppointmentImages(
+    public ResponseEntity<JSONResponse<AppointmentImageListResponse>> getAppointmentImages(
             @PathVariable Integer appointmentId,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Integer cursorId) {
 
-        Map<String, Object> result = appointmentImageService.getImages(appointmentId, size, cursorId);
-        return ResponseEntity.ok(JSONResponse.of(SuccessCode.SEARCH_SUCCESS, result));
+        AppointmentImageListResponse response = appointmentImageService.getImages(appointmentId, size, cursorId);
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.SEARCH_SUCCESS, response));
     }
+
 
     @Operation(summary = "장소 이름으로 장소 검색", description = "약속방 내에서 장소 이름으로 검색합니다.")
     @GetMapping("/places/search")
-    public ResponseEntity<JSONResponse<?>> searchPlaces(
+    public ResponseEntity<JSONResponse<PlaceSearchResponse>> searchPlaces(
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Integer cursorId) {
 
-        Map<String, Object> result = appointmentPlaceService.searchPlaces(keyword, size, cursorId);
-        return ResponseEntity.ok(JSONResponse.of(SuccessCode.SEARCH_SUCCESS, result));
+        PlaceSearchResponse response = appointmentPlaceService.searchPlaces(keyword, size, cursorId);
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.SEARCH_SUCCESS, response));
     }
+
 
     @Operation(summary = "선택 장소 추가", description = "방장만 장소를 추가할 수 있습니다.")
     @PostMapping("/{appointmentId}/places/{placeId}")
-    public ResponseEntity<JSONResponse<?>> addPlaceToAppointment(
+    public ResponseEntity<JSONResponse<AddAppointmentPlaceResponse>> addPlaceToAppointment(
             @PathVariable Integer appointmentId,
             @PathVariable Integer placeId) {
 
-        Map<String, Object> result = appointmentPlaceService.addPlaceToAppointment(appointmentId, placeId);
+        AddAppointmentPlaceResponse response = appointmentPlaceService.addPlaceToAppointment(appointmentId, placeId);
         return ResponseEntity
                 .status(SuccessCode.PLACE_ADD_SUCCESS.getHttpStatus())
-                .body(JSONResponse.of(SuccessCode.PLACE_ADD_SUCCESS, result));
+                .body(JSONResponse.of(SuccessCode.PLACE_ADD_SUCCESS, response));
     }
+
 
     @Operation(summary = "선택 장소 삭제", description = "방장만 장소를 삭제할 수 있습니다.")
     @DeleteMapping("/{appointmentId}/places/{appointmentPlaceId}")
@@ -349,22 +361,21 @@ public class AppointmentController {
 
     @Operation(summary = "선택된 장소 리스트 조회", description = "약속에서 선택된 장소 목록을 조회합니다.")
     @GetMapping("/{appointmentId}/places")
-    public ResponseEntity<JSONResponse<?>> getAppointmentPlaces(
+    public ResponseEntity<JSONResponse<AppointmentPlaceListResponse>> getAppointmentPlaces(
             @PathVariable Integer appointmentId
     ) {
-        Map<String, Object> result = appointmentPlaceService.getAppointmentPlaces(appointmentId);
-        return ResponseEntity.ok(JSONResponse.of(SuccessCode.SEARCH_SUCCESS, result));
+        AppointmentPlaceListResponse response = appointmentPlaceService.getAppointmentPlaces(appointmentId);
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.SEARCH_SUCCESS, response));
     }
+
 
     @Operation(summary = "장소 순서 변경", description = "약속방 내 장소의 순서를 일괄 변경합니다.")
     @PutMapping("/{appointmentId}/places/order")
-    public ResponseEntity<JSONResponse<?>> updatePlaceOrder(
+    public ResponseEntity<JSONResponse<AppointmentPlaceOrderUpdateResponse>> updatePlaceOrder(
             @PathVariable Integer appointmentId,
             @RequestBody @Valid AppointmentPlaceOrderUpdateRequest request
     ) {
-        Map<String, Object> result = appointmentPlaceService.updatePlaceOrder(appointmentId, request);
-        return ResponseEntity.ok(JSONResponse.of(SuccessCode.REQUEST_SUCCESS, result));
+        AppointmentPlaceOrderUpdateResponse response = appointmentPlaceService.updatePlaceOrder(appointmentId, request);
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.REQUEST_SUCCESS, response));
     }
-
-
 }

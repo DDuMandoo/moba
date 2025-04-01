@@ -3,6 +3,11 @@ package com.a601.moba.appointment.Service;
 import com.a601.moba.appointment.Constant.Role;
 import com.a601.moba.appointment.Constant.State;
 import com.a601.moba.appointment.Controller.Request.AppointmentPlaceOrderUpdateRequest;
+import com.a601.moba.appointment.Controller.Response.AddAppointmentPlaceResponse;
+import com.a601.moba.appointment.Controller.Response.AppointmentPlaceListResponse;
+import com.a601.moba.appointment.Controller.Response.AppointmentPlaceOrderUpdateResponse;
+import com.a601.moba.appointment.Controller.Response.PlaceInfo;
+import com.a601.moba.appointment.Controller.Response.PlaceSearchResponse;
 import com.a601.moba.appointment.Entity.Appointment;
 import com.a601.moba.appointment.Entity.AppointmentParticipant;
 import com.a601.moba.appointment.Entity.AppointmentPlace;
@@ -15,9 +20,6 @@ import com.a601.moba.appointment.Repository.PlaceRepository;
 import com.a601.moba.auth.Util.AuthUtil;
 import com.a601.moba.global.code.ErrorCode;
 import com.a601.moba.member.Entity.Member;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -36,12 +38,13 @@ public class AppointmentPlaceService {
     private final AppointmentPlaceRepository appointmentPlaceRepository;
     private final AppointmentParticipantRepository appointmentParticipantRepository;
 
-    public Map<String, Object> searchPlaces(String keyword, int size, Integer cursorId) {
-        Map<String, Object> result = new HashMap<>();
+    @Transactional(readOnly = true)
+    public PlaceSearchResponse searchPlaces(String keyword, int size, Integer cursorId) {
         if (keyword == null || keyword.trim().isBlank()) {
-            result.put("results", Collections.emptyList());
-            result.put("cursorId", null);
-            return result;
+            return PlaceSearchResponse.builder()
+                    .results(List.of())
+                    .cursorId(null)
+                    .build();
         }
 
         List<Place> places = placeRepository.searchByNameWithCursor(
@@ -50,29 +53,28 @@ public class AppointmentPlaceService {
                 PageRequest.of(0, size)
         );
 
-        List<Map<String, Object>> results = places.stream()
-                .map(p -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("placeId", p.getCompanyCode());
-                    map.put("name", p.getCompanyName());
-                    map.put("latitude", p.getLatitude());
-                    map.put("longitude", p.getLongitude());
-                    map.put("category", p.getCategory());
-                    map.put("kakaoUrl", p.getKakaoUrl());
-                    return map;
-                })
+        List<PlaceInfo> results = places.stream()
+                .map(p -> PlaceInfo.builder()
+                        .placeId(p.getCompanyCode())
+                        .name(p.getCompanyName())
+                        .latitude(p.getLatitude())
+                        .longitude(p.getLongitude())
+                        .category(p.getCategory())
+                        .kakaoUrl(p.getKakaoUrl())
+                        .build())
                 .toList();
 
         Integer nextCursorId = places.isEmpty() ? null : places.get(places.size() - 1).getCompanyCode();
 
-        return Map.of(
-                "results", results,
-                "cursorId", nextCursorId
-        );
+        return PlaceSearchResponse.builder()
+                .results(results)
+                .cursorId(nextCursorId)
+                .build();
     }
 
+
     @Transactional
-    public Map<String, Object> addPlaceToAppointment(Integer appointmentId, Integer placeId) {
+    public AddAppointmentPlaceResponse addPlaceToAppointment(Integer appointmentId, Integer placeId) {
         Member member = authUtil.getCurrentMember();
 
         Appointment appointment = validateHostAccess(appointmentId, member.getId());
@@ -95,15 +97,15 @@ public class AppointmentPlaceService {
 
         appointmentPlaceRepository.save(appointmentPlace);
 
-        return Map.of(
-                "placeId", appointmentPlace.getId(),
-                "name", appointmentPlace.getName(),
-                "order", appointmentPlace.getOrder(),
-                "latitude", appointmentPlace.getLatitude(),
-                "longitude", appointmentPlace.getLongitude(),
-                "kakaoUrl", appointmentPlace.getKakaoUrl(),
-                "address", place.getAddress()
-        );
+        return AddAppointmentPlaceResponse.builder()
+                .placeId(appointmentPlace.getId())
+                .name(appointmentPlace.getName())
+                .order(appointmentPlace.getOrder())
+                .latitude(appointmentPlace.getLatitude())
+                .longitude(appointmentPlace.getLongitude())
+                .kakaoUrl(appointmentPlace.getKakaoUrl())
+                .address(place.getAddress())
+                .build();
     }
 
 
@@ -130,7 +132,8 @@ public class AppointmentPlaceService {
     }
 
 
-    public Map<String, Object> getAppointmentPlaces(Integer appointmentId) {
+    @Transactional(readOnly = true)
+    public AppointmentPlaceListResponse getAppointmentPlaces(Integer appointmentId) {
         Member member = authUtil.getCurrentMember();
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
@@ -143,60 +146,54 @@ public class AppointmentPlaceService {
             throw new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED);
         }
 
-        List<AppointmentPlace> places = appointmentPlaceRepository
-                .findAllByAppointmentOrderByOrderAsc(appointment);
-
-        List<Map<String, Object>> placeList = places.stream()
-                .map(p -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("placeId", p.getCompanyCode());
-                    map.put("name", p.getName());
-                    map.put("latitude", p.getLatitude());
-                    map.put("longitude", p.getLongitude());
-                    map.put("address", p.getAddress());
-                    map.put("category", p.getCategory());
-                    return map;
-                })
+        List<AppointmentPlaceListResponse.PlaceInfo> placeList = appointmentPlaceRepository
+                .findAllByAppointmentOrderByOrderAsc(appointment)
+                .stream()
+                .map(p -> AppointmentPlaceListResponse.PlaceInfo.builder()
+                        .placeId(p.getCompanyCode())
+                        .name(p.getName())
+                        .latitude(p.getLatitude())
+                        .longitude(p.getLongitude())
+                        .address(p.getAddress())
+                        .category(p.getCategory())
+                        .build()
+                )
                 .toList();
 
-        return Map.of(
-                "appointmentId", appointment.getId(),
-                "places", placeList
-        );
+        return new AppointmentPlaceListResponse(appointment.getId(), placeList);
     }
 
+
     @Transactional
-    public Map<String, Object> updatePlaceOrder(Integer appointmentId, AppointmentPlaceOrderUpdateRequest request) {
+    public AppointmentPlaceOrderUpdateResponse updatePlaceOrder(Integer appointmentId,
+                                                                AppointmentPlaceOrderUpdateRequest request) {
         Member member = authUtil.getCurrentMember();
         Appointment appointment = validateHostAccess(appointmentId, member.getId());
 
         List<AppointmentPlace> allPlaces = appointmentPlaceRepository.findAllByAppointment(appointment);
 
         if (allPlaces.size() != request.places().size()) {
-            throw new AppointmentException(ErrorCode.INVALID_REQUEST); // 순서 갱신은 약속방의 모든 장소에 대해 전달되어야 함
+            throw new AppointmentException(ErrorCode.INVALID_REQUEST);
         }
 
         Map<Integer, AppointmentPlace> placeMap = allPlaces.stream()
                 .collect(Collectors.toMap(AppointmentPlace::getId, p -> p));
 
-        List<Map<String, Object>> updatedPlaces = new ArrayList<>();
+        List<AppointmentPlaceOrderUpdateResponse.PlaceOrderResult> updatedPlaces = request.places().stream()
+                .map(item -> {
+                    AppointmentPlace place = placeMap.get(item.placeId());
+                    if (place == null) {
+                        throw new AppointmentException(ErrorCode.APPOINTMENT_PLACE_NOT_FOUND);
+                    }
+                    place.updateOrder(item.order());
+                    return AppointmentPlaceOrderUpdateResponse.PlaceOrderResult.builder()
+                            .placeId(item.placeId())
+                            .order(item.order())
+                            .build();
+                })
+                .toList();
 
-        for (AppointmentPlaceOrderUpdateRequest.PlaceOrderItem item : request.places()) {
-            AppointmentPlace place = placeMap.get(item.placeId());
-
-            if (place == null) {
-                throw new AppointmentException(ErrorCode.APPOINTMENT_PLACE_NOT_FOUND);
-            }
-
-            place.updateOrder(item.order()); // 프론트에서 보내준 order 사용
-
-            updatedPlaces.add(Map.of(
-                    "placeId", item.placeId(),
-                    "order", item.order()
-            ));
-        }
-
-        return Map.of("updatedPlaces", updatedPlaces);
+        return new AppointmentPlaceOrderUpdateResponse(updatedPlaces);
     }
 
 

@@ -3,23 +3,25 @@ import {
   View,
   Text,
   TextInput,
-  Image,
   StyleSheet,
   TouchableOpacity,
-  ScrollView
+  ScrollView,
 } from 'react-native';
 import { launchImageLibraryAsync, MediaTypeOptions } from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import { useDispatch } from 'react-redux';
-import { createAppointment } from '@/redux/slices/appointmentSlice';
 import { Button } from '@/components/ui/Button';
 import CustomAlert from '@/components/CustomAlert';
 import dayjs from 'dayjs';
 import Colors from '@/constants/Colors';
-import type { AppDispatch } from '@/redux/store';
 import CustomDateTimePicker from '@/components/modal/CustomDateTimePicker';
 import { Ionicons } from '@expo/vector-icons';
-import { Asset } from 'expo-asset';
+import { getAccessToken } from '@/app/axiosInstance';
+import Constants from 'expo-constants';
+import axios from 'axios';
+import * as FileSystem from 'expo-file-system';
+import { Image as RNImage } from 'react-native';
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL || Constants.expoConfig?.extra?.API_URL;
 
 export default function AppointmentCreatePage() {
   const [name, setName] = useState('');
@@ -27,34 +29,30 @@ export default function AppointmentCreatePage() {
   const [dateTime, setDateTime] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [location, setLocation] = useState<{ latitude: number; longitude: number; memo?: string } | null>(null);
-  const [friends, setFriends] = useState<number[]>([]); // [1, 2, 3]
-  const [friendInfos, setFriendInfos] = useState<{ id: number; name: string; image: string }[]>([]);
+  const [friends, setFriends] = useState<number[]>([]);
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
 
-  const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
-
   const handleSelectImage = async () => {
     const result = await launchImageLibraryAsync({
       mediaTypes: MediaTypeOptions.Images,
       allowsEditing: true,
-      quality: 1
+      quality: 1,
     });
+  
     if (!result.canceled && result.assets.length > 0) {
-      setImage(result.assets[0].uri);
-      console.log('🖼 이미지 선택됨:', result.assets[0].uri);
+      const uri = result.assets[0].uri;
+      if (typeof uri === 'string' && uri.trim() !== '' && /^file:|^content:/.test(uri)) {
+        setImage(uri);
+      } else {
+        console.warn('🚫 유효하지 않은 이미지 URI:', uri);
+        setImage(null);
+      }
+    } else {
+      console.log('🛑 이미지 선택 취소 또는 실패');
+      setImage(null);
     }
-  };
-
-  const handleOpenFriendModal = () => {
-    console.log('👥 참가자 선택 모달 열기 (TODO)');
-    // TODO: 친구 선택 모달 연결
-  };
-
-  const handleOpenLocationSearch = () => {
-    console.log('📍 장소 검색 화면 이동');
-    router.push('/promises/locationSearch');
   };
 
   const handleSubmit = async () => {
@@ -63,82 +61,77 @@ export default function AppointmentCreatePage() {
       setAlertVisible(true);
       return;
     }
-  
+
     if (!dateTime) {
       setAlertMessage('날짜 및 시간을 선택해주세요!');
       setAlertVisible(true);
       return;
     }
-  
-    console.log('약속 요청!');
-  
+    console.log('📅 약속 생성:', name, dateTime, location, friends);
     const payload = {
       name,
       time: dateTime.toISOString(),
-      latitude: location?.latitude || 37.5665,
-      longitude: location?.longitude || 126.978,
-      memo: location?.memo || '기본 장소',
-      friends: friends.length ? friends : [2, 3, 4],
+      latitude: location?.latitude ?? 37.5665,
+      longitude: location?.longitude ?? 126.978,
+      memo: location?.memo ?? '',
+      friends,
     };
-    
-    const formData = new FormData();
-    
-    // ✅ 핵심: JSON string을 그냥 append
-    formData.append('data', JSON.stringify(payload));
-    
-    // ✅ 이미지가 있다면 파일로 추가
-    if (image) {
-      // 사용자가 선택한 이미지가 있을 경우
-      formData.append('image', {
-        uri: image,
-        type: 'image/jpeg',
-        name: 'appointment.jpg',
+
+    try {
+      const fileUri = FileSystem.documentDirectory + 'data.json';
+      await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(payload), {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
+
+      const formData = new FormData();
+      formData.append('data', {
+        uri: fileUri,
+        type: 'application/json',
+        name: 'data.json',
       } as any);
-    } else {
-      // 기본 이미지 사용
-      const asset = Asset.fromModule(require('../../assets/images/login_image.png'));
-      await asset.downloadAsync(); // 로컬 파일로 만들기
-      if (asset.localUri) {
+
+      if (image) {
         formData.append('image', {
-          uri: asset.localUri,
-          type: 'image/png',
-          name: 'default.png',
+          uri: image,
+          type: 'image/jpeg',
+          name: 'appointment.jpg',
         } as any);
       }
-    }
-    
-    
-  
-    console.log('📨 FormData 전송 내용:');
-    formData.forEach((value, key) => {
-      console.log(`  ${key}:`, value);
-    });
-  
-    try {
-      const result = await dispatch(createAppointment(formData)).unwrap();
-      console.log('✅ 약속 생성 성공:', result);
-  
-      // ✅ 약속 ID로 상세 페이지 이동
-      router.replace(`/promises/${result.result.appointmentId}`);
+
+      const accessToken = await getAccessToken();
+
+      const res = await axios.post(`${API_URL}/appointments`, formData, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      console.log('✅ 약속 생성 성공:', res.data);
+      router.replace(`/promises/${res.data.reasult.appointmentId}`);
     } catch (err: any) {
       console.error('❌ 약속 생성 실패:', err);
-      setAlertMessage(err?.message || '약속 생성에 실패했어요!');
+      setAlertMessage(err?.response?.data?.message || '약속 생성에 실패했어요!');
       setAlertVisible(true);
     }
   };
-  
-  
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
       <View style={styles.card}>
         <TouchableOpacity onPress={handleSelectImage} style={styles.imageBox} activeOpacity={0.8}>
-          {image ? (
-            <Image source={{ uri: image }} style={styles.image} resizeMode="cover" />
-          ) : (
-            <Text style={styles.imagePlaceholder}>약속 대표 사진을 첨부해주세요.</Text>
+          {image && (
+            <RNImage
+              source={{ uri: image }}
+              style={styles.image}
+              resizeMode="cover"
+            />
           )}
         </TouchableOpacity>
+
+        {/* <TouchableOpacity style={styles.imageButton} onPress={handleSelectImage}>
+          <Text style={styles.imageButtonText}>📂 사진 첨부</Text>
+        </TouchableOpacity> */}
+
         <TouchableOpacity style={styles.imageButton} onPress={handleSelectImage}>
           <Text style={styles.imageButtonText}>📂 사진 첨부</Text>
         </TouchableOpacity>
@@ -153,15 +146,6 @@ export default function AppointmentCreatePage() {
           onChangeText={setName}
           placeholderTextColor={Colors.grayLightText}
         />
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.label}>참가자 선택</Text>
-        <Text style={styles.subText}>약속을 만들고 URL을 통해서도 참가자를 초대할 수 있어요!</Text>
-        <TouchableOpacity onPress={handleOpenFriendModal} style={styles.selectBox} activeOpacity={0.7}>
-          <Ionicons name="people-outline" size={20} color={Colors.grayDarkText} />
-          <Text style={styles.selectText}>참가자 검색</Text>
-        </TouchableOpacity>
       </View>
 
       <View style={styles.card}>
@@ -182,7 +166,7 @@ export default function AppointmentCreatePage() {
 
       <View style={styles.card}>
         <Text style={styles.label}>장소 선택</Text>
-        <TouchableOpacity onPress={handleOpenLocationSearch} style={styles.selectBox} activeOpacity={0.7}>
+        <TouchableOpacity onPress={() => router.push('/promises/locationSearch')} style={styles.selectBox} activeOpacity={0.7}>
           <Ionicons name="location-outline" size={20} color={Colors.grayDarkText} />
           <Text style={styles.selectText}>장소 검색</Text>
         </TouchableOpacity>
@@ -209,29 +193,29 @@ export default function AppointmentCreatePage() {
 const styles = StyleSheet.create({
   scrollContainer: {
     padding: '5%',
-    paddingBottom: 20
+    paddingBottom: 20,
   },
   card: {
     backgroundColor: Colors.white,
     borderRadius: 12,
     padding: 16,
-    marginBottom: 20
+    marginBottom: 20,
   },
   imageBox: {
     height: 160,
     backgroundColor: '#f0f0f0',
     borderRadius: 12,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   image: {
     width: '100%',
     height: '100%',
-    borderRadius: 12
+    borderRadius: 12,
   },
   imagePlaceholder: {
     color: Colors.grayLightText,
-    fontSize: 14
+    fontSize: 14,
   },
   imageButton: {
     marginTop: 12,
@@ -239,28 +223,23 @@ const styles = StyleSheet.create({
     borderColor: Colors.grayLightText,
     borderRadius: 10,
     paddingVertical: 10,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   imageButtonText: {
     color: Colors.text,
-    fontSize: 16
+    fontSize: 16,
   },
   label: {
     fontSize: 16,
     fontWeight: '600',
     color: Colors.text,
-    marginBottom: 8
-  },
-  subText: {
-    fontSize: 13,
-    color: Colors.grayDarkText,
-    marginBottom: 8
+    marginBottom: 8,
   },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 12,
-    padding: 12
+    padding: 12,
   },
   selectBox: {
     flexDirection: 'row',
@@ -270,13 +249,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 12,
-    padding: 12
+    padding: 12,
   },
   selectText: {
     color: Colors.grayDarkText,
-    fontSize: 15
+    fontSize: 15,
   },
   buttonBox: {
-    marginTop: 20
-  }
+    marginTop: 20,
+  },
 });

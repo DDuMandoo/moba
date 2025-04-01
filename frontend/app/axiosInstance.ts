@@ -73,7 +73,7 @@ axiosInstance.interceptors.response.use(
         const { accessToken, refreshToken: newRefreshToken } = res.data.result;
         await saveTokens(accessToken, newRefreshToken);
 
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        originalRequest.headers.Authorization = `Bearer ${refreshToken}`;
         return axiosInstance(originalRequest);
       } catch (err) {
         console.error('🔴 토큰 갱신 실패', err);

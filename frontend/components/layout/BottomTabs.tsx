@@ -5,7 +5,7 @@ import { Feather } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 
 const tabItems = [
-  { name: '홈', icon: 'home', route: '/' as const },
+  { name: '홈', icon: 'home', route: '/(bottom-navigation)' as const },
   { name: '추가', icon: 'plus-circle', route: '/add' as const },
   { name: '프로필', icon: 'user', route: '/profile' as const },
 ] as const;

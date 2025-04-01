@@ -8,6 +8,8 @@ import com.a601.moba.auth.Util.AuthUtil;
 import com.a601.moba.dutch.Controller.Request.CreateDutchpayRequest.Participant;
 import com.a601.moba.dutch.Controller.Response.CompleteDutchpayResponse;
 import com.a601.moba.dutch.Controller.Response.CreateDutchpayResponse;
+import com.a601.moba.dutch.Controller.Response.GetDemandDutchpayResponse;
+import com.a601.moba.dutch.Controller.Response.GetReceiptDutchpayResponse;
 import com.a601.moba.dutch.Controller.Response.TransferDutchpayResponse;
 import com.a601.moba.dutch.Entity.Dutchpay;
 import com.a601.moba.dutch.Entity.DutchpayParticipant;
@@ -15,6 +17,8 @@ import com.a601.moba.dutch.Entity.DutchpayParticipantId;
 import com.a601.moba.dutch.Exception.DutchpayException;
 import com.a601.moba.dutch.Repository.DutchpayParticipantRepository;
 import com.a601.moba.dutch.Repository.DutchpayRepository;
+import com.a601.moba.dutch.Service.Dto.FindDutchpayWithParticipantsDto;
+import com.a601.moba.dutch.Service.Dto.FindReceiptsByWalletDto;
 import com.a601.moba.global.code.ErrorCode;
 import com.a601.moba.member.Entity.Member;
 import com.a601.moba.member.Repository.MemberRepository;
@@ -28,11 +32,13 @@ import com.a601.moba.wallet.Repository.WalletRepository;
 import com.a601.moba.wallet.Service.WalletService;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -235,6 +241,101 @@ public class DutchpayService {
                 .hostName(host.getName())
                 .hostImage(host.getProfileImage())
                 .isCompleted(isCompleted)
+                .build();
+    }
+
+    public List<GetDemandDutchpayResponse> getDemands() {
+        Member host = authUtil.getCurrentMember();
+
+        List<FindDutchpayWithParticipantsDto> dutchpays = dutchpayRepository.findByHostWithParticipantsDTO(host);
+
+        Map<Integer, GetDemandDutchpayResponse> groupedDutchpays = new HashMap<>();
+        for (FindDutchpayWithParticipantsDto d : dutchpays) {
+            GetDemandDutchpayResponse response = groupedDutchpays.computeIfAbsent(d.dutchpayId(),
+                    id -> mapToDemandResponse(d));
+            if (response.participants() != null) {
+                response.participants().add(
+                        GetDemandDutchpayResponse.Participant.builder()
+                                .memberId(d.memberId())
+                                .memberName(d.memberName())
+                                .memberImage(d.memberImage())
+                                .price(d.price())
+                                .status(d.status())
+                                .build()
+                );
+            }
+        }
+
+        return groupedDutchpays.values().stream()
+                .sorted(Comparator.comparing(GetDemandDutchpayResponse::time).reversed())
+                .collect(Collectors.toList());
+    }
+
+    public GetDemandDutchpayResponse getDemand(Integer dutchpayId) {
+        List<FindDutchpayWithParticipantsDto> dutchpays = dutchpayRepository.findByIdWithParticipantsDTO(dutchpayId);
+
+        GetDemandDutchpayResponse response = mapToDemandResponse(dutchpays.get(0));
+        for (FindDutchpayWithParticipantsDto d : dutchpays) {
+            response.participants().add(
+                    GetDemandDutchpayResponse.Participant.builder()
+                            .memberId(d.memberId())
+                            .memberName(d.memberName())
+                            .memberImage(d.memberImage())
+                            .price(d.price())
+                            .status(d.status())
+                            .build()
+            );
+        }
+
+        return response;
+    }
+
+    public GetDemandDutchpayResponse mapToDemandResponse(FindDutchpayWithParticipantsDto d) {
+        return GetDemandDutchpayResponse.builder()
+                .dutchpayId(d.dutchpayId())
+                .appointmentId(d.appointmentId())
+                .appointmentName(d.appointmentName())
+                .appointmentImage(d.appointmentImage())
+                .totalPrice(d.totalPrice())
+                .settled(d.settlement())
+                .isCompleted(d.isCompleted())
+                .time(d.createdAt())
+                .participants(new ArrayList<>())
+                .build();
+    }
+
+    public List<GetReceiptDutchpayResponse> getReceipts() {
+        Member member = authUtil.getCurrentMember();
+        Wallet wallet = getWalletByMemberId(member.getId());
+
+        List<FindReceiptsByWalletDto> groupedReceipt = dutchpayRepository.findReceiptsByWalletId(wallet.getId());
+
+        return groupedReceipt.stream().map(this::mapToReceiptResponse)
+                .sorted(Comparator.comparing(GetReceiptDutchpayResponse::time))
+                .collect(Collectors.toList());
+    }
+
+    public GetReceiptDutchpayResponse getReceipt(Integer dutchpayId) {
+        Member member = authUtil.getCurrentMember();
+        Wallet wallet = getWalletByMemberId(member.getId());
+
+        FindReceiptsByWalletDto receipt = dutchpayRepository.findReceiptsByWalletIdAndDutchpayId(wallet.getId(),
+                dutchpayId);
+        return mapToReceiptResponse(receipt);
+    }
+
+    public GetReceiptDutchpayResponse mapToReceiptResponse(FindReceiptsByWalletDto d) {
+        return GetReceiptDutchpayResponse.builder()
+                .dutchpayId(d.dutchpayId())
+                .appointmentId(d.appointmentId())
+                .appointmentName(d.appointmentName())
+                .appointmentImage(d.appointmentImage())
+                .hostId(d.hostId())
+                .hostName(d.hostName())
+                .hostImage(d.hostImage())
+                .price(d.price())
+                .isCompleted(d.status())
+                .time(d.createdAt())
                 .build();
     }
 }

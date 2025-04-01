@@ -10,7 +10,7 @@ import WalletStatus from '@/components/WalletStatus';
 import Colors from '@/constants/Colors';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { fetchUserProfile } from '@/redux/slices/userSlice';
-import ProfileHeader from '@/components/ProfileHeader';
+import ProfileHeader from '@/components/profile/ProfileHeader';
 
 
 export default function WalletDetailPage() {

@@ -11,7 +11,7 @@ import { useRouter } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { fetchUserProfile } from '@/redux/slices/userSlice';
 import WalletStatus from '@/components/WalletStatus';
-import ProfileHeader from '@/components/ProfileHeader';
+import ProfileHeader from '@/components/profile/ProfileHeader';
 import Colors from '@/constants/Colors';
 
 interface FeatureButtonProps {

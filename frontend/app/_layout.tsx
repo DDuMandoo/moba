@@ -25,6 +25,8 @@ export default function RootLayout() {
           <Stack.Screen name="(bottom-navigation)" options={{ headerShown: false }} />
           <Stack.Screen name="auth" options={{ headerShown: false }} />
           <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="promises" options={{ headerShown: false }} />
+          <Stack.Screen name="wallet" options={{ headerShown: false }} />
         </Stack>
       </LayoutInner>
     </QueryClientProvider>

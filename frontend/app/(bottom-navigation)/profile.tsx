@@ -249,6 +249,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold'
   },
   promiseList: {
-    gap: 2
+    gap: 2,
+    marginBottom: 20
   }
 });

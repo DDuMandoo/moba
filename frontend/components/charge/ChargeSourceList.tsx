@@ -1,4 +1,3 @@
-// components/charge/ChargeSourceList.tsx
 import React from 'react';
 import {
   View,
@@ -24,8 +23,8 @@ export default function ChargeSourceList({
 }: Props) {
   const router = useRouter();
   const accounts = useAppSelector((state) => state.account.list);
-  const isLoading = false; // 🔄 필요하면 리덕스 상태로 따로 관리 가능
-  const isError = false;   // 🔄 필요하면 에러 상태도 redux로 관리 가능
+  const isLoading = false;
+  const isError = false;
 
   return (
     <View style={styles.wrapper}>
@@ -42,20 +41,34 @@ export default function ChargeSourceList({
       {isLoading ? (
         <ActivityIndicator color={Colors.primary} style={{ marginTop: 16 }} />
       ) : isError ? (
-        <Text style={{ color: 'red', marginTop: 16 }}>계좌를 불러올 수 없습니다.</Text>
-      ) : accounts.length === 0 ? (
-        <Text style={{ color: Colors.grayDarkText, paddingVertical: 24, textAlign: 'center' }}>
+        <Text style={{ color: 'red', marginTop: 16 }}>
+          계좌를 불러올 수 없습니다.
+        </Text>
+      ) : !Array.isArray(accounts) || accounts.length === 0 ? (
+        <Text
+          style={{
+            color: Colors.grayDarkText,
+            paddingVertical: 24,
+            textAlign: 'center',
+          }}
+        >
           연결된 계좌가 없습니다.
         </Text>
       ) : (
-        accounts.map((acc) => {
+        accounts.map((acc, index) => {
           const bank = getBankMeta(acc.type);
-          const selected = acc.id === selectedAccountId;
+          const fallbackId = `${acc.type}-${acc.account}`;
+          const accountId = acc.id ?? fallbackId;
+          const selected = accountId === selectedAccountId;
+          const key = acc.id ?? `${acc.type}-${acc.account}-${index}`;
 
           return (
             <TouchableOpacity
-              key={acc.id}
-              onPress={() => onSelectAccount(acc.id)}
+              key={key}
+              onPress={() => {
+                console.log('✅ 계좌 선택됨:', accountId);
+                onSelectAccount(accountId);
+              }}
               style={[
                 styles.accountRow,
                 selected && { backgroundColor: Colors.grayBackground },

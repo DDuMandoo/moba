@@ -84,7 +84,12 @@ export default function AccountVerifyModal({
       Alert.alert('시간 초과', '인증 시간이 만료되었습니다. 인증번호를 다시 요청해주세요.');
       return;
     }
-
+    console.log('📤 전송 시도:', {
+      code,
+      account,
+      bank,
+    });
+  
     try {
       const res = await axiosInstance.post('/wallets/account/auth', {
         code,

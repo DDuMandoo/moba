@@ -1,102 +1,112 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  ScrollView,
   View,
-  Text,
-  Image,
-  ActivityIndicator,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Modal,
 } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
-import WalletStatus from '@/components/WalletStatus';
-import { useRouter } from 'expo-router';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Button } from '@/components/ui/Button';
+import ChargeAmountInput from '@/components/charge/ChargeAmountInput';
+import ChargeSourceList from '@/components/charge/ChargeSourceList';
+import TransferConfirmModal from '@/components/transfer/TransferConfirmModal';
 import Colors from '@/constants/Colors';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { selectAccount, setAccountList } from '@/redux/slices/accountSlice';
+import { setAmount as setChargeAmount } from '@/redux/slices/chargeSlice';
+import axiosInstance from '@/app/axiosInstance';
+import { fetchWalletBalance } from '@/redux/slices/walletSlice';
 
-interface UserProfile {
-  name: string;
-  image: string;
-}
+export default function ChargePage() {
+  const dispatch = useAppDispatch();
+  const selectedAccountId = useAppSelector((state) => state.account.selectedAccountId);
+  const [amount, setAmount] = useState(0);
+  const [modalVisible, setModalVisible] = useState(false);
 
-const fetchUserProfile = async (): Promise<UserProfile> => {
-  const response = await axios.get('/api/members');
-  return response.data;
-};
+  // ✅ 계좌 목록 불러오기
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      try {
+        const res = await axiosInstance.get('/wallets/account');
+        const accounts = res.data.result?.accounts ?? [];
+        console.log('💳 [ChargePage] 계좌 목록 불러옴:', accounts);
+        dispatch(setAccountList(accounts));
+      } catch (err) {
+        console.error('❌ [ChargePage] 계좌 불러오기 실패:', err);
+      }
+    };
 
-export default function WalletDetailPage() {
-  const router = useRouter();
+    fetchAccounts();
+  }, []);
 
-  const { data, isLoading, isError } = useQuery<UserProfile>({
-    queryKey: ['userProfile'],
-    queryFn: fetchUserProfile,
-  });
+  // ✅ amount 값 Redux에 반영
+  useEffect(() => {
+    dispatch(setChargeAmount(amount));
+  }, [amount]);
+
+  const isAmountValid = amount >= 10000 && amount <= 1000000;
+  const isReadyToCharge = isAmountValid && !!selectedAccountId;
+
+  useEffect(() => {
+    console.log('🟢 [ChargePage] 충전 버튼 조건:', {
+      amount,
+      isAmountValid,
+      selectedAccountId,
+      enabled: isReadyToCharge,
+    });
+  }, [amount, selectedAccountId]);
+
+  const handleCharge = () => {
+    if (isReadyToCharge) {
+      console.log('🚀 [ChargePage] 충전 버튼 클릭됨');
+      setModalVisible(true);
+    }
+  };
 
   return (
-    <ScrollView className="bg-gray-50 px-5 pt-6 pb-10 space-y-6">
-      {/* 프로필 영역 */}
-      {isLoading ? (
-        <ActivityIndicator color={Colors.primary} />
-      ) : !data || isError ? (
-        <Text className="text-base font-bold text-gray-800">유저 정보를 불러올 수 없습니다.</Text>
-      ) : (
-        <View className="flex-row items-center space-x-3">
-          <Image source={{ uri: data.image }} className="w-14 h-14 rounded-full bg-gray-200" />
-          <Text className="text-lg text-gray-900 font-bold">{data.name} 님의 지갑</Text>
-        </View>
-      )}
-
-      {/* 지갑 상태 */}
-      <View className="items-center w-full">
-        <WalletStatus />
-      </View>
-
-      {/* 기능 버튼 3개 */}
-      <View className="flex-row justify-between gap-3">
-        <FeatureButton
-          icon={<MaterialCommunityIcons name="bank-transfer" size={24} color={Colors.primary} />}
-          label="송금"
-          onPress={() => router.push('/wallet/transfer')}
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: Colors.background }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={{ padding: 20, paddingBottom: 120 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <ChargeAmountInput amount={amount} setAmount={setAmount}  label="입금 금액" />
+        <ChargeSourceList
+          selectedAccountId={selectedAccountId}
+          onSelectAccount={(id) => {
+            console.log('✅ 계좌 선택됨:', id);
+            dispatch(selectAccount(id));
+          }}
         />
-        <FeatureButton
-          icon={<Ionicons name="list-outline" size={22} color={Colors.primary} />}
-          label="세부내역"
-          onPress={() => router.push('/wallet/history')}
-        />
-        <FeatureButton
-          icon={<MaterialCommunityIcons name="bank-outline" size={22} color={Colors.primary} />}
-          label="계좌 관리"
-          onPress={() => router.push('/wallet/account')}
+      </ScrollView>
+
+      <View style={{ position: 'absolute', bottom: 20, width: '100%', alignItems: 'center' }}>
+        <Button.Large
+          title="송금"
+          onPress={handleCharge}
+          disabled={!isReadyToCharge}
+          style={{
+            backgroundColor: isReadyToCharge ? Colors.primary : Colors.grayLightText,
+          }}
         />
       </View>
 
-      {/* 소비 분석 카드 영역 */}
-      <View className="bg-white rounded-xl p-5 shadow-sm">
-        <Text className="text-base font-bold text-gray-900">약속 소비 패턴 분석</Text>
-        {/* 추후 내용 들어갈 예정 */}
-      </View>
-
-      <View className="bg-white rounded-xl p-5 shadow-sm">
-        <Text className="text-base font-bold text-gray-900">내 소비 패턴 분석</Text>
-        {/* 추후 내용 들어갈 예정 */}
-      </View>
-    </ScrollView>
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <TransferConfirmModal
+          onClose={() => {
+            console.log('🟢 [ChargePage] 충전 완료, 지갑 금액 갱신 요청');
+            setModalVisible(false);
+            dispatch(fetchWalletBalance());
+          }}
+        />
+      </Modal>
+    </KeyboardAvoidingView>
   );
 }
-
-interface FeatureButtonProps {
-  icon: React.ReactNode;
-  label: string;
-  onPress: () => void;
-}
-
-const FeatureButton = ({ icon, label, onPress }: FeatureButtonProps) => (
-  <View className="flex-1">
-    <View
-      onTouchEnd={onPress}
-      className="items-center border border-[#593C1C] rounded-xl py-3 bg-white"
-    >
-      {icon}
-      <Text className="text-[#593C1C] font-bold mt-1">{label}</Text>
-    </View>
-  </View>
-);

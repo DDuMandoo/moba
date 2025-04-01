@@ -41,7 +41,9 @@ const axiosInstance = axios.create({
 // ✅ 요청 시 Access Token 자동 첨부
 axiosInstance.interceptors.request.use(
   async (config) => {
-    const token = await getAccessToken();
+    const token = await getRefreshToken();
+    console.log('🧪 요청 보낼 때 RefreshToken:', token); // 👈 이거 넣어봐!
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

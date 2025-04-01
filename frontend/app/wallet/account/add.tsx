@@ -8,13 +8,17 @@ import {
   StyleSheet,
   Modal,
   ScrollView,
+  Alert,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
 import { BANKS, getBankMeta } from '@/constants/banks';
 import { Ionicons } from '@expo/vector-icons';
 import VerifyCodeModal from '@/components/account/AccountVerifyModal';
+import axiosInstance from '@/app/axiosInstance';
 
 export default function AccountAddPage() {
+  const router = useRouter();
   const [selectedBank, setSelectedBank] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -22,9 +26,27 @@ export default function AccountAddPage() {
 
   const currentBankMeta = getBankMeta(selectedBank);
 
-  const handleConnect = () => {
-    if (selectedBank && accountNumber) {
+  const handleConnect = async () => {
+    if (!selectedBank || !accountNumber) return;
+
+    const formattedAccount = accountNumber.trim(); // ✅ 하이픈 포함 그대로 사용
+
+    try {
+      console.log('📤 계좌 등록 요청:', {
+        account: formattedAccount,
+        bank: selectedBank,
+      });
+
+      await axiosInstance.post('/wallets/account', {
+        account: formattedAccount,
+        bank: selectedBank,
+      });
+
+      console.log('✅ 계좌 등록 성공, 인증 모달 오픈');
       setShowVerifyModal(true);
+    } catch (error: any) {
+      console.log('❌ 계좌 등록 실패:', error?.response?.data);
+      Alert.alert('계좌 등록 실패', error?.response?.data?.message || '계좌 등록에 실패했습니다.');
     }
   };
 
@@ -37,7 +59,7 @@ export default function AccountAddPage() {
       <Text style={styles.title}>계좌 연결</Text>
       <Text style={styles.subtitle}>지갑에서 사용할 계좌를 선택하고 입력해주세요.</Text>
 
-      {/* 은행 선택 영역 */}
+      {/* 은행 선택 */}
       <TouchableOpacity
         style={styles.dropdownTrigger}
         onPress={() => setDropdownOpen((prev) => !prev)}
@@ -76,20 +98,20 @@ export default function AccountAddPage() {
         </View>
       )}
 
-      {/* 계좌 번호 입력 */}
+      {/* 계좌 입력 */}
       <View style={{ marginTop: 24 }}>
         <Text style={styles.inputLabel}>계좌번호</Text>
         <TextInput
           style={styles.input}
           value={accountNumber}
           onChangeText={setAccountNumber}
-          placeholder="숫자만 입력 ( - 제외)"
-          keyboardType="numeric"
+          placeholder="예: 196-15404-392"
+          keyboardType="default" // ✅ 숫자+하이픈 허용
           placeholderTextColor={Colors.grayLightText}
         />
       </View>
 
-      {/* 인증 버튼 */}
+      {/* 인증하기 버튼 */}
       <TouchableOpacity
         style={[
           styles.submitBtn,
@@ -109,7 +131,7 @@ export default function AccountAddPage() {
         </Text>
       </TouchableOpacity>
 
-      {/* 1원 인증 모달 */}
+      {/* 인증 모달 */}
       <Modal
         visible={showVerifyModal}
         transparent
@@ -123,10 +145,12 @@ export default function AccountAddPage() {
           onClose={() => setShowVerifyModal(false)}
           onVerify={() => {
             setShowVerifyModal(false);
-            // 연결 완료 처리 등 추가 가능
+            Alert.alert('✅ 인증 완료', '계좌 인증이 완료되었습니다.');
+            router.replace('/wallet/account'); // ✅ 강제 리마운트 유도
+
           }}
           onResend={() => {
-            // 재전송 로직 가능
+            // 재전송 로직 필요 시 구현
           }}
           timeLeft={180}
         />

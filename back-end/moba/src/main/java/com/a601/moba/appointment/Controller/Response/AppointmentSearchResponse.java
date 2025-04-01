@@ -1,10 +1,21 @@
 package com.a601.moba.appointment.Controller.Response;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
+import lombok.Builder;
 
 public record AppointmentSearchResponse(
-        List<Map<String, Object>> results,
+        List<AppointmentResult> results,
         Integer cursorId
 ) {
+    @Builder
+    public record AppointmentResult(
+            Integer appointmentId,
+            String name,
+            LocalDateTime time,
+            String imageUrl,
+            Boolean isEnded
+    ) {
+    }
 }
+

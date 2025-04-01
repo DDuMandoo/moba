@@ -15,9 +15,9 @@ public interface AppointmentParticipantRepository extends JpaRepository<Appointm
 
     List<AppointmentParticipant> findAllByMemberIdAndState(Integer memberId, State state);
 
-    List<AppointmentParticipant> findByMemberIdIn(List<Integer> memberIds);
+    List<AppointmentParticipant> findByMemberId(Integer memberId);
 
-    List<AppointmentParticipant> findByAppointmentIdIn(List<Integer> appointmentIds);
+    List<AppointmentParticipant> findByAppointment(Appointment appointment);
 
 
     @Query("""
@@ -31,4 +31,6 @@ public interface AppointmentParticipantRepository extends JpaRepository<Appointm
     int countJoinedAppointmentsByMemberAndDate(Integer memberId, Integer year, Integer month);
 
     boolean existsByAppointmentAndMemberIdAndState(Appointment appointment, Integer id, State state);
+
+    List<AppointmentParticipant> findByAppointmentId(Integer id);
 }

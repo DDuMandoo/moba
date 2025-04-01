@@ -6,7 +6,9 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AppointmentPlaceRepository extends JpaRepository<AppointmentPlace, Integer> {
-    List<AppointmentPlace> findByAppointment(Appointment appointment);
-
     Integer countByAppointment(Appointment appointment);
+
+    List<AppointmentPlace> findAllByAppointmentOrderByOrderAsc(Appointment appointment);
+
+    List<AppointmentPlace> findAllByAppointment(Appointment appointment);
 }

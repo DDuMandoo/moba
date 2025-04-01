@@ -9,15 +9,28 @@ import org.springframework.data.repository.query.Param;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Integer> {
     @Query("""
-                SELECT DISTINCT a FROM Appointment a
-                WHERE (:keyword IS NULL OR LOWER(a.name) LIKE %:keyword%)
-                AND (:cursorId IS NULL OR a.id > :cursorId)
-                ORDER BY a.id ASC
+                SELECT a FROM Appointment a
+                JOIN AppointmentParticipant ap ON ap.appointment = a
+                WHERE ap.memberId = :memberId
+                  AND ap.state = 'JOINED'
+                  AND (:keyword IS NULL OR LOWER(a.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
+                  AND (:cursorId IS NULL OR a.id < :cursorId)
+                ORDER BY a.id DESC
             """)
-    List<Appointment> findByNameWithCursor(
+    List<Appointment> findByNameContainingAndParticipantWithCursor(
+            @Param("memberId") Integer memberId,
             @Param("keyword") String keyword,
             @Param("cursorId") Integer cursorId,
-            Pageable pageable
-    );
+            Pageable pageable);
+
+    @Query("SELECT DISTINCT a FROM AppointmentParticipant ap " +
+            "JOIN ap.appointment a " +
+            "JOIN Member m ON ap.memberId = m.id " +
+            "WHERE (LOWER(m.name) LIKE %:keyword% OR LOWER(m.email) LIKE %:keyword%) " +
+            "AND (:cursorId IS NULL OR a.id > :cursorId) " +
+            "ORDER BY a.id ASC")
+    List<Appointment> findByMemberKeyword(@Param("keyword") String keyword,
+                                          @Param("cursorId") Integer cursorId,
+                                          Pageable pageable);
 
 }

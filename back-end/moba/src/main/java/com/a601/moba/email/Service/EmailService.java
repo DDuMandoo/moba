@@ -76,9 +76,6 @@ public class EmailService {
 
     // 인증 코드 전송
     public void sendVerificationCode(String email) {
-        if (memberRepository.existsByEmail(email)) {
-            throw new CommonException(ErrorCode.EMAIL_ALREADY_EXISTS);
-        }
         String code = generateVerificationCode();
 
         try {

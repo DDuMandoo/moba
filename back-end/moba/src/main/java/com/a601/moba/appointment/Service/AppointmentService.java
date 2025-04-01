@@ -318,6 +318,7 @@ public class AppointmentService {
                     return AppointmentParticipantResponse.ParticipantInfo.builder()
                             .memberId(member.getId())
                             .name(member.getName())
+                            .profileImage(member.getProfileImage())
                             .build();
                 }).toList();
 

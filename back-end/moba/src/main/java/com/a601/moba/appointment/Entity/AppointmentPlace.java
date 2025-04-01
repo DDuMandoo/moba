@@ -38,7 +38,7 @@ public class AppointmentPlace {
     private Integer companyCode;
 
     @Column(name = "`ORDER`", nullable = false)
-    private Integer placeOrder;
+    private Integer order;
 
     @Column(nullable = false)
     private String name;
@@ -52,6 +52,9 @@ public class AppointmentPlace {
     @Column(nullable = false)
     private Double longitude;
 
+    @Column(nullable = false)
+    private String address;
+
     @Column(name = "kakao_url")
     private String kakaoUrl;
 
@@ -59,8 +62,9 @@ public class AppointmentPlace {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    public void updateOrder(int newOrder) {
-        this.placeOrder = newOrder;
+    public void updateOrder(int order) {
+        this.order = order;
     }
+
 }
 

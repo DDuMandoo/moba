@@ -1,6 +1,9 @@
 package com.a601.moba.appointment.Service;
 
 import com.a601.moba.appointment.Constant.State;
+import com.a601.moba.appointment.Controller.Response.AppointmentImageInfo;
+import com.a601.moba.appointment.Controller.Response.AppointmentImageListResponse;
+import com.a601.moba.appointment.Controller.Response.AppointmentImageUploadListResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentImageUploadResponse;
 import com.a601.moba.appointment.Entity.Appointment;
 import com.a601.moba.appointment.Entity.AppointmentImage;
@@ -13,9 +16,7 @@ import com.a601.moba.global.code.ErrorCode;
 import com.a601.moba.global.service.S3Service;
 import com.a601.moba.member.Entity.Member;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -34,7 +35,7 @@ public class AppointmentImageService {
     private final AuthUtil authUtil;
 
     @Transactional
-    public List<AppointmentImageUploadResponse> uploadImages(Integer appointmentId, List<MultipartFile> images) {
+    public AppointmentImageUploadListResponse uploadImages(Integer appointmentId, List<MultipartFile> images) {
         Member member = authUtil.getCurrentMember();
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
@@ -65,10 +66,13 @@ public class AppointmentImageService {
                     .build());
         }
 
-        return responses;
+        return AppointmentImageUploadListResponse.builder()
+                .images(responses)
+                .build();
     }
 
-    public Map<String, Object> getImages(Integer appointmentId, int size, Integer cursorId) {
+    @Transactional(readOnly = true)
+    public AppointmentImageListResponse getImages(Integer appointmentId, int size, Integer cursorId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
 
@@ -77,21 +81,19 @@ public class AppointmentImageService {
         List<AppointmentImage> images = appointmentImageRepository
                 .findByAppointmentWithCursor(appointment, cursorId, pageable);
 
-        List<Map<String, Object>> imageList = images.stream()
-                .map(img -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("imageId", img.getId());
-                    map.put("imageUrl", img.getImageUrl());
-                    return map;
-                })
+        List<AppointmentImageInfo> imageList = images.stream()
+                .map(img -> AppointmentImageInfo.builder()
+                        .imageId(img.getId())
+                        .imageUrl(img.getImageUrl())
+                        .build())
                 .toList();
 
         Integer nextCursorId = images.isEmpty() ? null : images.get(images.size() - 1).getId();
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("images", imageList);
-        result.put("nextCursorId", nextCursorId);
-
-        return result;
+        return AppointmentImageListResponse.builder()
+                .images(imageList)
+                .nextCursorId(nextCursorId)
+                .build();
     }
+
 }

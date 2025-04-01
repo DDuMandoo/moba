@@ -27,9 +27,10 @@ const TARGET_LEFT = SCREEN_WIDTH - OVERLAY_WIDTH - RIGHT_PADDING;
 interface Props {
   visible: boolean;
   onClose: () => void;
+  onEditProfile: () => void;
 }
 
-export default function SettingOverlay({ visible, onClose }: Props) {
+export default function SettingOverlay({ visible, onClose, onEditProfile }: Props) {
   const dispatch = useDispatch();
   const { notification, location } = useSelector((state: RootState) => state.permissions);
   const [logoutAlert, setLogoutAlert] = useState(false);
@@ -65,7 +66,8 @@ export default function SettingOverlay({ visible, onClose }: Props) {
   };
 
   const handleEditProfile = () => {
-    router.push('/auth/profile-edit');
+    onClose(); 
+    onEditProfile();
   };
 
   const handleLogout = async () => {

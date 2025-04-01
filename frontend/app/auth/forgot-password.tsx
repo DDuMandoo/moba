@@ -63,30 +63,46 @@ export default function ForgotPasswordScreen() {
     `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
 
   const handleCheckEmail = async () => {
-    if (!isEmailValid(email)) return showAlert('이메일 오류', '올바른 이메일 주소를 입력해주세요.');
-    setLoadingVisible(true);
+    if (!isEmailValid(email)) {
+      console.log('❌ 유효하지 않은 이메일 형식:', email);
+      return showAlert('이메일 오류', '올바른 이메일 주소를 입력해주세요.');
+    }
+  
     try {
+      console.log('🔍 이메일 중복 확인 시작:', email);
+      setLoadingVisible(true);
+  
       const checkRes = await axiosInstance.post(`${BASE_URL}/auth/email`, { email });
+      console.log('✅ 중복 확인 응답:', checkRes.data);
+  
       if (!checkRes.data.result) {
-        setLoadingVisible(false);
-        return showAlert('가입되지 않은 이메일', '입력한 이메일은 가입되어 있지 않습니다.');
+        console.log('⚠️ 가입되지 않은 이메일:', email);
+        showAlert('회원이 아닙니다', '가입된 이메일이 아닙니다. 회원가입을 진행해주세요.');
+        return;
       }
-
+  
+      console.log('📨 인증번호 전송 시도');
       const sendRes = await axiosInstance.post(`${BASE_URL}/emails/send`, { email });
+      console.log('📬 인증번호 전송 응답:', sendRes.data);
+  
       if (sendRes.status === 200 && sendRes.data.isSuccess) {
         showAlert('인증번호 발송', '이메일로 인증번호를 전송했습니다.');
         setIsAuthCodeSent(true);
         setIsEmailVerified(false);
         startTimer();
       } else {
+        console.log('❌ 인증번호 발송 실패 상태:', sendRes.status);
         showAlert('오류', '인증번호 발송에 실패했습니다.');
       }
-    } catch {
+    } catch (err: any) {
+      console.error('🔥 인증 처리 중 에러:', err.response?.data || err.message);
       showAlert('오류', '이메일 인증 중 문제가 발생했습니다.');
     } finally {
       setLoadingVisible(false);
     }
   };
+  
+  
 
   const handleVerifyCode = async () => {
     if (!authCode || !email) return showAlert('입력 오류', '인증번호를 입력해주세요.');
@@ -184,7 +200,10 @@ export default function ForgotPasswordScreen() {
       <Button.Large
         title="임시 비밀번호 발급"
         onPress={handleResetPassword}
-        style={styles.submitButton}
+        style={[
+          styles.submitButton,
+          { backgroundColor: isEmailVerified ? Colors.primary : Colors.grayLightText }
+        ]}
         textColor={Colors.white}
       />
 

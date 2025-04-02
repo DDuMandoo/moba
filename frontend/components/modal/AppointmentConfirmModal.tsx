@@ -11,6 +11,7 @@ import {
 import Colors from '@/constants/Colors';
 import { Button } from '@/components/ui/Button';
 import { Ionicons } from '@expo/vector-icons';
+import SelectedProfileItem from '../profile/SelectedProfileItem';
 
 interface Participant {
   id: number;
@@ -67,14 +68,19 @@ export default function AppointmentConfirmModal({
               {data.participants.length === 0 ? (
                 <Text style={styles.empty}>선택한 참가자가 없습니다.</Text>
               ) : (
-                <View style={styles.participantsWrap}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.participantsScroll}
+                >
                   {data.participants.map((p) => (
-                    <View key={p.id} style={styles.profileItem}>
-                      <Image source={{ uri: p.image }} style={styles.profileImage} />
-                      <Text style={styles.profileName}>{p.name}</Text>
-                    </View>
+                    <SelectedProfileItem
+                      key={p.id}
+                      name={p.name}
+                      image={p.image}
+                    />                  
                   ))}
-                </View>
+                </ScrollView>
               )}
             </View>
 
@@ -138,7 +144,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    color: Colors.grayLightText,
+    color: Colors.grayDarkText,
     marginBottom: 24
   },
   section: {
@@ -168,29 +174,12 @@ const styles = StyleSheet.create({
     color: Colors.grayLightText,
     fontStyle: 'italic'
   },
-  participantsWrap: {
+  participantsScroll: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
-    rowGap: 16
+    paddingVertical: 4,
+    marginTop: 5
   },
-  profileItem: {
-    alignItems: 'center',
-    width: 60
-  },
-  profileImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: Colors.logo
-  },
-  profileName: {
-    marginTop: 4,
-    fontSize: 12,
-    color: Colors.black,
-    textAlign: 'center'
-  },
+  
   buttonWrap: {
     marginTop: 10
   }

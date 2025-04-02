@@ -114,7 +114,8 @@ public class WalletService {
         RestTemplate restTemplate = new RestTemplate();
 
         // 계좌 인증 요청을 위한 데이터 생성
-        Map<String, String> requestData = new HashMap<>();
+        Map<String, Object> requestData = new HashMap<>();
+        requestData.put("uniqueId", member.getId());
         requestData.put("account", account);
         requestData.put("bank", bank);
 

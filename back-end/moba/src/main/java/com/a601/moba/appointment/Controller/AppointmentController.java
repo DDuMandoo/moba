@@ -17,7 +17,6 @@ import com.a601.moba.appointment.Controller.Response.AppointmentListItemResponse
 import com.a601.moba.appointment.Controller.Response.AppointmentParticipantResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentPlaceListResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentPlaceOrderUpdateResponse;
-import com.a601.moba.appointment.Controller.Response.AppointmentSearchResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentSearchWithMembersResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentSummaryResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentUpdateResponse;
@@ -255,14 +254,17 @@ public class AppointmentController {
 
     @Operation(summary = "약속명으로 약속 검색")
     @GetMapping("/search")
-    public ResponseEntity<JSONResponse<AppointmentSearchResponse>> search(
+    public ResponseEntity<JSONResponse<AppointmentSearchWithMembersResponse>> search(
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "10") @Min(0) int size,
             @RequestParam(required = false) Integer cursorId) {
 
-        AppointmentSearchResponse response = appointmentSearchService.searchAppointments(keyword, size, cursorId);
+        AppointmentSearchWithMembersResponse response =
+                appointmentSearchService.searchAppointments(keyword, size, cursorId);
+
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.SEARCH_SUCCESS, response));
     }
+
 
     @Operation(summary = "참가자 이름으로 참가자 검색", description = "키워드(이름 또는 이메일)로 참가자를 검색합니다.")
     @GetMapping("/search/member")

@@ -16,6 +16,8 @@ public interface AppointmentParticipantRepository extends JpaRepository<Appointm
 
     List<AppointmentParticipant> findAllByMemberAndState(Member member, State state);
 
+    List<AppointmentParticipant> findAllByAppointmentId(Integer appointmentId);
+
     List<AppointmentParticipant> findByMember(Member member);
 
     List<AppointmentParticipant> findByAppointment(Appointment appointment);

@@ -35,6 +35,7 @@ public class BankController {
     ){
         CreateBankResponse response = bankService.createAccount(
                 request.bankId(),
+                request.uniqueId(),
                 request.name(),
                 request.password()
         );
@@ -61,6 +62,7 @@ public class BankController {
             @RequestBody ValidBankRequest request
     ){
         ValidBankResponse response = bankService.valid(
+                request.uniqueId(),
                 request.account(),
                 request.bank()
         );

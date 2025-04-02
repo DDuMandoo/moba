@@ -15,6 +15,7 @@ import com.a601.moba.bank.Repository.BankTransactionRepository;
 import com.a601.moba.global.code.ErrorCode;
 import com.a601.moba.global.util.JwtUtil;
 import jakarta.transaction.Transactional;
+import java.util.Objects;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +35,7 @@ public class BankService {
     PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Transactional
-    public CreateBankResponse createAccount(Integer bankId, String name, String password) {
+    public CreateBankResponse createAccount(Integer bankId, Integer uniqueId, String name, String password) {
         Bank bank = bankRepository.findById(bankId)
                 .orElseThrow(() -> new BankException(ErrorCode.INVALID_BANK_ID));
 
@@ -47,22 +48,23 @@ public class BankService {
 
         String encodedPassword = passwordEncoder.encode(password);
 
-        System.out.println(bankAccountRepository.save(
+        bankAccountRepository.save(
                 BankAccount.builder()
                         .bank(bank)
+                        .uniqueId(uniqueId)
                         .id(account)
                         .name(name)
                         .password(encodedPassword)
-                .build()));
+                .build());
 
         // 임시 토큰 생성
-        String accesstoken = jwtUtil.generateAccessToken(account, bank.getName());
+        String accessToken = jwtUtil.generateAccessToken(uniqueId, account);
 
         log.info("🟢 계좌 생성 성공");
 
         return CreateBankResponse.builder()
                 .account(account)
-                .accessToken(accesstoken)
+                .accessToken(accessToken)
                 .build();
     }
 
@@ -142,16 +144,16 @@ public class BankService {
     }
 
     @Transactional
-    public ValidBankResponse valid(String account, String bank) {
+    public ValidBankResponse valid(Integer uniqueId, String account, String bank) {
         BankAccount bankAccount = bankAccountRepository.findByIdAndIsDeletedFalse(account)
                 .orElseThrow(() -> new BankException(ErrorCode.INVALID_BANK_ID));
 
-        if(!bankAccount.getBank().getName().equals(bank)){
-            throw new BankException(ErrorCode.INVALID_BANK_NAME);
+        if(!Objects.equals(bankAccount.getUniqueId(), uniqueId)){
+            throw new BankException(ErrorCode.INVALID_UNIQUE_ID);
         }
 
-        String accessToken = jwtUtil.generateAccessToken(account, bank);
-        String refreshToken = jwtUtil.generateRefreshToken(account, bank);
+        String accessToken = jwtUtil.generateAccessToken(uniqueId, account);
+        String refreshToken = jwtUtil.generateRefreshToken(uniqueId, account);
 
         bankAccount.updateRefreshToken(refreshToken);
         return ValidBankResponse.builder()

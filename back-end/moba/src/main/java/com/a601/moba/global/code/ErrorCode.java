@@ -24,6 +24,7 @@ public enum ErrorCode {
     INVALID_AMOUNT(4008, BAD_REQUEST,"입출금 금액은 0보다 커야 합니다"),
     TRANSFER_ACCOUNT_DUPLICATE(4009, BAD_REQUEST, "자기 자신한테는 이체할 수 없습니다"),
     INVALID_TRANSACTION_ID(4010, BAD_REQUEST, "존재하지 않는 거래 내역입니다"),
+    INVALID_UNIQUE_ID(4011, BAD_REQUEST, "사용자의 계좌가 아닙니다"),
     ;
 
     private final int code;

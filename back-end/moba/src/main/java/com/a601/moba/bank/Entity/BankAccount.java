@@ -35,6 +35,9 @@ public class BankAccount extends BaseTimeEntity {
     @Column(nullable = false, length = 64)
     private String password;
 
+    @Column(nullable = false)
+    private Integer uniqueId;
+
     @Column(length = 256)
     private String refreshToken;
 
@@ -46,10 +49,12 @@ public class BankAccount extends BaseTimeEntity {
     @Builder
     public BankAccount(String id,
                        Bank bank,
+                       Integer uniqueId,
                        String name,
                        String password){
         this.id = id;
         this.bank = bank;
+        this.uniqueId = uniqueId;
         this.name = name;
         this.password = password;
         this.balance = 0L;

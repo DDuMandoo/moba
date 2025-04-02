@@ -25,19 +25,19 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String generateAccessToken(String account, String bank) {
+    public String generateAccessToken(Integer uniqueId, String account) {
         return Jwts.builder()
-                .setSubject(account)
-                .claim("bank", bank)
+                .setSubject(String.valueOf(uniqueId))
+                .claim("account", account)
                 .setExpiration(new Date(System.currentTimeMillis() + accessExpiration))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public String generateRefreshToken(String account, String bank) {
+    public String generateRefreshToken(Integer uniqueId, String account) {
         return Jwts.builder()
-                .setSubject(account)
-                .claim("bank", bank)
+                .setSubject(String.valueOf(uniqueId))
+                .claim("account", account)
                 .setExpiration(new Date(System.currentTimeMillis() + refreshExpiration))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
@@ -49,16 +49,16 @@ public class JwtUtil {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-        return claims.getSubject(); // 이제 올바르게 account 값이 반환됨
+        return claims.get("account", String.class); //  account 값 반환
     }
 
-    public String getBankFromToken(String token) {
+    public String getUniqueIdFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-        return claims.get("bank", String.class); // bank 값 반환
+        return claims.getSubject(); // 고유 ID 반환
     }
 
 

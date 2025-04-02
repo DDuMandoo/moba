@@ -177,7 +177,7 @@ public class AppointmentService {
         Integer hostId = participantList.stream()
                 .filter(p -> p.getRole() == Role.HOST)
                 .findFirst()
-                .map(AppointmentParticipant::getMemberId)
+                .map(p -> p.getMember().getId())
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_PARTICIPANT_NOT_FOUND));
 
         List<ParticipantInfo> participants = participantList.stream()

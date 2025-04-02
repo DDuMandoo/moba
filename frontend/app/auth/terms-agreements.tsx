@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { Button } from '@/components/ui/Button';
 import TermsModal from '@/components/modal/TermsModal';
+import LoadingModal from '@/components/modal/LoadingModal';
 import axiosInstance from '@/app/axiosInstance';
 import { saveTokens } from '@/app/axiosInstance';
 import Constants from 'expo-constants';
@@ -126,6 +127,9 @@ export default function TermsAgreementScreen() {
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [agreeLocation, setAgreeLocation] = useState(false);
 
+  const [loading, setLoading] = useState(false);
+
+
   const toggleAll = () => {
     const newValue = !allAgreed;
     setAllAgreed(newValue);
@@ -137,21 +141,57 @@ export default function TermsAgreementScreen() {
 
   const handleSignup = async () => {
     try {
-      const body = { email, password, name, image: image || '' };
-      const res = await axiosInstance.post(`${BASE_URL}/auth/signup`, body);
-  
-      if (res.status === 200 || res.status === 201) {
-        const loginRes = await axiosInstance.post(`${BASE_URL}/auth/signin`, { email, password });
-        const { accessToken, refreshToken } = loginRes.data.result;
-        await saveTokens(accessToken, refreshToken);
-  
-        showAlert('회원가입 완료', '환영합니다!');
-        router.replace('/(bottom-navigation)');
+      if (!email || !password || !name) {
+        return showAlert('입력 누락', '회원정보가 유효하지 않습니다.');
       }
-    } catch {
-      showAlert('회원가입 실패', '잠시 후 다시 시도해주세요.');
+  
+      setLoading(true);
+  
+      // 1단계: 회원가입
+      const signupRes = await axiosInstance.post(`${BASE_URL}/auth/signup`, {
+        email,
+        password,
+        name,
+      });
+  
+      const memberId = signupRes?.data?.result?.memberId;
+      if (!memberId) throw new Error('memberId 없음');
+  
+      // 2단계: 프로필 이미지 업로드
+      if (image) {
+        const formData = new FormData();
+        formData.append('image', {
+          uri: image,
+          name: 'profile.jpg',
+          type: 'image/jpeg',
+        } as any);
+  
+        await axiosInstance.post(`${BASE_URL}/auth/${memberId}/profile-image`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+      }
+  
+      // 3단계: 로그인
+      const loginRes = await axiosInstance.post(`${BASE_URL}/auth/signin`, {
+        email,
+        password,
+      });
+  
+      const { accessToken, refreshToken } = loginRes.data.result;
+      await saveTokens(accessToken, refreshToken);
+  
+      showAlert('회원가입 완료', '환영합니다!');
+      router.replace('/(bottom-navigation)');
+    } catch (err: any) {
+      console.error('❌ 회원가입 실패', err);
+      showAlert('회원가입 실패', err?.response?.data?.message || '잠시 후 다시 시도해주세요.');
+    } finally {
+      setLoading(false);
     }
   };
+  
 
   return (
     <View style={styles.container}>
@@ -217,6 +257,8 @@ export default function TermsAgreementScreen() {
         }}
         textColor={canProceed ? Colors.white : '#999'}
       />
+
+      <LoadingModal visible={loading} />
 
       {/* 모달 */}
       <TermsModal

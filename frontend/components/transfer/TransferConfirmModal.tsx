@@ -28,17 +28,13 @@ export default function TransferConfirmModal({ onClose }: Props) {
 
   const { selectedAccountId, list: accounts } = useAppSelector((state) => state.account);
   const amount = useAppSelector((state) => state.charge.amount);
-  const balance = useAppSelector((state) => state.wallet.balance);
 
   const [isLoading, setIsLoading] = useState(true);
+  const [balance, setBalance] = useState<number>(0);
 
   const selectedAccount = accounts.find(
     (acc) => `${acc.type}-${acc.account}` === selectedAccountId
   );
-  console.log('🧾 선택된 계좌 ID:', selectedAccountId);
-  console.log('📄 계좌 목록:', accounts);
-  console.log('🔍 선택된 계좌:', selectedAccount);
-
   const accountNumber = selectedAccount?.account || '';
   const bankMeta = getBankMeta(selectedAccount?.type || '');
 
@@ -47,12 +43,16 @@ export default function TransferConfirmModal({ onClose }: Props) {
       try {
         const me = await axiosInstance.get('/members');
         const myId = me.data.result.memberId;
-        console.log('✅ 내 ID:', myId);
 
-        await axiosInstance.post('/wallets/transfer', {
-          memberId: myId,
+        await axiosInstance.post('/wallets/withdraw', {
+          account: accountNumber,
           amount,
         });
+
+        const result = await dispatch(fetchWalletBalance());
+        if (fetchWalletBalance.fulfilled.match(result)) {
+          setBalance(result.payload);
+        }
       } catch (err) {
         console.error('❌ 송금 실패:', err);
       } finally {
@@ -62,10 +62,6 @@ export default function TransferConfirmModal({ onClose }: Props) {
 
     transfer();
   }, []);
-
-  useEffect(() => {
-    console.log('💡 useSelector로 받아온 balance:', balance);
-  }, [balance]);
 
   if (!selectedAccountId || !selectedAccount) {
     return (
@@ -100,7 +96,7 @@ export default function TransferConfirmModal({ onClose }: Props) {
             </View>
 
             <Text style={styles.title}>
-              {amount.toLocaleString()}원을 송금했어요
+              {amount.toLocaleString()}원을 {'\n'}송금 완료 했어요
             </Text>
 
             <View style={{ marginTop: 24, width: '100%' }}>
@@ -146,7 +142,7 @@ const styles = StyleSheet.create({
   },
   modalBox: {
     backgroundColor: Colors.white,
-    borderRadius: 20,
+    borderRadius: 10,
     position: 'relative',
   },
   closeBtn: {

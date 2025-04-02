@@ -25,7 +25,7 @@ const Large = (props: ButtonProps) => (
 );
 
 const Medium = (props: ButtonProps) => (
-  <RoundedButtonBase widthRatio={0.75} heightRatio={0.051} radius={10} fontSize={22} {...props} />
+  <RoundedButtonBase widthRatio={0.8} heightRatio={0.051} radius={10} fontSize={22} {...props} />
 );
 
 const MidSmall = (props: ButtonProps) => (

@@ -21,7 +21,7 @@ interface Props {
   onClose: () => void;
 }
 
-export default function TransferConfirmModal({ onClose }: Props) {
+export default function ChargeConfirmModal({ onClose }: Props) {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { width, height } = useWindowDimensions();
@@ -30,40 +30,46 @@ export default function TransferConfirmModal({ onClose }: Props) {
   const amount = useAppSelector((state) => state.charge.amount);
   const balance = useAppSelector((state) => state.wallet.balance);
 
+  const [isLoading, setIsLoading] = useState(true);
+
   const selectedAccount = accounts.find(
     (acc) => `${acc.type}-${acc.account}` === selectedAccountId
   );
-  console.log('🧾 선택된 계좌 ID:', selectedAccountId);
-  console.log('📄 계좌 목록:', accounts);
-  console.log('🔍 선택된 계좌:', selectedAccount);
 
   const accountNumber = selectedAccount?.account || '';
   const bankMeta = getBankMeta(selectedAccount?.type || '');
 
-  const [isLoading, setIsLoading] = useState(true);
-
   useEffect(() => {
-    const transfer = async () => {
+    const deposit = async () => {
       try {
         const me = await axiosInstance.get('/members');
         const myId = me.data.result.memberId;
-        console.log('✅ 내 ID:', myId);
 
-        await axiosInstance.post('/wallets/transfer', {
+        await axiosInstance.post('/wallets/withdraw', {
           memberId: myId,
           amount,
+          account: selectedAccount?.account,
+          bank: selectedAccount?.type,
         });
 
         await dispatch(fetchWalletBalance());
       } catch (err) {
-        console.error('❌ 송금 실패:', err);
+        console.error('❌ 충전 실패:', err);
       } finally {
         setIsLoading(false);
       }
     };
 
-    transfer();
+    deposit();
   }, []);
+
+  if (!selectedAccountId || !selectedAccount) {
+    return (
+      <View style={styles.overlay}>
+        <Text style={styles.amountText}>⚠️ 선택된 계좌 정보를 불러올 수 없습니다</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.overlay}>
@@ -90,12 +96,12 @@ export default function TransferConfirmModal({ onClose }: Props) {
             </View>
 
             <Text style={styles.title}>
-              {amount.toLocaleString()}원을 송금했어요
+              {Number(amount).toLocaleString()}원이{'\n'}충전 완료되었어요
             </Text>
 
             <View style={{ marginTop: 24, width: '100%' }}>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>송금 계좌</Text>
+                <Text style={styles.infoLabel}>충전 계좌</Text>
                 <View style={styles.accountInfo}>
                   <Image source={bankMeta.logo} style={styles.bankLogo} />
                   <Text style={styles.accountText}>
@@ -106,14 +112,17 @@ export default function TransferConfirmModal({ onClose }: Props) {
 
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>거래 후 잔액</Text>
-                <Text style={styles.amountText}>{balance.toLocaleString()}원</Text>
+                <Text style={styles.amountText}>
+                  {Number(balance).toLocaleString()}원
+                </Text>
               </View>
             </View>
 
             <View style={{ marginTop: height * 0.04 }}>
               <Button.Medium
                 title="확인"
-                onPress={() => {
+                onPress={async () => {
+                  await dispatch(fetchWalletBalance());
                   onClose();
                   router.replace('/(bottom-navigation)');
                 }}
@@ -135,7 +144,7 @@ const styles = StyleSheet.create({
   },
   modalBox: {
     backgroundColor: Colors.white,
-    borderRadius: 20,
+    borderRadius: 10,
     position: 'relative',
   },
   closeBtn: {

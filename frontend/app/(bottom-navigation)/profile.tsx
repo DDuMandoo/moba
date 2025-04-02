@@ -10,52 +10,56 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
-import axiosInstance from '@/app/axiosInstance';
 import ProfileWithEmail from '@/components/profile/ProfileWithEmail';
 import PromiseCard from '@/components/PromiseCard';
 import SettingsOverlay from '@/components/modal/SettingOverlay';
+import ConfirmPasswordModal from '@/components/modal/ConfilmPasswordModal';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { fetchUserProfile } from '@/redux/slices/userSlice';
 import { useRouter } from 'expo-router';
+import axiosInstance from '@/app/axiosInstance';
 
 const tabs = ['전체', '진행중/예정', '종료'] as const;
 
 export default function MyPageScreen() {
-  const [user, setUser] = useState<any>(null);
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.user.profile);
   const [appointments, setAppointments] = useState<any[]>([]);
-  const [summary, setSummary] = useState<{ totalAttendanceCount: number; totalSpent: number }>({
-    totalAttendanceCount: 0,
-    totalSpent: 0
-  });
+  const [summary, setSummary] = useState({ totalAttendanceCount: 0, totalSpent: 0 });
   const [selectedTab, setSelectedTab] = useState<typeof tabs[number]>('전체');
   const [tabLayouts, setTabLayouts] = useState<{ x: number; width: number }[]>([]);
   const [overlayVisible, setOverlayVisible] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const underlineX = useRef(new Animated.Value(0)).current;
   const underlineWidth = useRef(new Animated.Value(0)).current;
 
-  const router = useRouter();
+  useEffect(() => {
+    if (!user) {
+      dispatch(fetchUserProfile());
+    }
+  }, [dispatch, user]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+
+    const fetchSummaryAndAppointments = async () => {
       try {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth() + 1;
-
-        const [appointmentsRes, summaryRes, userRes] = await Promise.all([
-          axiosInstance.get(`/appointments`),
-          axiosInstance.get(`/appointments/summary?year=${year}&month=${month}`),
-          axiosInstance.get(`/members`)
+        const [appointmentsRes, summaryRes] = await Promise.all([
+          axiosInstance.get('/appointments'),
+          axiosInstance.get(`/appointments/summary?year=${year}&month=${month}`)
         ]);
-
         setAppointments(appointmentsRes.data.result || []);
         setSummary(summaryRes.data.result || { totalAttendanceCount: 0, totalSpent: 0 });
-        setUser(userRes.data.result);
       } catch (err) {
         console.error('❌ 데이터 불러오기 실패', err);
       }
     };
 
-    fetchData();
+    fetchSummaryAndAppointments();
   }, []);
 
   const filteredPromises = appointments.filter((p) => {
@@ -99,11 +103,7 @@ export default function MyPageScreen() {
         <View style={styles.topSection}>
           <View style={styles.profileBox}>
             {user && (
-              <ProfileWithEmail
-                name={user.name}
-                email={user.email}
-                imageUri={user.image}
-              />
+              <ProfileWithEmail name={user.name} email={user.email} imageUri={user.image} />
             )}
           </View>
 
@@ -171,14 +171,33 @@ export default function MyPageScreen() {
               title={promise.name}
               time={promise.time}
               location={promise.memo}
-              participants={[]} // 참여자 정보 추가 예정 시 수정
+              participants={[]} // 참여자 정보 필요시 추가
               onPress={() => router.push(`/promises/${promise.appointmentId}`)}
             />
           ))}
         </View>
       </ScrollView>
 
-      <SettingsOverlay visible={overlayVisible} onClose={() => setOverlayVisible(false)} />
+      <SettingsOverlay
+        visible={overlayVisible}
+        onClose={() => setOverlayVisible(false)}
+        onEditProfile={() => {
+          setOverlayVisible(false);
+          setTimeout(() => {
+            setShowConfirmModal(true);
+          }, 300);
+        }}
+      />
+
+      <ConfirmPasswordModal
+        visible={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={() => {
+          setShowConfirmModal(false);
+          router.push('/auth/profile-edit');
+        }}
+        userId={user?.email || ''}
+      />
     </View>
   );
 }
@@ -215,8 +234,7 @@ const styles = StyleSheet.create({
   summaryText: {
     fontSize: 18,
     color: Colors.black,
-    flexShrink: 1,
-    textAlignVertical: 'center'
+    flexShrink: 1
   },
   bold: {
     fontWeight: 'bold',

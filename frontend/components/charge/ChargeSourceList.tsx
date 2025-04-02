@@ -10,6 +10,8 @@ import {
 import Colors from '@/constants/Colors';
 import { useAppSelector } from '@/redux/hooks';
 import { getBankMeta } from '@/constants/banks';
+import { useRouter } from 'expo-router';
+
 
 interface Props {
   selectedAccountId: string | null;
@@ -31,13 +33,17 @@ export default function AccountListSection({
   const accounts = useAppSelector((state) => state.account.list);
   const isLoading = false; // 필요 시 로딩 처리 연결
   const isError = false;   // 필요 시 에러 처리 연결
+  const router = useRouter(); 
+
 
   return (
     <View style={styles.wrapper}>
       <View style={styles.headerRow}>
         <Text style={styles.sectionTitle}>{title}</Text>
         {showAddButton && (
-          <TouchableOpacity onPress={onPressAddAccount} style={styles.addButton}>
+          <TouchableOpacity 
+            onPress={onPressAddAccount ?? (() => router.push('/wallet/account/add'))} // 👈 라우터 추가
+            style={styles.addButton}>
             <Text style={styles.addText}>{addButtonText}</Text>
           </TouchableOpacity>
         )}

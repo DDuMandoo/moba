@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     position: 'relative',
-    marginBottom: 30
+    marginBottom: 20
   },
   inputWithButton: {
     height: 50,

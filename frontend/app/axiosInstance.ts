@@ -42,11 +42,6 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   async (config) => {
     const token = await getRefreshToken();
-    console.log('🧪 요청 보낼 때 RefreshToken:', token); // 👈 이거 넣어봐!
-
-    console.log(`📡 [Request] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
-    console.log('🧾 요청 헤더:', config.headers);
-    console.log('📦 요청 바디:', config.data);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

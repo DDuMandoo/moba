@@ -11,7 +11,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     @Query("""
                 SELECT a FROM Appointment a
                 JOIN AppointmentParticipant ap ON ap.appointment = a
-                WHERE ap.memberId = :memberId
+                WHERE ap.member.id = :memberId
                   AND ap.state = 'JOINED'
                   AND (:keyword IS NULL OR LOWER(a.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
                   AND (:cursorId IS NULL OR a.id < :cursorId)
@@ -25,7 +25,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
 
     @Query("SELECT DISTINCT a FROM AppointmentParticipant ap " +
             "JOIN ap.appointment a " +
-            "JOIN Member m ON ap.memberId = m.id " +
+            "JOIN Member m ON ap.member.id = m.id " +
             "WHERE (LOWER(m.name) LIKE %:keyword% OR LOWER(m.email) LIKE %:keyword%) " +
             "AND (:cursorId IS NULL OR a.id > :cursorId) " +
             "ORDER BY a.id ASC")

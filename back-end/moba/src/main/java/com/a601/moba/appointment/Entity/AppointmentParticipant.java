@@ -2,6 +2,7 @@ package com.a601.moba.appointment.Entity;
 
 import com.a601.moba.appointment.Constant.Role;
 import com.a601.moba.appointment.Constant.State;
+import com.a601.moba.member.Entity.Member;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -34,8 +35,9 @@ public class AppointmentParticipant {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false)
-    private Integer memberId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "MEMBER_ID", nullable = false)
+    private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "APPOINTMENT_ID", nullable = false)
@@ -56,11 +58,19 @@ public class AppointmentParticipant {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    private Double latitude;
+    private Double longitude;
+
     public void updateState(State newState) {
         this.state = newState;
     }
 
     public void updateRole(Role role) {
         this.role = role;
+    }
+
+    public void updateLocation(Double latitude, Double longitude) {
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 }

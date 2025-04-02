@@ -22,6 +22,7 @@ import com.a601.moba.appointment.Exception.AppointmentException;
 import com.a601.moba.appointment.Repository.AppointmentParticipantRepository;
 import com.a601.moba.appointment.Repository.AppointmentRepository;
 import com.a601.moba.appointment.Util.InviteCodeGenerator;
+import com.a601.moba.auth.Exception.AuthException;
 import com.a601.moba.auth.Util.AuthUtil;
 import com.a601.moba.global.code.ErrorCode;
 import com.a601.moba.global.service.S3Service;
@@ -32,9 +33,7 @@ import com.a601.moba.wallet.Repository.TransactionRepository;
 import com.a601.moba.wallet.Repository.WalletRepository;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,11 +75,11 @@ public class AppointmentService {
         appointmentRepository.saveAndFlush(appointment);
 
         Integer appointmentId = appointment.getId();
-        Integer hostMemberId = authUtil.getCurrentMember().getId();
+        Member host = authUtil.getCurrentMember();
 
         AppointmentParticipant hostParticipant = AppointmentParticipant.builder()
                 .appointment(appointment)
-                .memberId(hostMemberId)
+                .member(host)
                 .role(Role.HOST)
                 .state(State.JOINED)
                 .joinAt(LocalDateTime.now())
@@ -104,13 +103,13 @@ public class AppointmentService {
 
     @Transactional
     public AppointmentJoinResponse join(AppointmentJoinRequest request) {
-        Integer memberId = authUtil.getCurrentMember().getId();
+        Member member = authUtil.getCurrentMember();
 
         Appointment appointment = appointmentRepository.findById(request.appointmentId())
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
 
         Optional<AppointmentParticipant> existingParticipantOpt =
-                appointmentParticipantRepository.findByAppointmentAndMemberId(appointment, memberId);
+                appointmentParticipantRepository.findByAppointmentAndMember(appointment, member);
 
         AppointmentParticipant participant;
 
@@ -133,7 +132,7 @@ public class AppointmentService {
         } else {
             participant = AppointmentParticipant.builder()
                     .appointment(appointment)
-                    .memberId(memberId)
+                    .member(member)
                     .role(Role.PARTICIPANT)
                     .state(State.JOINED)
                     .joinAt(LocalDateTime.now())
@@ -143,14 +142,11 @@ public class AppointmentService {
             appointmentParticipantRepository.save(participant);
         }
 
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_PARTICIPANT_NOT_FOUND));
-
         return AppointmentJoinResponse.builder()
                 .appointmentId(appointment.getId())
                 .name(appointment.getName())
                 .participant(AppointmentJoinResponse.ParticipantInfo.builder()
-                        .memberId(memberId)
+                        .memberId(member.getId())
                         .name(member.getName())
                         .joinedAt(participant.getJoinAt())
                         .build())
@@ -158,14 +154,14 @@ public class AppointmentService {
     }
 
     public AppointmentDetailResponse getDetail(Integer appointmentId) {
-        Integer memberId = authUtil.getCurrentMember().getId();
+        Member member = authUtil.getCurrentMember();
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
 
         // 본인이 JOINED 상태의 참여자인지 확인
         AppointmentParticipant self = appointmentParticipantRepository
-                .findByAppointmentAndMemberId(appointment, memberId)
+                .findByAppointmentAndMember(appointment, member)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED));
 
         if (self.getState() != State.JOINED) {
@@ -180,12 +176,10 @@ public class AppointmentService {
 
         List<ParticipantInfo> participants = participantList.stream()
                 .map(p -> {
-                    Member member = memberRepository.findById(p.getMemberId())
-                            .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_PARTICIPANT_NOT_FOUND));
                     return ParticipantInfo.builder()
-                            .memberId(member.getId())
-                            .name(member.getName())
-                            .profileImage(member.getProfileImage())
+                            .memberId(p.getMember().getId())
+                            .name(p.getMember().getName())
+                            .profileImage(p.getMember().getProfileImage())
                             .build();
                 })
                 .toList();
@@ -207,13 +201,13 @@ public class AppointmentService {
 
     @Transactional
     public void leave(Integer appointmentId) {
-        Integer memberId = authUtil.getCurrentMember().getId();
+        Member member = authUtil.getCurrentMember();
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
 
         AppointmentParticipant participant = appointmentParticipantRepository
-                .findByAppointmentAndMemberId(appointment, memberId)
+                .findByAppointmentAndMember(appointment, member)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_PARTICIPANT_NOT_FOUND));
 
         if (participant.getRole() == Role.HOST) {
@@ -227,13 +221,13 @@ public class AppointmentService {
     public AppointmentUpdateResponse update(Integer appointmentId,
                                             AppointmentUpdateRequest request,
                                             MultipartFile image) {
-        Integer memberId = authUtil.getCurrentMember().getId();
+        Member member = authUtil.getCurrentMember();
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
 
         AppointmentParticipant participant = appointmentParticipantRepository
-                .findByAppointmentAndMemberId(appointment, memberId)
+                .findByAppointmentAndMember(appointment, member)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED));
 
         if (participant.getRole() != Role.HOST || participant.getState() != State.JOINED) {
@@ -281,13 +275,13 @@ public class AppointmentService {
 
     @Transactional(readOnly = true)
     public AppointmentParticipantResponse getParticipants(Integer appointmentId) {
-        Integer memberId = authUtil.getCurrentMember().getId();
+        Member member = authUtil.getCurrentMember();
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
 
         AppointmentParticipant participant = appointmentParticipantRepository
-                .findByAppointmentAndMemberId(appointment, memberId)
+                .findByAppointmentAndMember(appointment, member)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED));
 
         if (participant.getState() != State.JOINED) {
@@ -299,26 +293,12 @@ public class AppointmentService {
                 .filter(p -> p.getState() == State.JOINED)
                 .toList();
 
-        // 참가자의 memberId 리스트 추출
-        List<Integer> memberIds = joinedParticipants.stream()
-                .map(AppointmentParticipant::getMemberId)
-                .distinct()
-                .toList();
-
-        // memberId로 회원 정보 일괄 조회 (IN 절). 여기서 쿼리 하나만 나감 -> N+1 문제 해결
-        Map<Integer, Member> memberMap = memberRepository.findAllById(memberIds).stream()
-                .collect(Collectors.toMap(Member::getId, member -> member));
-
         List<AppointmentParticipantResponse.ParticipantInfo> participants = joinedParticipants.stream()
                 .map(p -> {
-                    Member member = memberMap.get(p.getMemberId());
-                    if (member == null) {
-                        throw new AppointmentException(ErrorCode.APPOINTMENT_PARTICIPANT_NOT_FOUND);
-                    }
                     return AppointmentParticipantResponse.ParticipantInfo.builder()
-                            .memberId(member.getId())
-                            .name(member.getName())
-                            .profileImage(member.getProfileImage())
+                            .memberId(p.getMember().getId())
+                            .name(p.getMember().getName())
+                            .profileImage(p.getMember().getProfileImage())
                             .build();
                 }).toList();
 
@@ -332,14 +312,16 @@ public class AppointmentService {
     @Transactional
     public AppointmentDelegateResponse delegateHost(Integer appointmentId, AppointmentDelegateRequest request) {
         Member currentMember = authUtil.getCurrentMember();
+        Member host = memberRepository.findById(request.newHostId())
+                .orElseThrow(() -> new AuthException(ErrorCode.MEMBER_NOT_FOUND));
         Appointment appointment = validateHostAccess(appointmentId);
 
         AppointmentParticipant currentHost = appointmentParticipantRepository
-                .findByAppointmentAndMemberId(appointment, currentMember.getId())
+                .findByAppointmentAndMember(appointment, currentMember)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED));
 
         AppointmentParticipant newHost = appointmentParticipantRepository
-                .findByAppointmentAndMemberId(appointment, request.newHostId())
+                .findByAppointmentAndMember(appointment, host)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_PARTICIPANT_NOT_FOUND));
 
         if (newHost.getState() != State.JOINED) {
@@ -350,17 +332,11 @@ public class AppointmentService {
         currentHost.updateRole(Role.PARTICIPANT);
         newHost.updateRole(Role.HOST);
 
-        Member preMember = memberRepository.findById(currentHost.getMemberId())
-                .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_PARTICIPANT_NOT_FOUND));
-
-        Member newMember = memberRepository.findById(newHost.getMemberId())
-                .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_PARTICIPANT_NOT_FOUND));
-
         return AppointmentDelegateResponse.builder()
-                .preHostId(preMember.getId())
-                .preHostName(preMember.getName())
-                .newHostId(newMember.getId())
-                .newHostName(newMember.getName())
+                .preHostId(currentHost.getMember().getId())
+                .preHostName(currentHost.getMember().getName())
+                .newHostId(newHost.getMember().getId())
+                .newHostName(newHost.getMember().getName())
                 .build();
     }
 
@@ -368,9 +344,11 @@ public class AppointmentService {
     @Transactional
     public void kickParticipant(Integer appointmentId, AppointmentKickRequest request) {
         Appointment appointment = validateHostAccess(appointmentId);
+        Member member = memberRepository.findById(request.memberId())
+                .orElseThrow(() -> new AuthException(ErrorCode.MEMBER_NOT_FOUND));
 
         AppointmentParticipant target = appointmentParticipantRepository
-                .findByAppointmentAndMemberId(appointment, request.memberId())
+                .findByAppointmentAndMember(appointment, member)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_PARTICIPANT_NOT_FOUND));
 
         if (target.getRole() == Role.HOST) {
@@ -381,10 +359,10 @@ public class AppointmentService {
     }
 
     public List<AppointmentListItemResponse> getMyAppointments(Integer year, Integer month) {
-        Integer memberId = authUtil.getCurrentMember().getId();
+        Member member = authUtil.getCurrentMember();
 
         List<AppointmentParticipant> participants = appointmentParticipantRepository
-                .findAllByMemberIdAndState(memberId, State.JOINED);
+                .findAllByMemberAndState(member, State.JOINED);
 
         return participants.stream()
                 .map(AppointmentParticipant::getAppointment)
@@ -432,13 +410,13 @@ public class AppointmentService {
     }
 
     private Appointment validateHostAccess(Integer appointmentId) {
-        Integer memberId = authUtil.getCurrentMember().getId();
+        Member member = authUtil.getCurrentMember();
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
 
         AppointmentParticipant participant = appointmentParticipantRepository
-                .findByAppointmentAndMemberId(appointment, memberId)
+                .findByAppointmentAndMember(appointment, member)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED));
 
         if (participant.getRole() != Role.HOST || participant.getState() != State.JOINED) {
@@ -447,6 +425,4 @@ public class AppointmentService {
 
         return appointment;
     }
-
-
 }

@@ -1,6 +1,6 @@
-// redux/slices/walletSlice.ts
+// ✅ walletSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import axios from 'axios';
+import axiosInstance from '@/app/axiosInstance'; // ✅
 
 interface WalletState {
   balance: number;
@@ -14,13 +14,13 @@ const initialState: WalletState = {
   error: null,
 };
 
-// async thunk - 잔액 불러오기
 export const fetchWalletBalance = createAsyncThunk(
   'wallet/fetchBalance',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get('/wallets');
-      return response.data.balance;
+      const response = await axiosInstance.get('/wallets');
+      console.log('💰 [walletSlice] 서버 응답:', response.data);
+      return response.data.result.balance;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || '잔액 조회 실패');
     }
@@ -42,6 +42,7 @@ const walletSlice = createSlice({
       .addCase(fetchWalletBalance.fulfilled, (state, action: PayloadAction<number>) => {
         state.balance = action.payload;
         state.isLoading = false;
+        console.log('✅ [walletSlice] 지갑 잔액 업데이트됨:', action.payload);
       })
       .addCase(fetchWalletBalance.rejected, (state, action) => {
         state.isLoading = false;

@@ -6,12 +6,15 @@ import {
   TextInput,
   Pressable,
   Keyboard,
-  Alert,
+  Image,
+  Animated,
 } from 'react-native';
 import Colors from '@/constants/Colors';
+import Fonts from '@/constants/Fonts';
 import { Ionicons } from '@expo/vector-icons';
 import axiosInstance from '@/app/axiosInstance';
 import * as SecureStore from 'expo-secure-store';
+import { getBankMeta } from '@/constants/banks';
 
 interface Props {
   visible: boolean;
@@ -35,11 +38,14 @@ export default function AccountVerifyModal({
   const [digits, setDigits] = useState(['', '', '', '']);
   const inputs = useRef<Array<TextInput | null>>([]);
   const [timeLeft, setTimeLeft] = useState(initialTimeLeft);
+  const [errorMessage, setErrorMessage] = useState('');
+  const shakeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (!visible) return;
 
     setDigits(['', '', '', '']);
+    setErrorMessage('');
     setTimeLeft(initialTimeLeft);
 
     const timer = setInterval(() => {
@@ -79,9 +85,21 @@ export default function AccountVerifyModal({
     }
   };
 
+  const triggerShake = () => {
+    shakeAnim.setValue(0);
+    Animated.sequence([
+      Animated.timing(shakeAnim, { toValue: 10, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -10, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 6, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -6, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 0, duration: 50, useNativeDriver: true }),
+    ]).start();
+  };
+
   const handleSubmit = async (code: string) => {
     if (timeLeft <= 0) {
-      Alert.alert('시간 초과', '인증 시간이 만료되었습니다. 인증번호를 다시 요청해주세요.');
+      setErrorMessage('⏰ 인증 시간이 만료되었습니다.');
+      triggerShake();
       return;
     }
 
@@ -93,16 +111,14 @@ export default function AccountVerifyModal({
       });
 
       const { accessToken } = res.data.result;
-      console.log('✅ 인증 성공:', accessToken);
-
       await SecureStore.setItemAsync('accessToken', accessToken);
+
+      setErrorMessage('');
       onVerify(code);
     } catch (error: any) {
-      console.log('🔴 error.response:', error?.response);
-      console.log('🔴 error.response.data:', error?.response?.data);
-      console.log('🔴 error.response.status:', error?.response?.status);
       const message = error?.response?.data?.message || '인증에 실패했습니다.';
-      Alert.alert('인증 실패', message);
+      setErrorMessage(`❌ ${message}`);
+      triggerShake();
     }
   };
 
@@ -113,6 +129,8 @@ export default function AccountVerifyModal({
   };
 
   if (!visible) return null;
+
+  const bankMeta = getBankMeta(bank);
 
   return (
     <View style={styles.fullscreen}>
@@ -126,11 +144,19 @@ export default function AccountVerifyModal({
 
         {account && bank && (
           <View style={styles.accountInfo}>
-            <Text style={styles.accountText}>{bank} {account}</Text>
+            <View style={styles.accountRow}>
+              <Image source={bankMeta.logo} style={styles.bankLogo} />
+              <View>
+                <Text style={styles.bankName}>{bankMeta.name}</Text>
+                <Text style={styles.accountText}>{account}</Text>
+              </View>
+            </View>
           </View>
         )}
 
-        <View style={styles.codeRow}>
+        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+
+        <Animated.View style={[styles.codeRow, { transform: [{ translateX: shakeAnim }] }]}>
           {digits.map((digit, index) => (
             <TextInput
               key={`input-${index}`}
@@ -142,16 +168,9 @@ export default function AccountVerifyModal({
               maxLength={1}
               style={[styles.codeInput, digit ? styles.codeInputFilled : null]}
               textAlign="center"
-              autoCorrect={false}
-              autoCapitalize="none"
-              autoComplete="off"
-              importantForAutofill="no"
-              textContentType="oneTimeCode"
-              selectTextOnFocus
-              caretHidden={false}
             />
           ))}
-        </View>
+        </Animated.View>
 
         <View style={styles.footerRow}>
           <Text style={[styles.timer, timeLeft < 30 ? styles.timerWarning : null]}>
@@ -191,12 +210,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontFamily: Fonts.extraBold,
     color: Colors.text,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
+    fontFamily: Fonts.regular,
     color: Colors.grayDarkText,
     marginBottom: 20,
   },
@@ -204,24 +224,51 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.grayBackground,
     padding: 12,
     borderRadius: 8,
-    marginBottom: 20,
+    marginBottom: 12,
+  },
+  accountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  bankLogo: {
+    width: 24,
+    height: 24,
+    resizeMode: 'contain',
+    marginRight: 6,
+  },
+  bankName: {
+    fontSize: 14,
+    fontFamily: Fonts.bold,
+    color: Colors.text,
+    marginBottom: 2,
   },
   accountText: {
     fontSize: 14,
+    fontFamily: Fonts.regular,
     color: Colors.text,
+  },
+  errorText: {
+    fontFamily: Fonts.bold,
+    color: '#FF5A5A',
+    fontSize: 15,
+    marginBottom: 12,
+    textAlign: 'center',
   },
   codeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 16,
+    gap: 8,
   },
   codeInput: {
-    width: 56,
-    height: 56,
+    width: 64,
+    height: 64,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: Colors.grayLightText,
     fontSize: 20,
+    fontFamily: Fonts.bold,
     color: Colors.text,
     backgroundColor: Colors.white,
   },
@@ -230,15 +277,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F9FF',
   },
   footerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 12,
+    alignSelf: 'flex-start',
+    marginTop: 4,
   },
   timer: {
     fontSize: 14,
+    fontFamily: Fonts.regular,
     color: Colors.grayDarkText,
   },
   timerWarning: {
     color: '#FF6B6B',
   },
 });
+1

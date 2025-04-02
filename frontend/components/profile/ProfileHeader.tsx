@@ -57,7 +57,7 @@ export default function ProfileHeader({ name, image, isLoading, isError }: Props
         }}
       />
       <Text style={{ fontSize: 18, fontWeight: 'bold', color: Colors.text }}>
-        {name} 님의 지갑
+        {name}
       </Text>
     </View>
   );

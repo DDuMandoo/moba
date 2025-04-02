@@ -3,6 +3,10 @@ import accountReducer from './slices/accountSlice';
 import userReducer from './slices/userSlice';
 import walletReducer from './slices/walletSlice';
 import permissionReducer from './slices/permissionSlice';
+import chargeReducer from './slices/chargeSlice';
+import transferReducer from './slices/transferSlice';
+
+
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +14,8 @@ export const store = configureStore({
     user: userReducer,
     wallet: walletReducer,
     permissions: permissionReducer,
+    charge:chargeReducer,
+    transfer:transferReducer
   },
 });
 

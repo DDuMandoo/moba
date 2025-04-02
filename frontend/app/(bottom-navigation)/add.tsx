@@ -22,6 +22,7 @@ import Constants from 'expo-constants';
 import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
 import { Image as RNImage } from 'react-native';
+import SelectedProfileItem from '@/components/profile/SelectedProfileItem';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || Constants.expoConfig?.extra?.API_URL;
 
@@ -174,7 +175,15 @@ export default function AppointmentCreatePage() {
           <Text style={styles.subLabel}>약속을 만들고 URL을 통해서도 참가자를 초대할 수 있어요!</Text>
           <View style={styles.participantRow}>
             {friends.map((f) => (
-              <RNImage key={f.id} source={{ uri: f.image }} style={styles.avatar} />
+              <SelectedProfileItem
+                key={f.id}
+                name={f.name}
+                image={f.image}
+                size={50}
+                onRemove={() => {
+                  setFriends((prev) => prev.filter((p) => p.id !== f.id));
+                }}
+              />
             ))}
           </View>
           <TouchableOpacity onPress={() => setShowFriendModal(true)} style={styles.selectBox} activeOpacity={0.7}>
@@ -206,7 +215,19 @@ export default function AppointmentCreatePage() {
       <FriendSearchModal
         visible={showFriendModal}
         onClose={() => setShowFriendModal(false)}
-        onSelect={(selected) => setFriends(selected)}
+        initialSelected={friends.map(f => ({
+          memberId: f.id,
+          name: f.name,
+          email: '', // 이메일은 선택 아님
+          profileImage: f.image
+        }))}
+        onSelect={(members) =>
+          setFriends(members.map((m) => ({
+            id: m.memberId,
+            name: m.name,
+            image: m.profileImage ?? ''
+          })))
+        }
       />
 
       <AppointmentConfirmModal
@@ -285,13 +306,14 @@ const styles = StyleSheet.create({
     fontSize: 15
   },
   buttonBox: {
-    marginTop: 20
+    marginTop: 10
   },
   participantRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 4,
     flexWrap: 'wrap',
-    marginBottom: 8
+    marginBottom: 2,
+    marginTop: 6
   },
   avatar: {
     width: 36,

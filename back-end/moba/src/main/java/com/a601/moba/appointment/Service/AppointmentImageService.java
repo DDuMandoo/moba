@@ -42,7 +42,7 @@ public class AppointmentImageService {
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
 
         boolean isParticipant = appointmentParticipantRepository
-                .existsByAppointmentAndMemberIdAndState(appointment, member.getId(), State.JOINED);
+                .existsByAppointmentAndMemberAndState(appointment, member, State.JOINED);
 
         if (!isParticipant) {
             throw new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED);

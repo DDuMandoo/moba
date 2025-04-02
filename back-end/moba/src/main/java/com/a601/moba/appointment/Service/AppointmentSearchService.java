@@ -96,7 +96,7 @@ public class AppointmentSearchService {
                             a.getId());
 
                     List<AppointmentSearchWithMembersResponse.MemberInfo> members = participants.stream()
-                            .map(p -> memberRepository.findById(p.getMemberId()).orElse(null))
+                            .map(AppointmentParticipant::getMember)
                             .map(m -> AppointmentSearchWithMembersResponse.MemberInfo.builder()
                                     .memberId(m.getId())
                                     .name(m.getName())

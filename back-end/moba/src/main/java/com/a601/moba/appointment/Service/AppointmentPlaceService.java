@@ -17,9 +17,11 @@ import com.a601.moba.appointment.Repository.AppointmentParticipantRepository;
 import com.a601.moba.appointment.Repository.AppointmentPlaceRepository;
 import com.a601.moba.appointment.Repository.AppointmentRepository;
 import com.a601.moba.appointment.Repository.PlaceRepository;
+import com.a601.moba.auth.Exception.AuthException;
 import com.a601.moba.auth.Util.AuthUtil;
 import com.a601.moba.global.code.ErrorCode;
 import com.a601.moba.member.Entity.Member;
+import com.a601.moba.member.Repository.MemberRepository;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,6 +39,7 @@ public class AppointmentPlaceService {
     private final AuthUtil authUtil;
     private final AppointmentPlaceRepository appointmentPlaceRepository;
     private final AppointmentParticipantRepository appointmentParticipantRepository;
+    private final MemberRepository memberRepository;
 
     @Transactional(readOnly = true)
     public PlaceSearchResponse searchPlaces(String keyword, int size, Integer cursorId) {
@@ -140,7 +143,7 @@ public class AppointmentPlaceService {
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
 
         boolean isParticipant = appointmentParticipantRepository
-                .existsByAppointmentAndMemberIdAndState(appointment, member.getId(), State.JOINED);
+                .existsByAppointmentAndMemberAndState(appointment, member, State.JOINED);
 
         if (!isParticipant) {
             throw new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED);
@@ -200,9 +203,11 @@ public class AppointmentPlaceService {
     private Appointment validateHostAccess(Integer appointmentId, Integer memberId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new AuthException(ErrorCode.MEMBER_NOT_FOUND));
 
         AppointmentParticipant participant = appointmentParticipantRepository
-                .findByAppointmentAndMemberId(appointment, memberId)
+                .findByAppointmentAndMember(appointment, member)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED));
 
         if (participant.getRole() != Role.HOST || participant.getState() != State.JOINED) {

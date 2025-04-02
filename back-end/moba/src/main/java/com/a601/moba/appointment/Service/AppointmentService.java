@@ -178,6 +178,12 @@ public class AppointmentService {
                 .filter(p -> p.getState() == State.JOINED)
                 .toList();
 
+        Integer hostId = participantList.stream()
+                .filter(p -> p.getRole() == Role.HOST)
+                .findFirst()
+                .map(AppointmentParticipant::getMemberId)
+                .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_PARTICIPANT_NOT_FOUND));
+
         List<ParticipantInfo> participants = participantList.stream()
                 .map(p -> {
                     Member member = memberRepository.findById(p.getMemberId())
@@ -201,6 +207,7 @@ public class AppointmentService {
                 .isEnded(appointment.getIsEnded())
                 .participants(participants)
                 .createdAt(appointment.getCreatedAt())
+                .hostId(hostId)
                 .build();
     }
 

@@ -5,6 +5,7 @@ import * as SecureStore from 'expo-secure-store';
 interface UserProfile {
   name: string;
   image: string;
+  email: string;
 }
 
 interface UserState {

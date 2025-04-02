@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { getBankMeta } from '@/constants/banks';
+import { BANKS } from '@/constants/banks';
 import axiosInstance from '@/app/axiosInstance';
 import { setAccountList } from '@/redux/slices/accountSlice';
 
@@ -19,14 +19,19 @@ export default function AccountPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { list: accounts } = useAppSelector((state) => state.account);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   const fetchAccounts = async () => {
     try {
       const res = await axiosInstance.get('/wallets/account');
-      dispatch(setAccountList(res.data.accounts));
-    } catch {
+      console.log('📦 서버 응답 전체:', res.data);
+
+      const accounts = res.data.result?.accounts ?? [];
+      console.log('📥 불러온 계좌 목록:', accounts);
+
+      dispatch(setAccountList(accounts));
+    } catch (e) {
       setError(true);
     } finally {
       setLoading(false);
@@ -63,14 +68,25 @@ export default function AccountPage() {
           <View style={styles.feedbackBox}>
             <Text style={styles.errorText}>계좌 정보를 불러올 수 없습니다.</Text>
           </View>
-        ) : accounts.length === 0 ? (
+        ) : !Array.isArray(accounts) || accounts.length === 0 ? (
           <View style={styles.feedbackBox}>
             <Text style={styles.emptyText}>연결된 계좌가 없습니다.</Text>
           </View>
         ) : (
           accounts.map((acc, index) => {
-            const bank = getBankMeta(acc.type);
+            const bank = BANKS.find(
+              (b) => b.type === acc.type || b.name === acc.type
+            ) ?? {
+              name: acc.type,
+              logo: require('@/assets/icons/banks/default.png'),
+            };
+
             const isLast = index === accounts.length - 1;
+
+            // 디버깅용 로그
+            console.log('💳 계좌:', acc);
+            console.log('🏦 매칭된 은행:', bank);
+
             return (
               <View
                 key={`${acc.type}-${acc.account}`}

@@ -21,46 +21,46 @@ interface Props {
   onClose: () => void;
 }
 
-export default function ChargeConfirmModal({ onClose }: Props) {
+export default function TransferConfirmModal({ onClose }: Props) {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { width, height } = useWindowDimensions();
 
   const { selectedAccountId, list: accounts } = useAppSelector((state) => state.account);
   const amount = useAppSelector((state) => state.charge.amount);
-  const balance = useAppSelector((state) => state.wallet.balance);
 
   const [isLoading, setIsLoading] = useState(true);
+  const [balance, setBalance] = useState<number>(0);
 
   const selectedAccount = accounts.find(
     (acc) => `${acc.type}-${acc.account}` === selectedAccountId
   );
-
   const accountNumber = selectedAccount?.account || '';
   const bankMeta = getBankMeta(selectedAccount?.type || '');
 
   useEffect(() => {
-    const deposit = async () => {
+    const transfer = async () => {
       try {
         const me = await axiosInstance.get('/members');
         const myId = me.data.result.memberId;
 
-        await axiosInstance.post('/wallets/deposit', {
-          memberId: myId,
+        await axiosInstance.post('/wallets/withdraw', {
+          account: accountNumber,
           amount,
-          account: selectedAccount?.account,
-          bank: selectedAccount?.type,
         });
 
-        await dispatch(fetchWalletBalance());
+        const result = await dispatch(fetchWalletBalance());
+        if (fetchWalletBalance.fulfilled.match(result)) {
+          setBalance(result.payload);
+        }
       } catch (err) {
-        console.error('❌ 충전 실패:', err);
+        console.error('❌ 송금 실패:', err);
       } finally {
         setIsLoading(false);
       }
     };
 
-    deposit();
+    transfer();
   }, []);
 
   if (!selectedAccountId || !selectedAccount) {
@@ -96,12 +96,12 @@ export default function ChargeConfirmModal({ onClose }: Props) {
             </View>
 
             <Text style={styles.title}>
-              {Number(amount).toLocaleString()}원이{'\n'}충전 완료되었어요
+              {amount.toLocaleString()}원을 {'\n'}송금 완료 했어요
             </Text>
 
             <View style={{ marginTop: 24, width: '100%' }}>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>충전 계좌</Text>
+                <Text style={styles.infoLabel}>송금 계좌</Text>
                 <View style={styles.accountInfo}>
                   <Image source={bankMeta.logo} style={styles.bankLogo} />
                   <Text style={styles.accountText}>
@@ -112,9 +112,7 @@ export default function ChargeConfirmModal({ onClose }: Props) {
 
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>거래 후 잔액</Text>
-                <Text style={styles.amountText}>
-                  {Number(balance).toLocaleString()}원
-                </Text>
+                <Text style={styles.amountText}>{balance.toLocaleString()}원</Text>
               </View>
             </View>
 

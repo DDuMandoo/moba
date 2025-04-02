@@ -1,4 +1,3 @@
-// components/charge/ChargeAmountInput.tsx
 import React from 'react';
 import {
   View,
@@ -13,14 +12,17 @@ import { Feather } from '@expo/vector-icons';
 interface Props {
   amount: number;
   setAmount: (val: number) => void;
+  label?: string; // ✅ 라벨 텍스트 prop 추가
 }
 
 const quickAmounts = [10000, 50000, 100000, 500000];
 
-export default function ChargeAmountInput({ amount, setAmount }: Props) {
-  const formatAmount = (val: number) => {
-    return val.toLocaleString();
-  };
+export default function ChargeAmountInput({
+  amount,
+  setAmount,
+  label = '충전 금액', // ✅ 기본값 설정
+}: Props) {
+  const formatAmount = (val: number) => val.toLocaleString();
 
   const handleChange = (text: string) => {
     const raw = text.replace(/[^0-9]/g, '');
@@ -35,11 +37,11 @@ export default function ChargeAmountInput({ amount, setAmount }: Props) {
 
   return (
     <View style={styles.wrapper}>
-      <Text style={styles.label}>충전 금액</Text>
+      <Text style={styles.label}>{label}</Text>
       <TextInput
         value={amount ? formatAmount(amount) : ''}
         onChangeText={handleChange}
-        placeholder="충전 금액을 입력해주세요"
+        placeholder="금액을 입력해주세요"
         keyboardType="number-pad"
         style={styles.input}
       />
@@ -51,9 +53,11 @@ export default function ChargeAmountInput({ amount, setAmount }: Props) {
             onPress={() => handleAddQuickAmount(amt)}
           >
             <View style={styles.row}>
-             <Feather name="plus" size={12} color={Colors.white} style={{ marginRight: 4 }} />
-             <Text style={[styles.quickText, { lineHeight: 14 }]}>{`${(amt / 10000).toFixed(0)}만원`}</Text>
-             </View>
+              <Feather name="plus" size={12} color={Colors.white} style={{ marginRight: 4 }} />
+              <Text style={[styles.quickText, { lineHeight: 14 }]}>
+                {(amt / 10000).toFixed(0)}만원
+              </Text>
+            </View>
           </TouchableOpacity>
         ))}
       </View>
@@ -62,11 +66,11 @@ export default function ChargeAmountInput({ amount, setAmount }: Props) {
 }
 
 const styles = StyleSheet.create({
-row: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    },
+  },
   wrapper: {
     backgroundColor: Colors.white,
     borderRadius: 16,

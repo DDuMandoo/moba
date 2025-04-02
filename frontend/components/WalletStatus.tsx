@@ -1,7 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  View, Text, ActivityIndicator, TouchableOpacity,
-  useWindowDimensions, Modal, Pressable, StyleSheet
+  View,
+  Text,
+  ActivityIndicator,
+  TouchableOpacity,
+  useWindowDimensions,
+  Modal,
+  Pressable,
+  StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
@@ -17,6 +23,10 @@ export default function WalletStatus() {
   const 정산내역Ref = useRef<View>(null);
   const [buttonWidth, setButtonWidth] = useState<number | null>(null);
 
+  const router = useRouter();
+  const { width: screenWidth } = useWindowDimensions();
+  const containerWidth = Math.min(screenWidth * 0.9, 635);
+
   useEffect(() => {
     dispatch(fetchWalletBalance());
   }, [dispatch]);
@@ -29,19 +39,23 @@ export default function WalletStatus() {
     }
   }, []);
 
-  const router = useRouter();
-  const { width: screenWidth } = useWindowDimensions();
-  const containerWidth = Math.min(screenWidth * 0.9, 635);
+  // 💳 잔액 변경 시 콘솔 확인
+  useEffect(() => {
+    console.log('💰 [WalletStatus] 잔액 상태 변경됨:', balance);
+  }, [balance]);
+
   const formattedBalance = balance.toLocaleString('ko-KR');
 
   return (
-    <View style={{
-      width: containerWidth,
-      backgroundColor: Colors.white,
-      borderRadius: 16,
-      padding: 20,
-      gap: 16,
-    }}>
+    <View
+      style={{
+        width: containerWidth,
+        backgroundColor: Colors.white,
+        borderRadius: 16,
+        padding: 20,
+        gap: 16,
+      }}
+    >
       {/* 상단: 지갑 텍스트 + 금액 */}
       <View>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
@@ -56,15 +70,18 @@ export default function WalletStatus() {
             onPress={() => setInfoVisible(true)}
           />
         </View>
+
         {isLoading ? (
           <ActivityIndicator size="small" color={Colors.primary} />
         ) : (
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={{
-              fontSize: 24,
-              fontFamily: Fonts.extraBold,
-              color: Colors.text,
-            }}>
+            <Text
+              style={{
+                fontSize: 24,
+                fontFamily: Fonts.extraBold,
+                color: Colors.text,
+              }}
+            >
               {formattedBalance} 원
             </Text>
             <Ionicons
@@ -78,7 +95,7 @@ export default function WalletStatus() {
         )}
       </View>
 
-      {/* 버튼 그룹 복원 */}
+      {/* 버튼 그룹 */}
       <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
         <TouchableOpacity
           ref={정산내역Ref}

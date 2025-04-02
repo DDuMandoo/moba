@@ -16,7 +16,7 @@ export default function ProfileWithEmail({ name, email, imageUri }: ProfileWithE
     <View style={styles.container}>
       <View style={styles.imageBox}>
         <Image
-          source={imageUri ? { uri: imageUri } : require('@/assets/images/default-profile.png')}
+          source={imageUri ? { uri: imageUri } : require('@/assets/images/defaultprofile.png')}
           style={styles.image}
         />
       </View>

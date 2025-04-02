@@ -45,7 +45,7 @@ export default function ChargeConfirmModal({ onClose }: Props) {
         const me = await axiosInstance.get('/members');
         const myId = me.data.result.memberId;
 
-        await axiosInstance.post('/wallets/withdraw', {
+        await axiosInstance.post('/wallets/deposit', {
           memberId: myId,
           amount,
           account: selectedAccount?.account,

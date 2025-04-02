@@ -44,7 +44,7 @@ export default function ProfileHeader({ name, image, isLoading, isError }: Props
       <Image
         source={
           !image || image.trim() === '' || imgError
-            ? require('@/assets/images/default-profile.png') // 기본 이미지 fallback
+            ? require('@/assets/images/defaultprofile.png') // 기본 이미지 fallback
             : { uri: image }
         }
         onError={() => setImgError(true)}

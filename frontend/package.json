@@ -57,14 +57,10 @@
     "react-native-screens": "~4.4.0",
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5",
-<<<<<<< HEAD
     "react-redux": "^9.2.0",
     "expo-build-properties": "~0.13.2",
     "expo-dev-client": "~5.0.15",
     "expo-image": "~2.0.7"
-=======
-    "react-redux": "^9.2.0"
->>>>>>> 066a23782788661818cef7134f8b3ed85029a224
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

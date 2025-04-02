@@ -8,13 +8,13 @@ import {
   StyleSheet,
   Modal,
   ScrollView,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
 import { BANKS, getBankMeta } from '@/constants/banks';
 import { Ionicons } from '@expo/vector-icons';
 import VerifyCodeModal from '@/components/account/AccountVerifyModal';
+import ErrorModal from '@/components/modal/ErrorModal'; // ✅ 추가
 import axiosInstance from '@/app/axiosInstance';
 
 export default function AccountAddPage() {
@@ -23,13 +23,14 @@ export default function AccountAddPage() {
   const [accountNumber, setAccountNumber] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false); // ✅ 추가
 
   const currentBankMeta = getBankMeta(selectedBank);
 
   const handleConnect = async () => {
     if (!selectedBank || !accountNumber) return;
 
-    const formattedAccount = accountNumber.trim(); // ✅ 하이픈 포함 그대로 사용
+    const formattedAccount = accountNumber.trim();
 
     try {
       console.log('📤 계좌 등록 요청:', {
@@ -46,7 +47,7 @@ export default function AccountAddPage() {
       setShowVerifyModal(true);
     } catch (error: any) {
       console.log('❌ 계좌 등록 실패:', error?.response?.data);
-      Alert.alert('계좌 등록 실패', error?.response?.data?.message || '계좌 등록에 실패했습니다.');
+      setShowErrorModal(true); // ✅ 모달 열기
     }
   };
 
@@ -106,7 +107,7 @@ export default function AccountAddPage() {
           value={accountNumber}
           onChangeText={setAccountNumber}
           placeholder="예: 196-15404-392"
-          keyboardType="default" // ✅ 숫자+하이픈 허용
+          keyboardType="default"
           placeholderTextColor={Colors.grayLightText}
         />
       </View>
@@ -145,16 +146,21 @@ export default function AccountAddPage() {
           onClose={() => setShowVerifyModal(false)}
           onVerify={() => {
             setShowVerifyModal(false);
-            Alert.alert('✅ 인증 완료', '계좌 인증이 완료되었습니다.');
-            router.replace('/wallet/account'); // ✅ 강제 리마운트 유도
-
+            router.push(
+              `/wallet/account/accountconnectedcomplete?bank=${selectedBank}&account=${accountNumber}`
+            );
           }}
-          onResend={() => {
-            // 재전송 로직 필요 시 구현
-          }}
+          onResend={() => {}}
           timeLeft={180}
         />
       </Modal>
+
+      {/* 에러 모달 */}
+      <ErrorModal
+        visible={showErrorModal}
+        message="잘못된 계좌번호입니다."
+        onClose={() => setShowErrorModal(false)}
+      />
     </ScrollView>
   );
 }

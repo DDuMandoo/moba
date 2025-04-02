@@ -11,7 +11,6 @@ import com.a601.moba.global.exception.CommonException;
 import com.a601.moba.global.service.S3Service;
 import com.a601.moba.member.Entity.Member;
 import com.a601.moba.member.Repository.MemberRepository;
-import com.a601.moba.member.Service.MemberService;
 import com.a601.moba.wallet.Service.WalletService;
 import java.util.Optional;
 import java.util.Random;

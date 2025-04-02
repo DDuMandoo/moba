@@ -49,7 +49,8 @@ public class AuthUtil {
         Object principal = authentication.getPrincipal();
 
         if (principal instanceof Member member) {
-            return member;
+            return memberRepository.findById(member.getId())
+                    .orElseThrow(() -> new AuthException(ErrorCode.UNAUTHORIZED_ACCESS));
         }
 
         throw new AuthException(ErrorCode.UNAUTHORIZED_ACCESS);

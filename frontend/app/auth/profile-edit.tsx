@@ -17,7 +17,9 @@ import { Button } from '@/components/ui/Button';
 import LoadingModal from '@/components/modal/LoadingModal';
 import CustomAlert from '@/components/CustomAlert';
 import axiosInstance from '@/app/axiosInstance';
+import { clearTokens } from '@/app/axiosInstance';
 import { fetchUserProfile } from '@/redux/slices/userSlice';
+import * as FileSystem from 'expo-file-system';
 
 export default function EditProfileScreen() {
   const router = useRouter();
@@ -33,6 +35,8 @@ export default function EditProfileScreen() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState<{ title: string; message?: string } | null>(null);
+  const [showWithdrawAlert, setShowWithdrawAlert] = useState(false);
+
 
   useEffect(() => {
     dispatch(fetchUserProfile());
@@ -61,35 +65,50 @@ export default function EditProfileScreen() {
 
   const handleSave = async () => {
     Keyboard.dismiss();
-
+  
     if (newPassword && newPassword !== confirmPassword) {
       return showAlert('비밀번호 오류', '비밀번호가 서로 다릅니다.');
     }
-
-    const formData = new FormData();
-    if (name.trim() !== '') formData.append('name', name);
-    if (newPassword) formData.append('password', newPassword);
-    if (image && image !== user?.image) {
-      const fileName = image.split('/').pop();
-      const file = {
-        uri: image,
-        name: fileName,
-        type: 'image/jpeg'
-      } as any;
-      formData.append('image', file);
-    }
-
+  
+    const payload = {
+      name: name.trim(),
+      password: newPassword || ''
+    };
+  
     try {
       setLoading(true);
+  
+      // ✅ 1. JSON 파일 생성
+      const fileUri = FileSystem.documentDirectory + 'data.json';
+      await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(payload), {
+        encoding: FileSystem.EncodingType.UTF8
+      });
+  
+      // ✅ 2. FormData 구성
+      const formData = new FormData();
+      formData.append('data', {
+        uri: fileUri,
+        name: 'data.json',
+        type: 'application/json'
+      } as any);
+  
+      if (image) {
+        formData.append('image', {
+          uri: image,
+          name: 'profile.jpg',
+          type: 'image/jpeg'
+        } as any);
+      }
+  
+      // ✅ 3. API 요청
       const res = await axiosInstance.patch('/members/update', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
-
+  
       if (res.status === 200) {
         showAlert('성공', '프로필이 수정되었습니다.');
-        console.log('✅ 프로필 수정 성공:', res.data);
         await new Promise((r) => setTimeout(r, 700));
         await dispatch(fetchUserProfile()).unwrap();
         setTimeout(() => router.back(), 500);
@@ -97,12 +116,36 @@ export default function EditProfileScreen() {
         showAlert('오류', '프로필 수정에 실패했습니다.');
       }
     } catch (e) {
+      console.error('❌ 프로필 수정 실패:', e);
       showAlert('에러', '서버 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleWithdraw = () => {
+    setShowWithdrawAlert(true);
+  };
+
+  const handleWithdrawConfirm = async () => {
+    try {
+      setLoading(true);
+      const res = await axiosInstance.delete('/members');
+      if (res.status === 200) {
+        await clearTokens();
+        router.replace('/auth/login');
+      } else {
+        showAlert('오류', '회원 탈퇴에 실패했습니다.');
+      }
+    } catch (err) {
+      console.error('❌ 회원 탈퇴 실패:', err);
+      showAlert('에러', '탈퇴 중 문제가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.imagePicker} onPress={handlePickImage}>
@@ -169,6 +212,13 @@ export default function EditProfileScreen() {
         textColor={Colors.white}
       />
 
+      <TouchableOpacity onPress={handleWithdraw} style={{ marginTop: 16 }}>
+        <Text style={{ color: Colors.grayDarkText, textAlign: 'right', fontSize: 14 }}>
+          회원 탈퇴
+        </Text>
+      </TouchableOpacity>
+
+
       <LoadingModal visible={loading} />
       <CustomAlert
         visible={!!alert}
@@ -176,6 +226,17 @@ export default function EditProfileScreen() {
         message={alert?.message}
         onClose={() => setAlert(null)}
       />
+
+      <CustomAlert
+        visible={showWithdrawAlert}
+        title="정말 탈퇴하시겠어요?"
+        message="이 작업은 되돌릴 수 없습니다."
+        onClose={() => setShowWithdrawAlert(false)}
+        onConfirm={handleWithdrawConfirm}
+        cancelText="취소"
+        confirmText="탈퇴하기"
+      />
+
     </View>
   );
 }

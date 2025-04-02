@@ -67,7 +67,7 @@ export default function ForgotPasswordScreen() {
       console.log('❌ 유효하지 않은 이메일 형식:', email);
       return showAlert('이메일 오류', '올바른 이메일 주소를 입력해주세요.');
     }
-  
+    console.log(BASE_URL);
     try {
       console.log('🔍 이메일 중복 확인 시작:', email);
       setLoadingVisible(true);
@@ -123,9 +123,9 @@ export default function ForgotPasswordScreen() {
   const handleResetPassword = async () => {
     Keyboard.dismiss();
     if (!email || !isEmailVerified) return showAlert('입력 오류', '이메일 인증을 완료해주세요.');
-  
+    
     setLoadingVisible(true); // ✅ 로딩 모달 시작
-  
+    
     try {
       const res = await axiosInstance.post(`${BASE_URL}/members/password/reset`, { email });
       if (res.status === 200) {

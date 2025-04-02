@@ -2,11 +2,11 @@ import 'dotenv/config';
 
 export default {
   expo: {
-    name: 'frontend',
+    name: '모여바라',
     slug: 'frontend',
     version: '1.0.0',
     orientation: 'portrait',
-    icon: './assets/images/icon.png',
+    icon: './assets/icons/header/Logo.png',
     scheme: 'myapp',
     userInterfaceStyle: 'automatic',
     newArchEnabled: true,
@@ -17,8 +17,8 @@ export default {
     android: {
       package: 'com.erin523.frontend',
       adaptiveIcon: {
-        foregroundImage: './assets/images/adaptive-icon.png',
-        backgroundColor: '#ffffff'
+        foregroundImage: './assets/icons/header/Logo.png',
+        backgroundColor: '#F2F0EF'
       }
     },
     web: {
@@ -31,10 +31,10 @@ export default {
       [
         'expo-splash-screen',
         {
-          image: './assets/images/splash-icon.png',
-          imageWidth: 200,
+          image: './assets/images/login_image.png',
+          imageWidth: 400,
           resizeMode: 'contain',
-          backgroundColor: '#ffffff'
+          backgroundColor: '#B29486'
         }
       ],
       [

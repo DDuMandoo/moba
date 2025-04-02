@@ -1,6 +1,5 @@
 package com.a601.moba.appointment.Service;
 
-import com.a601.moba.appointment.Controller.Response.AppointmentSearchResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentSearchWithMembersResponse;
 import com.a601.moba.appointment.Controller.Response.MemberSearchResponse;
 import com.a601.moba.appointment.Entity.Appointment;
@@ -27,9 +26,9 @@ public class AppointmentSearchService {
     private final AppointmentParticipantRepository appointmentParticipantRepository;
     private final AuthUtil authUtil;
 
-    public AppointmentSearchResponse searchAppointments(String keyword, int size, Integer cursorId) {
+    public AppointmentSearchWithMembersResponse searchAppointments(String keyword, int size, Integer cursorId) {
         if (keyword == null || keyword.trim().isEmpty()) {
-            return new AppointmentSearchResponse(List.of(), null);
+            return new AppointmentSearchWithMembersResponse(List.of(), null);
         }
 
         Member member = authUtil.getCurrentMember();
@@ -38,20 +37,38 @@ public class AppointmentSearchService {
                 .findByNameContainingAndParticipantWithCursor(member.getId(), keyword, cursorId,
                         PageRequest.of(0, size));
 
-        List<AppointmentSearchResponse.AppointmentResult> results = appointments.stream()
-                .map(appointment -> new AppointmentSearchResponse.AppointmentResult(
-                        appointment.getId(),
-                        appointment.getName(),
-                        appointment.getTime(),
-                        appointment.getImage(),
-                        appointment.getIsEnded()
-                ))
+        List<AppointmentSearchWithMembersResponse.AppointmentInfo> results = appointments.stream()
+                .map(appointment -> {
+                    List<AppointmentParticipant> participants =
+                            appointmentParticipantRepository.findAllByAppointmentId(appointment.getId());
+
+                    List<AppointmentSearchWithMembersResponse.MemberInfo> memberInfos = participants.stream()
+                            .map(p -> {
+                                Member m = p.getMember();
+                                return AppointmentSearchWithMembersResponse.MemberInfo.builder()
+                                        .memberId(m.getId())
+                                        .name(m.getName())
+                                        .email(m.getEmail())
+                                        .profileImage(m.getProfileImage())
+                                        .build();
+                            })
+                            .toList();
+
+                    return AppointmentSearchWithMembersResponse.AppointmentInfo.builder()
+                            .appointmentId(appointment.getId())
+                            .name(appointment.getName())
+                            .time(appointment.getTime())
+                            .imageUrl(appointment.getImage())
+                            .isEnded(appointment.getIsEnded())
+                            .members(memberInfos)
+                            .build();
+                })
                 .toList();
 
         Integer nextCursorId = appointments.isEmpty() ? null :
                 appointments.get(appointments.size() - 1).getId();
 
-        return new AppointmentSearchResponse(results, nextCursorId);
+        return new AppointmentSearchWithMembersResponse(results, nextCursorId);
     }
 
     @Transactional(readOnly = true)

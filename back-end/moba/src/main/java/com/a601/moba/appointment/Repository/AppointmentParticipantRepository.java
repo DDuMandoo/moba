@@ -22,6 +22,7 @@ public interface AppointmentParticipantRepository extends JpaRepository<Appointm
 
     List<AppointmentParticipant> findByAppointment(Appointment appointment);
 
+    List<AppointmentParticipant> findByAppointmentAndState(Appointment appointment, State state);
 
     @Query("""
                 SELECT COUNT(DISTINCT ap.appointment.id)

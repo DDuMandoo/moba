@@ -50,6 +50,9 @@ public class Appointment extends BaseTimeEntity {
 
     private LocalDateTime deletedAt;
 
+    @Column(nullable = false)
+    private boolean reminderSent = false;
+
     public void update(String name, String image, LocalDateTime time,
                        Double latitude, Double longitude, String memo) {
         this.name = name;
@@ -67,5 +70,9 @@ public class Appointment extends BaseTimeEntity {
     public void end() {
         this.isEnded = true;
         this.deletedAt = LocalDateTime.now();
+    }
+
+    public void markReminderSent() {
+        this.reminderSent = true;
     }
 }

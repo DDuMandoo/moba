@@ -1,0 +1,3 @@
+spring:
+  firebase:
+    path: ${FCM_CREDENTIALS_PATH}

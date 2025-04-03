@@ -6,6 +6,7 @@ import com.a601.moba.appointment.Entity.AppointmentParticipant;
 import com.a601.moba.appointment.Repository.AppointmentParticipantRepository;
 import com.a601.moba.appointment.Repository.AppointmentRepository;
 import com.a601.moba.global.code.ErrorCode;
+import com.a601.moba.member.Entity.Member;
 import com.a601.moba.member.Repository.MemberRepository;
 import com.a601.moba.notification.Service.NotificationService;
 import com.a601.moba.notification.exception.SendAppointmentException;
@@ -42,7 +43,8 @@ public class AppointmentReminderScheduler {
                         appointment, State.JOINED);
                 for (AppointmentParticipant participant : participants) {
                     try {
-                        notificationService.sendReminder(participant.getMember(), participant.getMember(),
+                        Member member = participant.getMember();
+                        notificationService.sendReminder(member, member,
                                 appointment.getId(),
                                 appointment.getName());
                     } catch (FirebaseMessagingException e) {

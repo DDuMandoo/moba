@@ -11,6 +11,7 @@ import com.a601.moba.notification.entity.Notification.Type;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/notifications")
+@Slf4j
 public class NotificationController {
 
     private final NotificationService notificationService;
@@ -29,6 +31,7 @@ public class NotificationController {
 
     @PostMapping("/test")
     public ResponseEntity<JSONResponse<Void>> sendTestNotification() throws FirebaseMessagingException {
+        log.info("TEST");
         Member member = authUtil.getCurrentMember();
         NotificationRequest dto = NotificationRequest.builder().
                 receiverId(member.getId())

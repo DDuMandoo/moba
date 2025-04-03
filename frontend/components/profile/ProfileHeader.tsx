@@ -7,21 +7,18 @@ interface Props {
   image: string;
   isLoading: boolean;
   isError: boolean;
+  titleFormat?: (name: string) => string; // ✅ 포맷 함수
 }
 
-export default function ProfileHeader({ name, image, isLoading, isError }: Props) {
+export default function ProfileHeader({
+  name,
+  image,
+  isLoading,
+  isError,
+  titleFormat,
+}: Props) {
   const [imgError, setImgError] = useState(false);
 
-  // ✅ 디버깅용 로그
-  console.log('📢 [ProfileHeader Props]', {
-    name,
-    image,
-    isLoading,
-    isError,
-    imgError,
-  });
-
-  // ✅ 로딩 상태일 때
   if (isLoading) {
     return (
       <View style={{ alignItems: 'center', marginVertical: 20 }}>
@@ -30,7 +27,6 @@ export default function ProfileHeader({ name, image, isLoading, isError }: Props
     );
   }
 
-  // ✅ 에러 상태 또는 이름 없음
   if (isError || !name || name.trim() === '') {
     return (
       <Text style={{ fontSize: 16, fontWeight: 'bold', color: Colors.grayDarkText }}>
@@ -44,20 +40,20 @@ export default function ProfileHeader({ name, image, isLoading, isError }: Props
       <Image
         source={
           !image || image.trim() === '' || imgError
-            ? require('@/assets/images/defaultprofile.png') // 기본 이미지 fallback
+            ? require('@/assets/images/defaultprofile.png')
             : { uri: image }
         }
         onError={() => setImgError(true)}
         style={{
           width: 56,
           height: 56,
-          borderRadius: 28,
+          borderRadius: 20,
           backgroundColor: Colors.grayLightText,
           marginRight: 12,
         }}
       />
       <Text style={{ fontSize: 18, fontWeight: 'bold', color: Colors.text }}>
-        {name}
+        {titleFormat ? titleFormat(name) : name}
       </Text>
     </View>
   );

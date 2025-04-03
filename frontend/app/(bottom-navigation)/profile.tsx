@@ -167,6 +167,7 @@ export default function MyPageScreen() {
           {filteredPromises.map((promise) => (
             <PromiseCard
               key={promise.appointmentId}
+              appointmentId={promise.appointmentId}
               imageUrl={promise.imageUrl}
               title={promise.name}
               time={promise.time}
@@ -178,7 +179,7 @@ export default function MyPageScreen() {
                   params: { id: String(promise.appointmentId) }
                 })
               }              
-            />
+            />          
           ))}
         </View>
       </ScrollView>

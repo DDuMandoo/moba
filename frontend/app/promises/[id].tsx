@@ -8,8 +8,9 @@ import {
   FlatList,
   StyleSheet,
   Dimensions,
-  NativeSyntheticEvent,
   ScrollView,
+  Image,
+  NativeSyntheticEvent,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Ionicons, Feather } from '@expo/vector-icons';
@@ -37,32 +38,17 @@ export default function AppointmentDetailPage() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { profile } = useAppSelector((state) => state.user);
   const insets = useSafeAreaInsets();
-  const pagerRef = useRef<PagerView>(null);
-
-  const [appointment, setAppointment] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(0);
+  const pagerRef = useRef(null);
+  const panRef = useRef(null);
 
   const translateY = useSharedValue(0);
   const HEADER_MARGIN = insets.top + 60;
   const minTranslateY = -TOP_IMAGE_HEIGHT + HEADER_MARGIN;
   const maxTranslateY = 0;
 
-  const gestureHandler = useAnimatedGestureHandler({
-    onActive: (event) => {
-      translateY.value = Math.max(minTranslateY, Math.min(maxTranslateY, translateY.value + event.translationY));
-    },
-    onEnd: () => {
-      translateY.value = withSpring(
-        translateY.value < minTranslateY / 2 ? minTranslateY : maxTranslateY,
-        { damping: 20 }
-      );
-    },
-  });
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-  }));
+  const [appointment, setAppointment] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(0);
 
   const getAppointment = async () => {
     if (!id) return;
@@ -80,15 +66,23 @@ export default function AppointmentDetailPage() {
     if (id) getAppointment();
   }, [id]);
 
-  if (loading || !appointment) {
-    return (
-      <View style={styles.centeredContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
-    );
-  }
+  const isHost = profile?.memberId === appointment?.hostId;
 
-  const isHost = profile?.memberId === appointment.hostId;
+  const gestureHandler = useAnimatedGestureHandler({
+    onActive: (event) => {
+      translateY.value = Math.max(minTranslateY, Math.min(maxTranslateY, translateY.value + event.translationY));
+    },
+    onEnd: () => {
+      translateY.value = withSpring(
+        translateY.value < minTranslateY / 2 ? minTranslateY : maxTranslateY,
+        { damping: 20 }
+      );
+    },
+  });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
 
   const handleDotPress = (index: number) => {
     pagerRef.current?.setPage(index);
@@ -98,6 +92,14 @@ export default function AppointmentDetailPage() {
   const handlePageSelected = (e: NativeSyntheticEvent<PagerViewOnPageSelectedEventData>) => {
     setCurrentPage(e.nativeEvent.position);
   };
+
+  if (loading || !appointment) {
+    return (
+      <View style={styles.centeredContainer}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -122,9 +124,18 @@ export default function AppointmentDetailPage() {
         </View>
       </ImageBackground>
 
-      <PanGestureHandler onGestureEvent={gestureHandler}>
-        <Animated.View style={[styles.contentBox, animatedStyle]}>
-          <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} nestedScrollEnabled>
+      <PanGestureHandler
+        ref={panRef}
+        simultaneousHandlers={pagerRef}
+        waitFor={pagerRef}
+        onGestureEvent={gestureHandler}
+      >
+        <Animated.View style={[animatedStyle, { flex: 1 }]}>
+          <ScrollView
+            style={styles.topContent}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
             <View style={styles.infoBox}>
               <View style={styles.titleRow}>
                 <Text style={styles.title}>{appointment.name}</Text>
@@ -149,7 +160,7 @@ export default function AppointmentDetailPage() {
                 <View style={{ alignItems: 'center' }}>
                   <View style={styles.profileImageBox}>
                     {item.profileImage ? (
-                      <ImageBackground source={{ uri: item.profileImage }} style={styles.profileImage} />
+                      <Image source={{ uri: item.profileImage }} style={styles.profileImage} />
                     ) : (
                       <View style={styles.profilePlaceholder}>
                         <Text>{item.name.charAt(0)}</Text>
@@ -166,32 +177,24 @@ export default function AppointmentDetailPage() {
               <TouchableOpacity style={styles.smallBtn}><Text style={styles.smallBtnText}>채팅</Text></TouchableOpacity>
             </View>
 
-            <View style={{ alignItems: 'center', marginVertical: 10 }}>
+            <View style={styles.bottomContent}>
               <DotIndicator activeIndex={currentPage} onDotPress={handleDotPress} />
-            </View>
-
-            <View style={styles.pagerWrapper}>
               <PagerView
                 ref={pagerRef}
                 style={styles.pagerView}
                 initialPage={0}
                 onPageSelected={handlePageSelected}
-                scrollEnabled={true}
               >
                 <View key="map" style={styles.pagerPage}>
-                  <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled>
-                    <MapViewSection
-                      latitude={appointment.latitude}
-                      longitude={appointment.longitude}
-                      places={[{ title: appointment.memo || '장소 없음', order: 1 }]}
-                      isHost={isHost}
-                    />
-                  </ScrollView>
+                  <MapViewSection
+                    latitude={appointment.latitude}
+                    longitude={appointment.longitude}
+                    places={[{ title: appointment.memo || '장소 없음', order: 1 }]}
+                    isHost={isHost}
+                  />
                 </View>
                 <View key="interest" style={styles.pagerPage}>
-                  <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled>
-                    <InterestViewSection />
-                  </ScrollView>
+                  <InterestViewSection />
                 </View>
               </PagerView>
             </View>
@@ -205,13 +208,12 @@ export default function AppointmentDetailPage() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.white },
   centeredContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  headerImage: { position: 'absolute', width: '100%', height: TOP_IMAGE_HEIGHT, top: 0, left: 0, right: 0 },
+  headerImage: { position: 'absolute', width: '100%', height: TOP_IMAGE_HEIGHT },
   headerOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(233,217,197,0.7)' },
   headerButtons: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, position: 'absolute', width: '100%', zIndex: 10 },
   headerRightButtons: { flexDirection: 'row', gap: 10 },
   iconButton: { borderWidth: 1, borderColor: Colors.black, borderRadius: 10, padding: 6 },
-  contentBox: {
-    flex: 1,
+  topContent: {
     marginTop: TOP_IMAGE_HEIGHT,
     backgroundColor: Colors.white,
     borderTopLeftRadius: 40,
@@ -232,7 +234,7 @@ const styles = StyleSheet.create({
   profilePlaceholder: { width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' },
   smallBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12, borderColor: Colors.grayDarkText, borderWidth: 1 },
   smallBtnText: { fontSize: 13, color: Colors.text },
-  pagerWrapper: { height: SCREEN_HEIGHT * 0.6 },
+  bottomContent: { flex: 1, marginTop: 20, height: SCREEN_HEIGHT * 0.6 },
   pagerView: { flex: 1 },
   pagerPage: { flex: 1 },
 });

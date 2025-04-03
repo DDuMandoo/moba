@@ -35,4 +35,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
                                           Pageable pageable);
 
     List<Appointment> findByTimeBetweenAndIsEndedFalseAndReminderSentFalse(LocalDateTime from, LocalDateTime to);
+
+    List<Appointment> findByTimeBetweenAndIsEndedFalse(LocalDateTime now, LocalDateTime tenMinutesLater);
 }

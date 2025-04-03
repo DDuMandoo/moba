@@ -58,19 +58,11 @@ public class AppointmentParticipant {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    private Double latitude;
-    private Double longitude;
-
     public void updateState(State newState) {
         this.state = newState;
     }
 
     public void updateRole(Role role) {
         this.role = role;
-    }
-
-    public void updateLocation(Double latitude, Double longitude) {
-        this.latitude = latitude;
-        this.longitude = longitude;
     }
 }

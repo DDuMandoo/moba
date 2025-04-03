@@ -11,11 +11,13 @@ import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
@@ -76,8 +78,6 @@ public class NotificationService {
                 .type(Type.REMINDER)
                 .deepLink("/appointments/" + appointmentId)
                 .build());
-
-
     }
 
     public void sendSettlementStarted(Member sender, Member receiver, String appointmentTitle, int totalAmount,

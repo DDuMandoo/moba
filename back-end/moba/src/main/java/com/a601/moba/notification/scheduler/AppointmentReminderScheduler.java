@@ -13,11 +13,13 @@ import com.google.firebase.messaging.FirebaseMessagingException;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class AppointmentReminderScheduler {
 
     private final AppointmentRepository appointmentRepository;
@@ -32,7 +34,6 @@ public class AppointmentReminderScheduler {
 
         LocalDateTime from = targetTime.minusSeconds(30);
         LocalDateTime to = targetTime.plusSeconds(30);
-
         List<Appointment> appointments = appointmentRepository.findByTimeBetweenAndIsEndedFalseAndReminderSentFalse(
                 from, to);
         for (Appointment appointment : appointments) {
@@ -40,18 +41,17 @@ public class AppointmentReminderScheduler {
                 List<AppointmentParticipant> participants = appointmentParticipantRepository.findByAppointmentAndState(
                         appointment, State.JOINED);
                 for (AppointmentParticipant participant : participants) {
-                    memberRepository.findById(participant.getId())
-                            .ifPresent(member -> {
-                                try {
-                                    notificationService.sendReminder(null, member, appointment.getId(),
-                                            appointment.getName());
-                                } catch (FirebaseMessagingException e) {
-                                    throw new SendAppointmentException(ErrorCode.FCM_TOKEN_SEND_APPOINTMENT);
-                                }
-                            });
+                    try {
+                        notificationService.sendReminder(participant.getMember(), participant.getMember(),
+                                appointment.getId(),
+                                appointment.getName());
+                    } catch (FirebaseMessagingException e) {
+                        throw new SendAppointmentException(ErrorCode.FCM_TOKEN_SEND_APPOINTMENT);
+                    }
 
                 }
             } catch (Exception e) {
+                log.error("📛 약속 푸시 알림 실패 - appointmentId: {}, error: {}", appointment.getId(), e.getMessage(), e);
                 throw new SendAppointmentException(ErrorCode.FCM_TOKEN_SEND_APPOINTMENT_MYSERVER);
             }
         }

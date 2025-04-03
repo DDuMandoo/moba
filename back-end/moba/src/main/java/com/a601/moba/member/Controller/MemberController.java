@@ -12,17 +12,21 @@ import com.a601.moba.member.Controller.Response.MemberUpdateResponse;
 import com.a601.moba.member.Entity.Member;
 import com.a601.moba.member.Service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/members")
@@ -49,12 +53,27 @@ public class MemberController {
         return ResponseEntity.ok(JSONResponse.onSuccess(response));
     }
 
-    @Operation(summary = "회원 정보 수정", description = "회원 이름 또는 프로필 이미지를 수정합니다.")
-    @PatchMapping("/update")
+    @Operation(
+            summary = "회원 정보 수정",
+            description = "회원 이름, 비밀번호 또는 프로필 이미지를 수정합니다.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "수정할 회원 정보 (JSON + 이미지)",
+                    required = true,
+                    content = @Content(
+                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            encoding = {
+                                    @Encoding(name = "data", contentType = MediaType.APPLICATION_JSON_VALUE),
+                                    @Encoding(name = "image", contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+                            }
+                    )
+            )
+    )
+    @PatchMapping(value = "/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<JSONResponse<MemberUpdateResponse>> updateMemberInfo(
-            @ModelAttribute MemberUpdateRequest request
+            @RequestPart("data") MemberUpdateRequest request,
+            @RequestPart(value = "image", required = false) MultipartFile profileImage
     ) {
-        MemberUpdateResponse response = memberService.updateMemberInfo(request);
+        MemberUpdateResponse response = memberService.updateMemberInfo(request, profileImage);
         return ResponseEntity.ok(JSONResponse.onSuccess(response));
     }
 

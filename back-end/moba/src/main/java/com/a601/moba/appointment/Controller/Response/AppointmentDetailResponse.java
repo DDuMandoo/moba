@@ -15,7 +15,8 @@ public record AppointmentDetailResponse(
         String memo,
         Boolean isEnded,
         List<ParticipantInfo> participants,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        Integer hostId
 ) {
     @Builder
     public record ParticipantInfo(

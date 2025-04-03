@@ -27,13 +27,13 @@ public class Place {
     @JoinColumn(name = "sigungu", nullable = false)
     private Sigungu sigungu;
 
-    @Column(nullable = false, length = 10)
+    @Column(nullable = false)
     private String category;
 
-    @Column(name = "detail_category", nullable = false, length = 10)
+    @Column(name = "detail_category", nullable = false)
     private String detailCategory;
 
-    @Column(name = "company_name", nullable = false, length = 30)
+    @Column(name = "company_name", nullable = false)
     private String companyName;
 
     @Column(nullable = false)
@@ -42,7 +42,7 @@ public class Place {
     @Column(nullable = false)
     private Double longitude;
 
-    @Column(nullable = false, length = 35)
+    @Column(nullable = false)
     private String address;
 
     @Column(name = "kakao_url")

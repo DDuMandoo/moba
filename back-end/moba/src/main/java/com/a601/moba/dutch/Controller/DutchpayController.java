@@ -4,14 +4,18 @@ import com.a601.moba.dutch.Controller.Request.CompleteDutchpayRequest;
 import com.a601.moba.dutch.Controller.Request.CreateDutchpayRequest;
 import com.a601.moba.dutch.Controller.Response.CompleteDutchpayResponse;
 import com.a601.moba.dutch.Controller.Response.CreateDutchpayResponse;
+import com.a601.moba.dutch.Controller.Response.GetDemandDutchpayResponse;
+import com.a601.moba.dutch.Controller.Response.GetReceiptDutchpayResponse;
 import com.a601.moba.dutch.Controller.Response.TransferDutchpayResponse;
 import com.a601.moba.dutch.Service.DutchpayService;
 import com.a601.moba.global.code.SuccessCode;
 import com.a601.moba.global.response.JSONResponse;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -57,5 +61,37 @@ public class DutchpayController {
         TransferDutchpayResponse response = dutchpayService.transfer(dutchpayId);
 
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.COMPLETE_DUTCHPAY_SUCCESS, response));
+    }
+
+    @GetMapping("/demand")
+    public ResponseEntity<JSONResponse<List<GetDemandDutchpayResponse>>> getDemands() {
+        List<GetDemandDutchpayResponse> responses = dutchpayService.getDemands();
+
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.READ_DEMAND_DUTCHPAY_SUCCESS, responses));
+    }
+
+    @GetMapping("/{dutchpayId}/demand")
+    public ResponseEntity<JSONResponse<GetDemandDutchpayResponse>> getDemand(
+            @PathVariable Integer dutchpayId
+    ) {
+        GetDemandDutchpayResponse response = dutchpayService.getDemand(dutchpayId);
+
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.READ_DEMAND_DUTCHPAY_SUCCESS, response));
+    }
+
+    @GetMapping("/receipt")
+    public ResponseEntity<JSONResponse<List<GetReceiptDutchpayResponse>>> getReceipts() {
+        List<GetReceiptDutchpayResponse> responses = dutchpayService.getReceipts();
+
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.READ_RECEIPT_DUTCHPAY_SUCCESS, responses));
+    }
+
+    @GetMapping("/{dutchpayId}/receipt")
+    public ResponseEntity<JSONResponse<GetReceiptDutchpayResponse>> getReceipt(
+            @PathVariable Integer dutchpayId
+    ) {
+        GetReceiptDutchpayResponse response = dutchpayService.getReceipt(dutchpayId);
+
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.READ_RECEIPT_DUTCHPAY_SUCCESS, response));
     }
 }

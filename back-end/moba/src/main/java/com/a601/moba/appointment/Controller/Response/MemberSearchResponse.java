@@ -3,15 +3,15 @@ package com.a601.moba.appointment.Controller.Response;
 import java.util.List;
 import lombok.Builder;
 
-@Builder
-public record AppointmentParticipantResponse(
-        Integer appointmentId,
-        List<ParticipantInfo> participants
+public record MemberSearchResponse(
+        List<MemberInfo> members,
+        Integer cursorId
 ) {
     @Builder
-    public record ParticipantInfo(
+    public record MemberInfo(
             Integer memberId,
             String name,
+            String email,
             String profileImage
     ) {
     }

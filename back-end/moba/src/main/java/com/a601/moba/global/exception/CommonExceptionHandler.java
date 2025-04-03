@@ -66,7 +66,7 @@ public class CommonExceptionHandler {
     // 서버 내부 오류 (SQL 연결 오류 등) 처리
     @ExceptionHandler(Exception.class)
     public ResponseEntity<JSONResponse<Object>> handlerException(final Exception e) {
-        log.error(e.getMessage());
+        log.error("Unexpected error occurred", e);
         return ResponseEntity
                 .status(INTERNAL_SERVER_ERROR)
                 .body(JSONResponse.onFailure(ErrorCode.SERVER_ERROR));

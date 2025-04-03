@@ -10,7 +10,7 @@ import Colors from '@/constants/Colors';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { fetchUserProfile } from '@/redux/slices/userSlice';
 import ProfileHeader from '@/components/profile/ProfileHeader';
-import PromiseCard from '@/components/PromiseCard';
+import PromiseCard from '@/components/promises/PromiseCard';
 import axiosInstance from '@/app/axiosInstance';
 import { useRouter } from 'expo-router';
 

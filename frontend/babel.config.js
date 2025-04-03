@@ -10,7 +10,7 @@ module.exports = function (api) {
         safe: true,
         allowUndefined: false,
       }],
-      'react-native-reanimated/plugin' // ✅ 맨 아래 줄에 꼭 넣기!
+      'react-native-reanimated/plugin'
     ],
   };
 };

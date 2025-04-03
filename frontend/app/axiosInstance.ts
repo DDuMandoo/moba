@@ -1,6 +1,5 @@
 // ✅ app/axiosInstance.ts
 import axios from 'axios';
-import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 
@@ -56,7 +55,6 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
@@ -73,12 +71,13 @@ axiosInstance.interceptors.response.use(
         const { accessToken, refreshToken: newRefreshToken } = res.data.result;
         await saveTokens(accessToken, newRefreshToken);
 
-        originalRequest.headers.Authorization = `Bearer ${refreshToken}`;
+        // ✅ 재시도 시에는 새 accessToken으로 설정
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return axiosInstance(originalRequest);
       } catch (err) {
         console.error('🔴 토큰 갱신 실패', err);
         await clearTokens();
-        router.replace('/');
+        router.replace('/'); // 로그인 페이지 등으로 이동
         return Promise.reject(err);
       }
     }

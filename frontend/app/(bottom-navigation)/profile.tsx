@@ -11,7 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import ProfileWithEmail from '@/components/profile/ProfileWithEmail';
-import PromiseCard from '@/components/PromiseCard';
+import PromiseCard from '@/components/promises/PromiseCard';
 import SettingsOverlay from '@/components/modal/SettingOverlay';
 import ConfirmPasswordModal from '@/components/modal/ConfilmPasswordModal';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
@@ -166,16 +166,20 @@ export default function MyPageScreen() {
         <View style={styles.promiseList}>
           {filteredPromises.map((promise) => (
             <PromiseCard
-            key={promise.appointmentId}
-            appointmentId={promise.appointmentId} // ✅ 이 줄 추가!
-            imageUrl={promise.imageUrl}
-            title={promise.name}
-            time={promise.time}
-            location={promise.memo}
-            participants={[]} // 나중에 제거해도 됨
-            onPress={() => router.push(`/promises/${promise.appointmentId}`)}
-          />
-          
+              key={promise.appointmentId}
+              appointmentId={promise.appointmentId}
+              imageUrl={promise.imageUrl}
+              title={promise.name}
+              time={promise.time}
+              location={promise.memo}
+              participants={[]} // 참여자 정보 필요시 추가
+              onPress={() =>
+                router.push({
+                  pathname: '/promises/[id]',
+                  params: { id: String(promise.appointmentId) }
+                })
+              }              
+            />          
           ))}
         </View>
       </ScrollView>

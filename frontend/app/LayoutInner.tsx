@@ -8,6 +8,7 @@ import { View, ActivityIndicator } from 'react-native';
 import Colors from '@/constants/Colors';
 import { requestPermissionsIfNeeded } from '@/utils/permissions';
 import { setPermissions } from '@/redux/slices/permissionSlice';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 interface Props {
   children?: ReactNode;
@@ -43,11 +44,13 @@ export default function LayoutInner({ children }: Props) {
   }
 
   return (
-    <Provider store={store}>
-      <InitPermissions />
-      <View style={{ flex: 1, backgroundColor: Colors.background }}>
-        {children ?? <Slot />}
-      </View>
-    </Provider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Provider store={store}>
+        <InitPermissions />
+        <View style={{ flex: 1, backgroundColor: Colors.background }}>
+          {children ?? <Slot />}
+        </View>
+      </Provider>
+    </GestureHandlerRootView>
   );
 }

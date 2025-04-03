@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScrollView, View, Text } from 'react-native';
-import PromiseCard from '@/components/PromiseCard';
+import PromiseCard from '@/components/promises/PromiseCard';
 import Colors from '@/constants/Colors';
 import { useRouter } from 'expo-router';
 

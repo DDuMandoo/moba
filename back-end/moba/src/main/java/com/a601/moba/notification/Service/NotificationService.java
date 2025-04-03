@@ -82,7 +82,7 @@ public class NotificationService {
 
     public void sendSettlementStarted(Member sender, Member receiver, String appointmentTitle, int totalAmount,
                                       int peopleCount, int userAmount,
-                                      Long settlementId) throws FirebaseMessagingException {
+                                      Integer settlementId) throws FirebaseMessagingException {
         String title = appointmentTitle + " 정산을 시작합니다.";
         String body = "참여 인원 : " + peopleCount +
                 "\n총 액 : " + totalAmount +

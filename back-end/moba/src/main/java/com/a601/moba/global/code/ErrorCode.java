@@ -58,6 +58,9 @@ public enum ErrorCode {
     APPOINTMENT_EXIT_FORBIDDEN(4410, FORBIDDEN, "방장은 약속방을 나갈 수 없습니다"),
     APPOINTMENT_KICK_FORBIDDEN(4410, FORBIDDEN, "방장을 강제로 퇴장시킬 수 없습니다."),
     APPOINTMENT_PLACE_NOT_FOUND(4411, NOT_FOUND, "약속 장소 리스트에서 해당 장소를 찾을 수 없습니다"),
+    APPOINTMENT_LOCATION_FAIL(4412, INTERNAL_SERVER_ERROR, "사용자의 위치를 가져오는데 실패햐였습니다"),
+    INVALID_APPOINTMENT_TIME(4413, BAD_REQUEST, "아직 약속 시간 10분 전이 아닙니다"),
+
     // ================= 장소 관련 에러 (4450번대) ==================
     PLACE_NOT_FOUND(4450, NOT_FOUND, "해당 장소를 찾을 수 없습니다"),
 
@@ -94,7 +97,8 @@ public enum ErrorCode {
     FCM_TOKEN_SAVE_FAILED(4804, INTERNAL_SERVER_ERROR, "FCM 토큰 저장에 실패했습니다"),
     FCM_TOKEN_DELETE_FAILED(4805, INTERNAL_SERVER_ERROR, "FCM 토큰 삭제에 실패했습니다"),
     FCM_TOKEN_SEND_APPOINTMENT(4806, INTERNAL_SERVER_ERROR, "FCM에서 약속 리마인더 알림 전송에 실패했습니다."),
-    FCM_TOKEN_SEND_APPOINTMENT_MYSERVER(4807, INTERNAL_SERVER_ERROR, "앱 서버에서 약속 리마인더 알림 전송에 실패했습니다.");
+    FCM_TOKEN_SEND_APPOINTMENT_MYSERVER(4807, INTERNAL_SERVER_ERROR, "앱 서버에서 약속 리마인더 알림 전송에 실패했습니다."),
+    ;
     private final int code;
     private final HttpStatus httpStatus;
     private final String message;

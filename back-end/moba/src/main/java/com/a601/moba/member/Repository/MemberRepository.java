@@ -25,4 +25,5 @@ public interface MemberRepository extends JpaRepository<Member, Integer> {
                                            @Param("cursorId") Integer cursorId,
                                            Pageable pageable);
 
+    List<Member> findAllByIdIn(List<Integer> friends);
 }

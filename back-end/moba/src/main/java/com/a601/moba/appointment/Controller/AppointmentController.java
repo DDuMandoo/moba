@@ -20,6 +20,7 @@ import com.a601.moba.appointment.Controller.Response.AppointmentPlaceOrderUpdate
 import com.a601.moba.appointment.Controller.Response.AppointmentSearchWithMembersResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentSummaryResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentUpdateResponse;
+import com.a601.moba.appointment.Controller.Response.GetLocationAppointmentResponse;
 import com.a601.moba.appointment.Controller.Response.MemberSearchResponse;
 import com.a601.moba.appointment.Controller.Response.PlaceSearchResponse;
 import com.a601.moba.appointment.Service.AppointmentImageService;
@@ -378,6 +379,14 @@ public class AppointmentController {
             @RequestBody @Valid AppointmentPlaceOrderUpdateRequest request
     ) {
         AppointmentPlaceOrderUpdateResponse response = appointmentPlaceService.updatePlaceOrder(appointmentId, request);
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.REQUEST_SUCCESS, response));
+    }
+
+    @GetMapping("/{appointmentId}/locations")
+    public ResponseEntity<JSONResponse<GetLocationAppointmentResponse>> getLocation(
+            @PathVariable Integer appointmentId
+    ) {
+        GetLocationAppointmentResponse response = appointmentService.getLocation(appointmentId);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.REQUEST_SUCCESS, response));
     }
 }

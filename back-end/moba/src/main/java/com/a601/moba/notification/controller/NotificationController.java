@@ -31,7 +31,7 @@ public class NotificationController {
 
     @PostMapping("/test")
     public ResponseEntity<JSONResponse<Void>> sendTestNotification() throws FirebaseMessagingException {
-        log.info("TEST");
+        
         Member member = authUtil.getCurrentMember();
         NotificationRequest dto = NotificationRequest.builder().
                 receiverId(member.getId())

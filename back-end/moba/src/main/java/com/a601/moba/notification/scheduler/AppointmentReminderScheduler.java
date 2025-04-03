@@ -51,7 +51,7 @@ public class AppointmentReminderScheduler {
 
                 }
             } catch (Exception e) {
-                log.error("📛 약속 푸시 알림 실패 - appointmentId: {}, error: {}", appointment.getId(), e.getMessage(), e);
+                log.error("약속 푸시 알림 실패 - appointmentId: {}, error: {}", appointment.getId(), e.getMessage(), e);
                 throw new SendAppointmentException(ErrorCode.FCM_TOKEN_SEND_APPOINTMENT_MYSERVER);
             }
         }

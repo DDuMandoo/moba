@@ -46,7 +46,7 @@ public class NotificationService {
                 .toList();
     }
 
-    public void marAsRead(Integer notificationId, Member receiver) {
+    public void markAsRead(Integer notificationId, Member receiver) {
         Optional<Notification> optional = notificationRepository.findByIdAndReceiver(notificationId, receiver);
 
         if (optional.isPresent()) {

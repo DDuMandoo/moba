@@ -52,7 +52,7 @@ public class NotificationController {
     @PatchMapping("/{id}/read")
     public ResponseEntity<JSONResponse<Void>> markAsRead(@PathVariable Integer id) {
         Member member = authUtil.getCurrentMember();
-        notificationService.marAsRead(id, member);
+        notificationService.markAsRead(id, member);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.READ_NOTIFICATION));
     }
 }

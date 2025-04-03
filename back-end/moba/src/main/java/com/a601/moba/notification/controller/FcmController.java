@@ -6,7 +6,6 @@ import com.a601.moba.global.response.JSONResponse;
 import com.a601.moba.member.Entity.Member;
 import com.a601.moba.notification.Service.FcmTokenService;
 import com.a601.moba.notification.controller.Request.CreateFcmTokenRequest;
-import com.a601.moba.notification.controller.Request.DeleteFcmTokenRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -34,9 +33,9 @@ public class FcmController {
     }
 
     @DeleteMapping
-    public ResponseEntity<JSONResponse<Void>> deleteFcmToken(@RequestBody DeleteFcmTokenRequest deleteRequestDto) {
+    public ResponseEntity<JSONResponse<Void>> deleteFcmToken() {
         Member member = authUtil.getCurrentMember();
-        fcmTokenService.deleteToken(deleteRequestDto.token(), member);
+        fcmTokenService.deleteToken(member);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.DELETE_FCM_TOKEN_SUCCESS));
     }
 

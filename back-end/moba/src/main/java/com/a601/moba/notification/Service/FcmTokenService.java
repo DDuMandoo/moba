@@ -49,7 +49,7 @@ public class FcmTokenService {
         }
     }
 
-    public void deleteToken(String token, Member member) {
+    public void deleteToken(Member member) {
         boolean exists = fcmTokenRepository.existsByMember(member);
         if (!exists) {
             log.info("삭제하려는 토큰이 존재하지 않습니다.");

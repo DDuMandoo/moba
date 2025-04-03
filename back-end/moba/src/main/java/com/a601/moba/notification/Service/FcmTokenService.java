@@ -2,10 +2,10 @@ package com.a601.moba.notification.Service;
 
 import com.a601.moba.global.code.ErrorCode;
 import com.a601.moba.member.Entity.Member;
-import com.a601.moba.notification.Controller.Request.NotificationRequest;
-import com.a601.moba.notification.Entity.FcmToken;
-import com.a601.moba.notification.Repository.FcmTokenRepository;
+import com.a601.moba.notification.controller.Request.NotificationRequest;
+import com.a601.moba.notification.entity.FcmToken;
 import com.a601.moba.notification.exception.FcmTokenSaveException;
+import com.a601.moba.notification.repository.FcmTokenRepository;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;

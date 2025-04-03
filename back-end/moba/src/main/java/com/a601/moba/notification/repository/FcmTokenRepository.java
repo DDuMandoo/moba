@@ -1,7 +1,7 @@
-package com.a601.moba.notification.Repository;
+package com.a601.moba.notification.repository;
 
 import com.a601.moba.member.Entity.Member;
-import com.a601.moba.notification.Entity.FcmToken;
+import com.a601.moba.notification.entity.FcmToken;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

@@ -1,13 +1,13 @@
-package com.a601.moba.notification.Controller;
+package com.a601.moba.notification.controller;
 
 import com.a601.moba.auth.Util.AuthUtil;
 import com.a601.moba.global.code.SuccessCode;
 import com.a601.moba.global.response.JSONResponse;
 import com.a601.moba.member.Entity.Member;
-import com.a601.moba.notification.Controller.Request.NotificationRequest;
-import com.a601.moba.notification.Controller.Response.NotificationResponse;
-import com.a601.moba.notification.Entity.Notification.Type;
 import com.a601.moba.notification.Service.NotificationService;
+import com.a601.moba.notification.controller.Request.NotificationRequest;
+import com.a601.moba.notification.controller.Response.NotificationResponse;
+import com.a601.moba.notification.entity.Notification.Type;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +38,7 @@ public class NotificationController {
                 .deepLink("/test")
                 .build();
 
-        notificationService.saveNotification(member, member, dto);
+        notificationService.notify(member, member, dto);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.SUCCESS_FCM_TOKEN_TEST));
     }
 

@@ -1,4 +1,4 @@
-package com.a601.moba.notification.Controller.Request;
+package com.a601.moba.notification.controller.Request;
 
 import lombok.Builder;
 

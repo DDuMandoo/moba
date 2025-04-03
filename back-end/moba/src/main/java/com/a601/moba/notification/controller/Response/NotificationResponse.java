@@ -1,7 +1,7 @@
-package com.a601.moba.notification.Controller.Response;
+package com.a601.moba.notification.controller.Response;
 
-import com.a601.moba.notification.Entity.Notification;
-import com.a601.moba.notification.Entity.Notification.Type;
+import com.a601.moba.notification.entity.Notification;
+import com.a601.moba.notification.entity.Notification.Type;
 import java.time.LocalDateTime;
 import lombok.Builder;
 

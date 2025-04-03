@@ -166,14 +166,16 @@ export default function MyPageScreen() {
         <View style={styles.promiseList}>
           {filteredPromises.map((promise) => (
             <PromiseCard
-              key={promise.appointmentId}
-              imageUrl={promise.imageUrl}
-              title={promise.name}
-              time={promise.time}
-              location={promise.memo}
-              participants={[]} // 참여자 정보 필요시 추가
-              onPress={() => router.push(`/promises/${promise.appointmentId}`)}
-            />
+            key={promise.appointmentId}
+            appointmentId={promise.appointmentId} // ✅ 이 줄 추가!
+            imageUrl={promise.imageUrl}
+            title={promise.name}
+            time={promise.time}
+            location={promise.memo}
+            participants={[]} // 나중에 제거해도 됨
+            onPress={() => router.push(`/promises/${promise.appointmentId}`)}
+          />
+          
           ))}
         </View>
       </ScrollView>

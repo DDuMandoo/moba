@@ -6,21 +6,26 @@ import com.a601.moba.notification.controller.Request.NotificationRequest;
 import com.a601.moba.notification.entity.FcmToken;
 import com.a601.moba.notification.exception.FcmTokenSaveException;
 import com.a601.moba.notification.repository.FcmTokenRepository;
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.FirebaseMessagingException;
-import com.google.firebase.messaging.Message;
-import com.google.firebase.messaging.Notification;
 import jakarta.transaction.Transactional;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 @Transactional
 public class FcmTokenService {
+
+
+    private final WebClient webClient = WebClient.builder()
+            .baseUrl("https://exp.host")
+            .build();
 
     private final FcmTokenRepository fcmTokenRepository;
 
@@ -54,21 +59,40 @@ public class FcmTokenService {
         fcmTokenRepository.deleteByMember(member);
     }
 
-    public void send(NotificationRequest dto, Member receiver) throws FirebaseMessagingException {
+    public void send(NotificationRequest dto, Member receiver) {
         FcmToken token = fcmTokenRepository.findByMember(receiver)
-                .orElseThrow(() -> new RuntimeException("FCM 토큰이 존재하지 않습니다."));
+                .orElseThrow(() -> new RuntimeException("Expo 푸시 토큰이 존재하지 않습니다."));
 
-        Message message = Message.builder()
-                .setToken(token.getToken())
-                .setNotification(Notification.builder()
-                        .setTitle(dto.title())
-                        .setBody(dto.body())
-                        .build())
-                .putData("route", dto.deepLink())
-                .putData("type", String.valueOf(dto.type()))
-                .build();
+        // 요청 바디 구성
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("to", token.getToken());
+        payload.put("title", dto.title());
+        payload.put("body", dto.body());
+        payload.put("data", Map.of(
+                "route", dto.deepLink(),
+                "type", String.valueOf(dto.type())
+        ));
 
-        String response = FirebaseMessaging.getInstance().send(message);
-        log.info("FCM 푸시 전송 성공: {}", response);
+        // Expo Push API 호출
+        webClient.post()
+                .uri("/--/api/v2/push/send")
+                .header("Content-Type", "application/json")
+                .bodyValue(payload)
+                .retrieve()
+                .bodyToMono(String.class)
+                .doOnNext(response -> {
+                    log.info("Expo 푸시 전송 성공: {}", response);
+
+                    // 유효하지 않은 토큰 감지
+                    if (response.contains("DeviceNotRegistered")) {
+                        log.warn("Expo 토큰이 만료되었거나 등록 해제됨. 삭제 처리: {}", token.getToken());
+                        fcmTokenRepository.delete(token);
+                    }
+                })
+                .onErrorResume(error -> {
+                    log.error("Expo 푸시 전송 실패: {}", error.getMessage());
+                    return Mono.empty();
+                })
+                .subscribe(); // 비동기 처리
     }
 }

@@ -5,7 +5,6 @@ import com.a601.moba.appointment.Constant.State;
 import com.a601.moba.appointment.Controller.Request.AppointmentCreateRequest;
 import com.a601.moba.appointment.Controller.Request.AppointmentDelegateRequest;
 import com.a601.moba.appointment.Controller.Request.AppointmentJoinRequest;
-import com.a601.moba.appointment.Controller.Request.AppointmentKickRequest;
 import com.a601.moba.appointment.Controller.Request.AppointmentUpdateRequest;
 import com.a601.moba.appointment.Controller.Response.AppointmentCreateResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentDelegateResponse;
@@ -36,8 +35,10 @@ import com.a601.moba.wallet.Repository.TransactionRepository;
 import com.a601.moba.wallet.Repository.WalletRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -192,7 +193,7 @@ public class AppointmentService {
         // JOINED 상태의 참여자만 필터링
         List<AppointmentParticipant> participantList = appointmentParticipantRepository
                 .findAllByAppointment(appointment).stream()
-                .filter(p -> p.getState() == State.JOINED)
+                .filter(p -> p.getState() == State.JOINED || p.getState() == State.WAIT)
                 .toList();
 
         Integer hostId = participantList.stream()
@@ -207,6 +208,7 @@ public class AppointmentService {
                             .memberId(p.getMember().getId())
                             .name(p.getMember().getName())
                             .profileImage(p.getMember().getProfileImage())
+                            .state(p.getState())
                             .build();
                 })
                 .toList();
@@ -313,7 +315,7 @@ public class AppointmentService {
         Appointment appointment = getAppointment(appointmentId);
 
         AppointmentParticipant participant = appointmentParticipantRepository
-                .findByAppointmentAndMember(appointment, member)
+                .findByAppointmentAndMemberAndState(appointment, member, State.JOINED)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED));
 
         if (participant.getState() != State.JOINED) {
@@ -331,6 +333,7 @@ public class AppointmentService {
                             .memberId(p.getMember().getId())
                             .name(p.getMember().getName())
                             .profileImage(p.getMember().getProfileImage())
+                            .state(p.getState())
                             .build();
                 }).toList();
 
@@ -374,20 +377,47 @@ public class AppointmentService {
 
 
     @Transactional
-    public void kickParticipant(Integer appointmentId, AppointmentKickRequest request) {
+    public void kickParticipants(Integer appointmentId, List<Integer> memberIds) {
         Appointment appointment = validateHostAccess(appointmentId);
-        Member member = memberRepository.findById(request.memberId())
-                .orElseThrow(() -> new AuthException(ErrorCode.MEMBER_NOT_FOUND));
 
-        AppointmentParticipant target = appointmentParticipantRepository
-                .findByAppointmentAndMember(appointment, member)
-                .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_PARTICIPANT_NOT_FOUND));
+        List<Member> members = memberRepository.findAllByIdIn(memberIds);
+        List<AppointmentParticipant> targets = appointmentParticipantRepository
+                .findAllByAppointmentAndMemberIn(appointment, members);
 
-        if (target.getRole() == Role.HOST) {
-            throw new AppointmentException(ErrorCode.APPOINTMENT_KICK_FORBIDDEN);
+        for (AppointmentParticipant target : targets) {
+            if (target.getRole() == Role.HOST) {
+                continue;
+            }
+            target.updateState(State.KICKED);
+        }
+    }
+
+    @Transactional
+    public void inviteParticipants(Integer appointmentId, List<Integer> memberIds) {
+        Appointment appointment = validateHostAccess(appointmentId);
+
+        List<Member> members = memberRepository.findAllByIdIn(memberIds);
+
+        List<AppointmentParticipant> alreadyParticipants = appointmentParticipantRepository.findAllByAppointmentAndMemberIn(
+                appointment, members);
+        Set<Integer> alreaySaved = new HashSet<>();
+        for (AppointmentParticipant ap : alreadyParticipants) {
+            if (ap.getState() == State.JOINED) {
+                continue;
+            }
+            ap.updateState(State.WAIT);
+            alreaySaved.add(ap.getMember().getId());
         }
 
-        target.updateState(State.KICKED);
+        List<AppointmentParticipant> participants = new ArrayList<>();
+        for (Member m : members) {
+            if (alreaySaved.contains(m.getId())) {
+                continue;
+            }
+            participants.add(createAppointmentParticipant(appointment, m, Role.PARTICIPANT, State.WAIT));
+        }
+
+        appointmentParticipantRepository.saveAll(participants);
     }
 
     public List<AppointmentListItemResponse> getMyAppointments(Integer year, Integer month) {

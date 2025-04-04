@@ -45,21 +45,9 @@ export default function AppointmentDetailPage() {
   const minTranslateY = -TOP_IMAGE_HEIGHT + HEADER_MARGIN;
   const maxTranslateY = 0;
 
-  const gestureHandler = useAnimatedGestureHandler({
-    onActive: (event) => {
-      translateY.value = Math.max(minTranslateY, Math.min(maxTranslateY, translateY.value + event.translationY));
-    },
-    onEnd: () => {
-      translateY.value = withSpring(
-        translateY.value < minTranslateY / 2 ? minTranslateY : maxTranslateY,
-        { damping: 20 }
-      );
-    },
-  });
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-  }));
+  const [appointment, setAppointment] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(0);
 
   const getAppointment = async () => {
     if (!id) return;
@@ -138,6 +126,7 @@ export default function AppointmentDetailPage() {
               </Text>
             </View>
 
+            {/* 참가자 목록 */}
             <FlatList
               horizontal
               data={appointment.participants}
@@ -145,20 +134,17 @@ export default function AppointmentDetailPage() {
               contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
               renderItem={({ item }) => (
                 <View style={{ alignItems: 'center' }}>
-                  <View style={styles.profileImageBox}>
-                    {item.profileImage ? (
-                      <ImageBackground source={{ uri: item.profileImage }} style={styles.profileImage} />
-                    ) : (
-                      <View style={styles.profilePlaceholder}>
-                        <Text>{item.name.charAt(0)}</Text>
-                      </View>
-                    )}
-                  </View>
+                  <Image
+                    source={{ uri: item.profileImage || 'https://via.placeholder.com/48' }}
+                    style={{ width: 48, height: 48 }}
+                  />
                   <Text>{item.name}</Text>
                 </View>
               )}
+              showsHorizontalScrollIndicator={false}
             />
 
+            {/* 버튼 영역 */}
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 12, paddingHorizontal: 20 }}>
               <TouchableOpacity style={styles.smallBtn}>
                 <Text style={styles.smallBtnText}>정산하기</Text>
@@ -202,13 +188,12 @@ export default function AppointmentDetailPage() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.white },
   centeredContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  headerImage: { position: 'absolute', width: '100%', height: TOP_IMAGE_HEIGHT, top: 0, left: 0, right: 0 },
+  headerImage: { position: 'absolute', width: '100%', height: TOP_IMAGE_HEIGHT },
   headerOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(233,217,197,0.7)' },
   headerButtons: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, position: 'absolute', width: '100%', zIndex: 10 },
   headerRightButtons: { flexDirection: 'row', gap: 10 },
   iconButton: { borderWidth: 1, borderColor: Colors.black, borderRadius: 10, padding: 6 },
-  contentBox: {
-    flex: 1,
+  topContent: {
     marginTop: TOP_IMAGE_HEIGHT,
     backgroundColor: Colors.white,
     borderTopLeftRadius: 40,

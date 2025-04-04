@@ -13,11 +13,8 @@ public record AppointmentCreateRequest(
         @Schema(description = "약속 시간", example = "2025-04-01T12:00:00")
         LocalDateTime time,
 
-        @Schema(description = "위도", example = "37.5665")
-        Double latitude,
-
-        @Schema(description = "경도", example = "126.9780")
-        Double longitude,
+        @Schema(description = "장소 ID", example = "1")
+        Integer placeId,
 
         @Schema(description = "메모", example = "점심 약속 장소는 시청 근처")
         String memo,

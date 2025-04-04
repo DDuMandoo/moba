@@ -58,8 +58,8 @@ public class AppointmentPlaceService {
 
         List<PlaceInfo> results = places.stream()
                 .map(p -> PlaceInfo.builder()
-                        .placeId(p.getCompanyCode())
-                        .name(p.getCompanyName())
+                        .placeId(p.getId())
+                        .name(p.getName())
                         .latitude(p.getLatitude())
                         .longitude(p.getLongitude())
                         .category(p.getCategory())
@@ -67,7 +67,7 @@ public class AppointmentPlaceService {
                         .build())
                 .toList();
 
-        Integer nextCursorId = places.isEmpty() ? null : places.get(places.size() - 1).getCompanyCode();
+        Integer nextCursorId = places.isEmpty() ? null : places.get(places.size() - 1).getId();
 
         return PlaceSearchResponse.builder()
                 .results(results)
@@ -89,9 +89,9 @@ public class AppointmentPlaceService {
 
         AppointmentPlace appointmentPlace = AppointmentPlace.builder()
                 .appointment(appointment)
-                .companyCode(place.getCompanyCode())
+                .companyCode(place.getId())
                 .order(currentMaxOrder + 1)
-                .name(place.getCompanyName())
+                .name(place.getName())
                 .category(place.getCategory())
                 .latitude(place.getLatitude())
                 .longitude(place.getLongitude())
@@ -107,7 +107,7 @@ public class AppointmentPlaceService {
                 .latitude(appointmentPlace.getLatitude())
                 .longitude(appointmentPlace.getLongitude())
                 .kakaoUrl(appointmentPlace.getKakaoUrl())
-                .address(place.getAddress())
+                .address(place.getRoadAddress())
                 .build();
     }
 

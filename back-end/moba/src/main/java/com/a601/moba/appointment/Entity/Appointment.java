@@ -4,9 +4,12 @@ import com.a601.moba.global.entity.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -35,9 +38,9 @@ public class Appointment extends BaseTimeEntity {
     @Column(nullable = false)
     private LocalDateTime time;
 
-    private Double latitude;
-
-    private Double longitude;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "place_id")
+    private Place place;
 
     @Column
     private String memo;
@@ -54,12 +57,11 @@ public class Appointment extends BaseTimeEntity {
     private boolean reminderSent = false;
 
     public void update(String name, String image, LocalDateTime time,
-                       Double latitude, Double longitude, String memo) {
+                       Place place, String memo) {
         this.name = name;
         this.image = image;
         this.time = time;
-        this.latitude = latitude;
-        this.longitude = longitude;
+        this.place = place;
         this.memo = memo;
     }
 

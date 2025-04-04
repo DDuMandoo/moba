@@ -9,8 +9,8 @@ public record AppointmentUpdateResponse(
         String name,
         String imageUrl,
         LocalDateTime time,
-        Double latitude,
-        Double longitude,
+        Integer placeId,
+        String placeName,
         String memo,
         LocalDateTime updatedAt
 ) {

@@ -19,9 +19,11 @@ import com.a601.moba.appointment.Controller.Response.AppointmentUpdateResponse;
 import com.a601.moba.appointment.Controller.Response.GetLocationAppointmentResponse;
 import com.a601.moba.appointment.Entity.Appointment;
 import com.a601.moba.appointment.Entity.AppointmentParticipant;
+import com.a601.moba.appointment.Entity.Place;
 import com.a601.moba.appointment.Exception.AppointmentException;
 import com.a601.moba.appointment.Repository.AppointmentParticipantRepository;
 import com.a601.moba.appointment.Repository.AppointmentRepository;
+import com.a601.moba.appointment.Repository.PlaceRepository;
 import com.a601.moba.appointment.Util.InviteCodeGenerator;
 import com.a601.moba.auth.Exception.AuthException;
 import com.a601.moba.auth.Util.AuthUtil;
@@ -54,6 +56,7 @@ public class AppointmentService {
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
     private final LocationRedisService locationRedisService;
+    private final PlaceRepository placeRepository;
 
     public Appointment getAppointment(Integer appointmentId) {
         return appointmentRepository.findById(appointmentId)
@@ -64,6 +67,11 @@ public class AppointmentService {
     public AppointmentCreateResponse create(AppointmentCreateRequest request, MultipartFile image) {
         String inviteCode = inviteCodeGenerator.generate()
                 .orElseThrow(() -> new AppointmentException(ErrorCode.INVITE_CODE_GENERATION_FAILED));
+        Place place = null;
+        if (request.placeId() != null) {
+            place = placeRepository.findById(request.placeId())
+                    .orElseThrow(() -> new AppointmentException(ErrorCode.PLACE_NOT_FOUND));
+        }
 
         String imageUrl = null;
         if (image != null && !image.isEmpty()) {
@@ -74,8 +82,7 @@ public class AppointmentService {
                 .name(request.name())
                 .image(imageUrl)
                 .time(request.time())
-                .latitude(request.latitude())
-                .longitude(request.longitude())
+                .place(place)
                 .memo(request.memo())
                 .inviteUrl(inviteCode)
                 .isEnded(false)
@@ -97,8 +104,8 @@ public class AppointmentService {
                 .name(appointment.getName())
                 .imageUrl(appointment.getImage())
                 .time(appointment.getTime())
-                .latitude(appointment.getLatitude())
-                .longitude(appointment.getLongitude())
+                .placeId(place == null ? null : place.getId())
+                .placeName(place == null ? null : place.getName())
                 .memo(appointment.getMemo())
                 .inviteCode(appointment.getInviteUrl())
                 .isEnded(appointment.getIsEnded())
@@ -209,8 +216,8 @@ public class AppointmentService {
                 .name(appointment.getName())
                 .imageUrl(appointment.getImage())
                 .time(appointment.getTime())
-                .latitude(appointment.getLatitude())
-                .longitude(appointment.getLongitude())
+                .placeId(appointment.getPlace() == null ? null : appointment.getPlace().getId())
+                .placeName(appointment.getPlace() == null ? null : appointment.getPlace().getName())
                 .memo(appointment.getMemo())
                 .isEnded(appointment.getIsEnded())
                 .participants(participants)
@@ -245,6 +252,14 @@ public class AppointmentService {
 
         Appointment appointment = getAppointment(appointmentId);
 
+        Place place = null;
+        if (request.placeId() != null) {
+            place = placeRepository.findById(request.placeId())
+                    .orElseThrow(() -> new AppointmentException(ErrorCode.PLACE_NOT_FOUND));
+        } else {
+            place = appointment.getPlace();
+        }
+
         AppointmentParticipant participant = appointmentParticipantRepository
                 .findByAppointmentAndMember(appointment, member)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED));
@@ -262,8 +277,7 @@ public class AppointmentService {
                 request.name(),
                 imageUrl,
                 request.time(),
-                request.latitude(),
-                request.longitude(),
+                place,
                 request.memo()
         );
 
@@ -272,8 +286,8 @@ public class AppointmentService {
                 .name(appointment.getName())
                 .imageUrl(appointment.getImage())
                 .time(appointment.getTime())
-                .latitude(appointment.getLatitude())
-                .longitude(appointment.getLongitude())
+                .placeId(appointment.getPlace() == null ? null : appointment.getPlace().getId())
+                .placeName(appointment.getPlace() == null ? null : appointment.getPlace().getName())
                 .memo(appointment.getMemo())
                 .updatedAt(appointment.getUpdatedAt())
                 .build();
@@ -381,7 +395,6 @@ public class AppointmentService {
 
         List<AppointmentParticipant> participants = appointmentParticipantRepository
                 .findAllByMemberAndState(member, State.JOINED);
-
         return participants.stream()
                 .map(AppointmentParticipant::getAppointment)
                 .filter(appointment -> {
@@ -396,8 +409,8 @@ public class AppointmentService {
                         .name(appointment.getName())
                         .imageUrl(appointment.getImage())
                         .time(appointment.getTime())
-                        .latitude(appointment.getLatitude())
-                        .longitude(appointment.getLongitude())
+                        .placeId(appointment.getPlace() == null ? null : appointment.getPlace().getId())
+                        .placeName(appointment.getPlace() == null ? null : appointment.getPlace().getName())
                         .memo(appointment.getMemo())
                         .isEnded(appointment.getIsEnded())
                         .inviteUrl(appointment.getInviteUrl())

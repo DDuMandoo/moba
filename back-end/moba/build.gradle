@@ -64,9 +64,6 @@ dependencies {
     //websocket
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
-    //webSocket + STOMP
-    implementation 'org.springframework.boot:spring-boot-starter-websocket'
-
     //MongoDB
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 

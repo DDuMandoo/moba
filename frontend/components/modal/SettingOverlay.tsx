@@ -76,6 +76,7 @@ export default function SettingOverlay({ visible, onClose, onEditProfile }: Prop
     } catch (err) {
       console.warn('🚫 로그아웃 실패:', err);
     } finally {
+      await axiosInstance.delete('/api/fcm');
       await clearTokens();
       router.replace('/auth/login');
     }

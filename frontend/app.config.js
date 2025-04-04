@@ -3,19 +3,19 @@ import 'dotenv/config';
 export default {
   expo: {
     name: '모여바라',
-    slug: 'frontend',
+    slug: 'moba',
     version: '1.0.0',
     orientation: 'portrait',
     icon: './assets/icons/header/Logo.png',
     scheme: 'myapp',
     userInterfaceStyle: 'automatic',
     newArchEnabled: true,
-    owner: 'erin523',
+    owner: 'choseunggeun',
     ios: {
       supportsTablet: true
     },
     android: {
-      package: 'com.erin523.frontend',
+      package: 'com.choseunggeun.moba',
       googleServicesFile: './android/app/google-services.json',
       permissions: ['NOTIFICATIONS'],
       adaptiveIcon: {
@@ -54,7 +54,7 @@ export default {
     },
     extra: {
       eas: {
-        projectId: '96b90ddf-c230-437d-8d4c-8f56db76acc8'
+        projectId: 'deb2bc3e-3308-4873-aeb6-fc7218e8033a'
       },
       API_URL: process.env.EXPO_PUBLIC_API_URL || 'http://j12a601.p.ssafy.io/api'
     }

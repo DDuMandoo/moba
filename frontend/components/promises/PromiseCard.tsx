@@ -1,7 +1,14 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
+import axiosInstance from '@/app/axiosInstance';
+
+interface Participant {
+  memberId: number;
+  name: string;
+  profileImage: string | null;
+}
 
 interface Props {
   imageUrl: string;
@@ -9,8 +16,10 @@ interface Props {
   time: string;
   location?: string;
   amount?: string;
-  participants: string[];
+  appointmentId: number;
   onPress?: () => void;
+  participants?: { profileImage: string | null }[]; // ✅ 여기를 추가
+
 }
 
 export default function PromiseCard({
@@ -19,9 +28,28 @@ export default function PromiseCard({
   time,
   location,
   amount,
-  participants,
+  appointmentId,
   onPress,
 }: Props) {
+  const [participants, setParticipants] = useState<Participant[]>([]);
+
+  useEffect(() => {
+    const fetchParticipants = async () => {
+      try {
+        const res = await axiosInstance.get(`/appointments/${appointmentId}/participants`);
+        const participants = res.data.result?.participants ?? [];
+        setParticipants(participants);
+        console.log('✅ 참가자 목록:', participants);
+      } catch (err: any) {
+        console.error('❌ 참가자 정보 로딩 실패:', err?.response?.data || err.message);
+      }
+    };
+  
+    fetchParticipants();
+  }, [appointmentId]);
+  
+  
+
   const displayExtraInfo = location || amount;
 
   let formattedTime = '-';
@@ -68,8 +96,16 @@ export default function PromiseCard({
           <View style={styles.participantsRow}>
             <Feather name="users" size={16} color={Colors.black} />
             <View style={styles.profileGroup}>
-              {participants.map((uri, index) => (
-                <Image key={index} source={{ uri }} style={styles.profileImage} />
+              {participants.map((p, index) => (
+                <Image
+                  key={p.memberId ?? index}
+                  source={
+                    p.profileImage
+                      ? { uri: p.profileImage }
+                      : require('@/assets/images/defaultprofile.png')
+                  }
+                  style={styles.profileImage}
+                />
               ))}
             </View>
           </View>
@@ -117,8 +153,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.black,
     marginLeft: 6,
-    lineHeight: 18, 
-    textAlignVertical: 'center', 
+    lineHeight: 18,
+    textAlignVertical: 'center',
   },
   participantsRow: {
     flexDirection: 'row',
@@ -134,8 +170,9 @@ const styles = StyleSheet.create({
   profileImage: {
     width: 26,
     height: 26,
-    borderRadius: 9,
+    borderRadius: 8,
     borderWidth: 0.4,
     borderColor: Colors.logo,
+    backgroundColor: Colors.grayLightText,
   },
 });

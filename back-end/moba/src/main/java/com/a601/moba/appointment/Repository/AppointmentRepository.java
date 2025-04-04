@@ -37,4 +37,23 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     List<Appointment> findByTimeBetweenAndIsEndedFalseAndReminderSentFalse(LocalDateTime from, LocalDateTime to);
 
     List<Appointment> findByTimeBetweenAndIsEndedFalse(LocalDateTime now, LocalDateTime tenMinutesLater);
+
+    @Query(value = """
+            SELECT a.*
+            FROM appointment a
+            JOIN appointment_participant ap ON ap.appointment_id = a.id
+            WHERE ap.member_id = :memberId
+              AND ap.state = 'JOINED'
+              AND (:year IS NULL OR YEAR(a.time) = :year)
+              AND (:month IS NULL OR MONTH(a.time) = :month)
+            ORDER BY
+              a.is_ended ASC,
+                CASE WHEN a.is_ended = 0 THEN a.time END ASC,
+                CASE WHEN a.is_ended = 1 THEN a.time END DESC
+            """, nativeQuery = true)
+    List<Appointment> findSortedAppointmentsByMemberAndDate(
+            @Param("memberId") Integer memberId,
+            @Param("year") Integer year,
+            @Param("month") Integer month
+    );
 }

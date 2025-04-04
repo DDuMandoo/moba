@@ -423,17 +423,10 @@ public class AppointmentService {
     public List<AppointmentListItemResponse> getMyAppointments(Integer year, Integer month) {
         Member member = authUtil.getCurrentMember();
 
-        List<AppointmentParticipant> participants = appointmentParticipantRepository
-                .findAllByMemberAndState(member, State.JOINED);
-        return participants.stream()
-                .map(AppointmentParticipant::getAppointment)
-                .filter(appointment -> {
-                    if (year == null || month == null) {
-                        return true;
-                    }
-                    LocalDateTime time = appointment.getTime();
-                    return time.getYear() == year && time.getMonthValue() == month;
-                })
+        List<Appointment> appointments = appointmentRepository.findSortedAppointmentsByMemberAndDate(
+                member.getId(), year, month);
+
+        return appointments.stream()
                 .map(appointment -> AppointmentListItemResponse.builder()
                         .appointmentId(appointment.getId())
                         .name(appointment.getName())
@@ -450,7 +443,6 @@ public class AppointmentService {
                         .build())
                 .toList();
     }
-
 
     public AppointmentSummaryResponse getAppointmentSummary(Integer year, Integer month) {
         Member member = authUtil.getCurrentMember();

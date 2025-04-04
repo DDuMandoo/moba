@@ -16,6 +16,8 @@ export default {
     },
     android: {
       package: 'com.erin523.frontend',
+      googleServicesFile: './android/app/google-services.json',
+      permissions: ['NOTIFICATIONS'],
       adaptiveIcon: {
         foregroundImage: './assets/icons/header/Logo.png',
         backgroundColor: '#F2F0EF'

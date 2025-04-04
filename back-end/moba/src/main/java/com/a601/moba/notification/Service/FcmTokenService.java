@@ -59,10 +59,14 @@ public class FcmTokenService {
         fcmTokenRepository.deleteByMember(member);
     }
 
-    public void send(NotificationRequest dto, Member receiver) {
+    public void send(NotificationRequest dto, Member receiver) throws RuntimeException {
         FcmToken token = fcmTokenRepository.findByMember(receiver)
-                .orElseThrow(() -> new RuntimeException("Expo 푸시 토큰이 존재하지 않습니다."));
+                .orElse(null);
 
+        if (token == null) {
+            log.error("Expo 푸시 토큰이 존재하지 않습니다.");
+            return;
+        }
         // 요청 바디 구성
         Map<String, Object> payload = new HashMap<>();
         payload.put("to", token.getToken());

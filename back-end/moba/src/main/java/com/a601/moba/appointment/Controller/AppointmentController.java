@@ -2,6 +2,7 @@ package com.a601.moba.appointment.Controller;
 
 import com.a601.moba.appointment.Controller.Request.AppointmentCreateRequest;
 import com.a601.moba.appointment.Controller.Request.AppointmentDelegateRequest;
+import com.a601.moba.appointment.Controller.Request.AppointmentInviteRequest;
 import com.a601.moba.appointment.Controller.Request.AppointmentJoinRequest;
 import com.a601.moba.appointment.Controller.Request.AppointmentKickRequest;
 import com.a601.moba.appointment.Controller.Request.AppointmentPlaceOrderUpdateRequest;
@@ -224,13 +225,22 @@ public class AppointmentController {
             }
     )
     @PatchMapping("/{appointmentId}/kick")
-    public ResponseEntity<JSONResponse<Void>> kickParticipant(
+    public ResponseEntity<JSONResponse<Void>> kickParticipants(
             @Parameter(description = "약속방 ID", example = "1")
             @PathVariable Integer appointmentId,
             @RequestBody @Valid AppointmentKickRequest request
     ) {
-        appointmentService.kickParticipant(appointmentId, request);
-        return ResponseEntity.ok(JSONResponse.of(SuccessCode.APPOINTMENT_PARTICIPANT_KICK_SUCCESS));
+        appointmentService.kickParticipants(appointmentId, request.memberIds());
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.APPOINTMENT_PARTICIPANTS_KICK_SUCCESS));
+    }
+
+    @PatchMapping("/{appointmentId}/invite")
+    public ResponseEntity<JSONResponse<Void>> inviteParticipants(
+            @PathVariable Integer appointmentId,
+            @RequestBody AppointmentInviteRequest request
+    ) {
+        appointmentService.inviteParticipants(appointmentId, request.memberIds());
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.APPOINTMENT_PARTICIPANTS_INVITE_SUCCESS));
     }
 
     @Operation(summary = "사용자 약속 조회", description = "연/월 파라미터가 있으면 해당 월 약속 조회, 없으면 전체 약속 조회")

@@ -37,4 +37,9 @@ public interface AppointmentParticipantRepository extends JpaRepository<Appointm
     boolean existsByAppointmentAndMemberAndState(Appointment appointment, Member member, State state);
 
     List<AppointmentParticipant> findByAppointmentId(Integer id);
+
+    List<AppointmentParticipant> findAllByAppointmentAndMemberIn(Appointment appointment, List<Member> members);
+
+    Optional<AppointmentParticipant> findByAppointmentAndMemberAndState(Appointment appointment, Member member,
+                                                                        State state);
 }

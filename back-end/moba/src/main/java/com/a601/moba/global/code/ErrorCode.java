@@ -60,6 +60,7 @@ public enum ErrorCode {
     APPOINTMENT_PLACE_NOT_FOUND(4411, NOT_FOUND, "약속 장소 리스트에서 해당 장소를 찾을 수 없습니다"),
     APPOINTMENT_LOCATION_FAIL(4412, INTERNAL_SERVER_ERROR, "사용자의 위치를 가져오는데 실패햐였습니다"),
     INVALID_APPOINTMENT_TIME(4413, BAD_REQUEST, "아직 약속 시간 10분 전이 아닙니다"),
+    APPOINTMENT_NOT_HOST(4414, BAD_REQUEST, "약속방 방장만 가능한 기능입니다"),
 
     // ================= 장소 관련 에러 (4450번대) ==================
     PLACE_NOT_FOUND(4450, NOT_FOUND, "해당 장소를 찾을 수 없습니다"),

@@ -1,5 +1,6 @@
 package com.a601.moba.appointment.Controller.Response;
 
+import com.a601.moba.appointment.Constant.State;
 import java.util.List;
 import lombok.Builder;
 
@@ -12,7 +13,8 @@ public record AppointmentParticipantResponse(
     public record ParticipantInfo(
             Integer memberId,
             String name,
-            String profileImage
+            String profileImage,
+            State state
     ) {
     }
 }

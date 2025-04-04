@@ -10,6 +10,9 @@ spring:
       - classpath:application-s3.yml
       - classpath:application-cors.yml
       - classpath:application-wallet.yml
+      - classpath:application-mongo.yml
+      #      - classpath:application-auth.yml
+      #      - classpath:application-firebase.yml
       - classpath:application-firebase.yml
       #      - classpath:application-mongo.yml
       #      - classpath:application-elastic.yml

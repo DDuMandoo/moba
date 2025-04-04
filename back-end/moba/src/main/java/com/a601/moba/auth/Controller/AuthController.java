@@ -11,6 +11,8 @@ import com.a601.moba.auth.Util.AuthUtil;
 import com.a601.moba.global.code.ErrorCode;
 import com.a601.moba.global.code.SuccessCode;
 import com.a601.moba.global.response.JSONResponse;
+import com.a601.moba.member.Entity.Member;
+import com.a601.moba.notification.Service.FcmTokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -41,6 +43,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final AuthUtil authUtil;
+    private final FcmTokenService fcmTokenService;
 
     @Operation(summary = "회원가입", description = "이메일, 비밀번호, 이름으로 회원가입을 수행합니다.")
     @PostMapping("/signup")
@@ -105,6 +108,7 @@ public class AuthController {
     @PostMapping("/signout")
     public ResponseEntity<JSONResponse<String>> signout(HttpServletRequest request) {
         // 현재 로그인한 사용자의 Access Token
+        Member member = authUtil.getCurrentMember();
         String accessToken = authUtil.getAccessToken(request);
         if (accessToken == null || accessToken.isEmpty()) {
             return ResponseEntity.status(401).body(JSONResponse.onFailure(ErrorCode.UNAUTHORIZED_ACCESS));
@@ -112,6 +116,7 @@ public class AuthController {
 
         // Access Token을 기반으로 로그아웃 수행
         authService.signout(accessToken);
+        fcmTokenService.deleteToken(member);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.SIGNOUT_SUCCESS));
     }
 
@@ -137,5 +142,5 @@ public class AuthController {
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.REQUEST_SUCCESS, isDuplicated));
     }
 
-    
+
 }

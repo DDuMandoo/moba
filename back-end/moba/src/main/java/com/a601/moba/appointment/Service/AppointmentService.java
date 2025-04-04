@@ -16,11 +16,14 @@ import com.a601.moba.appointment.Controller.Response.AppointmentListItemResponse
 import com.a601.moba.appointment.Controller.Response.AppointmentParticipantResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentSummaryResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentUpdateResponse;
+import com.a601.moba.appointment.Controller.Response.GetLocationAppointmentResponse;
 import com.a601.moba.appointment.Entity.Appointment;
 import com.a601.moba.appointment.Entity.AppointmentParticipant;
+import com.a601.moba.appointment.Entity.Place;
 import com.a601.moba.appointment.Exception.AppointmentException;
 import com.a601.moba.appointment.Repository.AppointmentParticipantRepository;
 import com.a601.moba.appointment.Repository.AppointmentRepository;
+import com.a601.moba.appointment.Repository.PlaceRepository;
 import com.a601.moba.appointment.Util.InviteCodeGenerator;
 import com.a601.moba.auth.Exception.AuthException;
 import com.a601.moba.auth.Util.AuthUtil;
@@ -32,6 +35,7 @@ import com.a601.moba.wallet.Entity.Wallet;
 import com.a601.moba.wallet.Repository.TransactionRepository;
 import com.a601.moba.wallet.Repository.WalletRepository;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -51,49 +55,57 @@ public class AppointmentService {
     private final MemberRepository memberRepository;
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
+    private final LocationRedisService locationRedisService;
+    private final PlaceRepository placeRepository;
 
+    public Appointment getAppointment(Integer appointmentId) {
+        return appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
+    }
+
+    @Transactional
     public AppointmentCreateResponse create(AppointmentCreateRequest request, MultipartFile image) {
         String inviteCode = inviteCodeGenerator.generate()
                 .orElseThrow(() -> new AppointmentException(ErrorCode.INVITE_CODE_GENERATION_FAILED));
+        Place place = null;
+        if (request.placeId() != null) {
+            place = placeRepository.findById(request.placeId())
+                    .orElseThrow(() -> new AppointmentException(ErrorCode.PLACE_NOT_FOUND));
+        }
 
         String imageUrl = null;
         if (image != null && !image.isEmpty()) {
             imageUrl = s3Service.uploadFile(image);
         }
 
-        Appointment appointment = Appointment.builder()
+        Appointment appointment = appointmentRepository.save(Appointment.builder()
                 .name(request.name())
                 .image(imageUrl)
                 .time(request.time())
-                .latitude(request.latitude())
-                .longitude(request.longitude())
+                .place(place)
                 .memo(request.memo())
                 .inviteUrl(inviteCode)
                 .isEnded(false)
-                .build();
+                .build());
 
-        appointmentRepository.saveAndFlush(appointment);
-
-        Integer appointmentId = appointment.getId();
+        List<AppointmentParticipant> participants = new ArrayList<>();
         Member host = authUtil.getCurrentMember();
+        participants.add(createAppointmentParticipant(appointment, host, Role.HOST, State.JOINED));
 
-        AppointmentParticipant hostParticipant = AppointmentParticipant.builder()
-                .appointment(appointment)
-                .member(host)
-                .role(Role.HOST)
-                .state(State.JOINED)
-                .joinAt(LocalDateTime.now())
-                .build();
+        List<Member> members = memberRepository.findAllByIdIn(request.friends());
+        for (Member m : members) {
+            participants.add(createAppointmentParticipant(appointment, m, Role.PARTICIPANT, State.WAIT));
+        }
 
-        appointmentParticipantRepository.save(hostParticipant);
+        appointmentParticipantRepository.saveAll(participants);
 
         return AppointmentCreateResponse.builder()
-                .appointmentId(appointmentId)
+                .appointmentId(appointment.getId())
                 .name(appointment.getName())
                 .imageUrl(appointment.getImage())
                 .time(appointment.getTime())
-                .latitude(appointment.getLatitude())
-                .longitude(appointment.getLongitude())
+                .placeId(place == null ? null : place.getId())
+                .placeName(place == null ? null : place.getName())
                 .memo(appointment.getMemo())
                 .inviteCode(appointment.getInviteUrl())
                 .isEnded(appointment.getIsEnded())
@@ -101,12 +113,22 @@ public class AppointmentService {
                 .build();
     }
 
+    public AppointmentParticipant createAppointmentParticipant(Appointment appointment, Member member, Role role,
+                                                               State state) {
+        return AppointmentParticipant.builder()
+                .appointment(appointment)
+                .member(member)
+                .role(role)
+                .state(state)
+                .joinAt(LocalDateTime.now())
+                .build();
+    }
+
     @Transactional
     public AppointmentJoinResponse join(AppointmentJoinRequest request) {
         Member member = authUtil.getCurrentMember();
 
-        Appointment appointment = appointmentRepository.findById(request.appointmentId())
-                .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
+        Appointment appointment = getAppointment(request.appointmentId());
 
         Optional<AppointmentParticipant> existingParticipantOpt =
                 appointmentParticipantRepository.findByAppointmentAndMember(appointment, member);
@@ -123,7 +145,7 @@ public class AppointmentService {
             if (state == State.KICKED) {
                 throw new AppointmentException(ErrorCode.APPOINTMENT_JOIN_FORBIDDEN);
             }
-            if (state == State.LEAVE) {
+            if (state == State.LEAVE || state == State.WAIT) {
                 existingParticipant.updateState(State.JOINED);
                 participant = existingParticipant;
             } else {
@@ -156,8 +178,7 @@ public class AppointmentService {
     public AppointmentDetailResponse getDetail(Integer appointmentId) {
         Member member = authUtil.getCurrentMember();
 
-        Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
+        Appointment appointment = getAppointment(appointmentId);
 
         // 본인이 JOINED 상태의 참여자인지 확인
         AppointmentParticipant self = appointmentParticipantRepository
@@ -195,8 +216,8 @@ public class AppointmentService {
                 .name(appointment.getName())
                 .imageUrl(appointment.getImage())
                 .time(appointment.getTime())
-                .latitude(appointment.getLatitude())
-                .longitude(appointment.getLongitude())
+                .placeId(appointment.getPlace() == null ? null : appointment.getPlace().getId())
+                .placeName(appointment.getPlace() == null ? null : appointment.getPlace().getName())
                 .memo(appointment.getMemo())
                 .isEnded(appointment.getIsEnded())
                 .participants(participants)
@@ -210,8 +231,7 @@ public class AppointmentService {
     public void leave(Integer appointmentId) {
         Member member = authUtil.getCurrentMember();
 
-        Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
+        Appointment appointment = getAppointment(appointmentId);
 
         AppointmentParticipant participant = appointmentParticipantRepository
                 .findByAppointmentAndMember(appointment, member)
@@ -230,8 +250,15 @@ public class AppointmentService {
                                             MultipartFile image) {
         Member member = authUtil.getCurrentMember();
 
-        Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
+        Appointment appointment = getAppointment(appointmentId);
+
+        Place place = null;
+        if (request.placeId() != null) {
+            place = placeRepository.findById(request.placeId())
+                    .orElseThrow(() -> new AppointmentException(ErrorCode.PLACE_NOT_FOUND));
+        } else {
+            place = appointment.getPlace();
+        }
 
         AppointmentParticipant participant = appointmentParticipantRepository
                 .findByAppointmentAndMember(appointment, member)
@@ -250,8 +277,7 @@ public class AppointmentService {
                 request.name(),
                 imageUrl,
                 request.time(),
-                request.latitude(),
-                request.longitude(),
+                place,
                 request.memo()
         );
 
@@ -260,8 +286,8 @@ public class AppointmentService {
                 .name(appointment.getName())
                 .imageUrl(appointment.getImage())
                 .time(appointment.getTime())
-                .latitude(appointment.getLatitude())
-                .longitude(appointment.getLongitude())
+                .placeId(appointment.getPlace() == null ? null : appointment.getPlace().getId())
+                .placeName(appointment.getPlace() == null ? null : appointment.getPlace().getName())
                 .memo(appointment.getMemo())
                 .updatedAt(appointment.getUpdatedAt())
                 .build();
@@ -284,8 +310,7 @@ public class AppointmentService {
     public AppointmentParticipantResponse getParticipants(Integer appointmentId) {
         Member member = authUtil.getCurrentMember();
 
-        Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
+        Appointment appointment = getAppointment(appointmentId);
 
         AppointmentParticipant participant = appointmentParticipantRepository
                 .findByAppointmentAndMember(appointment, member)
@@ -370,7 +395,6 @@ public class AppointmentService {
 
         List<AppointmentParticipant> participants = appointmentParticipantRepository
                 .findAllByMemberAndState(member, State.JOINED);
-
         return participants.stream()
                 .map(AppointmentParticipant::getAppointment)
                 .filter(appointment -> {
@@ -385,8 +409,8 @@ public class AppointmentService {
                         .name(appointment.getName())
                         .imageUrl(appointment.getImage())
                         .time(appointment.getTime())
-                        .latitude(appointment.getLatitude())
-                        .longitude(appointment.getLongitude())
+                        .placeId(appointment.getPlace() == null ? null : appointment.getPlace().getId())
+                        .placeName(appointment.getPlace() == null ? null : appointment.getPlace().getName())
                         .memo(appointment.getMemo())
                         .isEnded(appointment.getIsEnded())
                         .inviteUrl(appointment.getInviteUrl())
@@ -419,8 +443,7 @@ public class AppointmentService {
     private Appointment validateHostAccess(Integer appointmentId) {
         Member member = authUtil.getCurrentMember();
 
-        Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
+        Appointment appointment = getAppointment(appointmentId);
 
         AppointmentParticipant participant = appointmentParticipantRepository
                 .findByAppointmentAndMember(appointment, member)
@@ -431,5 +454,45 @@ public class AppointmentService {
         }
 
         return appointment;
+    }
+
+    public GetLocationAppointmentResponse getLocation(Integer appointmentId) {
+        Member member = authUtil.getCurrentMember();
+        Appointment appointment = getAppointment(appointmentId);
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime tenMinutesBefore = appointment.getTime().minusMinutes(10);
+
+        if (now.isBefore(tenMinutesBefore) || now.isAfter(appointment.getTime())) {
+            throw new AppointmentException(ErrorCode.INVALID_APPOINTMENT_TIME);
+        }
+
+        if (!appointmentParticipantRepository.existsByAppointmentAndMemberAndState(appointment, member, State.JOINED)) {
+            throw new AppointmentException(ErrorCode.APPOINTMENT_PARTICIPANT_NOT_FOUND);
+        }
+
+        List<AppointmentParticipant> participants = appointmentParticipantRepository.findAllByAppointment(appointment);
+        List<GetLocationAppointmentResponse.Participant> responseParticipants = new ArrayList<>();
+        for (AppointmentParticipant p : participants) {
+            String location = locationRedisService.getLocation(p.getMember().getId());
+            if (location == null) {
+                continue;
+            }
+            String[] parts = location.split(",");
+
+            double latitude = Double.parseDouble(parts[0]);
+            double longitude = Double.parseDouble(parts[1]);
+            responseParticipants.add(GetLocationAppointmentResponse.Participant.builder()
+                    .memberId(p.getMember().getId())
+                    .memberName(p.getMember().getName())
+                    .memberImage(p.getMember().getProfileImage())
+                    .latitude(latitude)
+                    .longitude(longitude)
+                    .build());
+        }
+        return GetLocationAppointmentResponse.builder()
+                .appointmentId(appointment.getId())
+                .participants(responseParticipants)
+                .build();
     }
 }

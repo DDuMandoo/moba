@@ -7,8 +7,7 @@ import lombok.Builder;
 public record AppointmentUpdateRequest(
         String name,
         LocalDateTime time,
-        Double latitude,
-        Double longitude,
+        Integer placeId,
         String memo
 ) {
 }

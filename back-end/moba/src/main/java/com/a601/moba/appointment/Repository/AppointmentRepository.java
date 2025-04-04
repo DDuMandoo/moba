@@ -1,6 +1,7 @@
 package com.a601.moba.appointment.Repository;
 
 import com.a601.moba.appointment.Entity.Appointment;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -33,4 +34,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
                                           @Param("cursorId") Integer cursorId,
                                           Pageable pageable);
 
+    List<Appointment> findByTimeBetweenAndIsEndedFalseAndReminderSentFalse(LocalDateTime from, LocalDateTime to);
+
+    List<Appointment> findByTimeBetweenAndIsEndedFalse(LocalDateTime now, LocalDateTime tenMinutesLater);
 }

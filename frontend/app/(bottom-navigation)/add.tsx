@@ -129,13 +129,21 @@ export default function AppointmentCreatePage() {
     <>
       <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
         <View style={styles.card}>
-          <TouchableOpacity onPress={handleSelectImage} style={styles.imageBox} activeOpacity={0.8}>
-            {image ? (
+        <TouchableOpacity onPress={handleSelectImage} style={styles.imageBox} activeOpacity={0.8}>
+          {image ? (
+            <>
               <RNImage source={{ uri: image }} style={styles.image} resizeMode="cover" />
-            ) : (
-              <Text style={styles.imagePlaceholder}>약속 대표 사진을 첨부해주세요.</Text>
-            )}
-          </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.deleteIcon}
+                onPress={() => setImage(null)}
+              >
+                <Ionicons name="close-circle" size={24} color={ Colors.background} />
+              </TouchableOpacity>
+            </>
+          ) : (
+            <Text style={styles.imagePlaceholder}>약속 대표 사진을 첨부해주세요.</Text>
+          )}
+        </TouchableOpacity>
 
           <TouchableOpacity onPress={handleSelectImage} style={styles.selectBox} activeOpacity={0.7}>
             <Ionicons name="folder-outline" size={20} color={Colors.grayDarkText} />
@@ -256,6 +264,14 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 20
   },
+  deleteIcon: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    borderRadius: 999,
+    padding: 2,
+    zIndex: 1
+  },  
   imageBox: {
     height: 160,
     backgroundColor: '#f0f0f0',

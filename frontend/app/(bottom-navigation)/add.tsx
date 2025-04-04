@@ -23,6 +23,7 @@ import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
 import { Image as RNImage } from 'react-native';
 import SelectedProfileItem from '@/components/profile/SelectedProfileItem';
+import { useAppSelector } from '@/redux/hooks';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || Constants.expoConfig?.extra?.API_URL;
 
@@ -31,7 +32,7 @@ export default function AppointmentCreatePage() {
   const [image, setImage] = useState<string | null>(null);
   const [dateTime, setDateTime] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [location, setLocation] = useState<{ latitude: number; longitude: number; memo?: string } | null>(null);
+  const [location, setLocation] = useState<{ placeId: number; memo?: string } | null>(null);
   const [friends, setFriends] = useState<{ id: number; name: string; image: string }[]>([]);
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
@@ -39,6 +40,8 @@ export default function AppointmentCreatePage() {
   const [confirmVisible, setConfirmVisible] = useState(false);
 
   const router = useRouter();
+  const { profile } = useAppSelector((state) => state.user);
+
 
   const handleSelectImage = async () => {
     const result = await launchImageLibraryAsync({
@@ -81,10 +84,11 @@ export default function AppointmentCreatePage() {
     const payload = {
       name,
       time: dateTime?.toISOString(),
-      latitude: location?.latitude ?? 37.5665,
-      longitude: location?.longitude ?? 126.978,
+      placeId: location?.placeId ?? null,
       memo: location?.memo ?? '',
-      friends: friends.map((f) => f.id)
+      friends: friends
+    .filter((f) => f.id !== profile?.memberId)
+    .map((f) => f.id),
     };
 
     try {

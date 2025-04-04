@@ -1,4 +1,3 @@
-// ✅ app/promises/[id]/edit.tsx
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -34,7 +33,7 @@ export default function AppointmentEditPage() {
   const [image, setImage] = useState<string | null>(null);
   const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [dateTime, setDateTime] = useState<Date | null>(null);
-  const [location, setLocation] = useState<{ latitude: number; longitude: number; memo?: string } | null>(null);
+  const [location, setLocation] = useState<{ placeId: number; placeName?: string; memo?: string } | null>(null);
   const [friends, setFriends] = useState<{ id: number; name: string; image: string }[]>([]);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
@@ -52,7 +51,7 @@ export default function AppointmentEditPage() {
         setOriginalImage(a.imageUrl);
         setImage(a.imageUrl);
         setDateTime(new Date(a.time));
-        setLocation({ latitude: a.latitude, longitude: a.longitude, memo: a.memo });
+        setLocation(a.placeId ? { placeId: a.placeId, placeName: a.placeName, memo: a.memo } : null);
         setFriends((a.participants || []).map((m: any) => ({ id: m.memberId, name: m.name, image: m.profileImage || '' })));
       } catch (err) {
         console.error('❌ 약속 불러오기 실패:', err);
@@ -93,8 +92,7 @@ export default function AppointmentEditPage() {
       const payload = {
         name,
         time: dateTime?.toISOString(),
-        latitude: location?.latitude ?? 37.5665,
-        longitude: location?.longitude ?? 126.978,
+        placeId: location?.placeId ?? null,
         memo: location?.memo ?? ''
       };
 
@@ -135,7 +133,7 @@ export default function AppointmentEditPage() {
 
   return (
     <>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
         <View style={styles.card}>
           <TouchableOpacity onPress={handleSelectImage} style={styles.imageBox} activeOpacity={0.8}>
             {image ? (
@@ -151,6 +149,10 @@ export default function AppointmentEditPage() {
             ) : (
               <Text style={styles.imagePlaceholder}>약속 대표 사진을 첨부해주세요.</Text>
             )}
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleSelectImage} style={styles.selectBox} activeOpacity={0.7}>
+            <Ionicons name="folder-outline" size={20} color={Colors.grayDarkText} />
+            <Text style={styles.selectText}>사진 첨부</Text>
           </TouchableOpacity>
         </View>
 
@@ -208,10 +210,10 @@ export default function AppointmentEditPage() {
 
         <View style={styles.card}>
           <Text style={styles.label}>장소</Text>
-          {location?.memo && (
+          {location?.placeName && (
             <View style={styles.selectedRow}>
               <Ionicons name="location-outline" size={18} color={Colors.primary} />
-              <Text style={styles.selectedText}>{location.memo}</Text>
+              <Text style={styles.selectedText}>{location.placeName}</Text>
             </View>
           )}
           <TouchableOpacity
@@ -251,7 +253,7 @@ export default function AppointmentEditPage() {
         data={{
           name,
           time: dateTime ? dayjs(dateTime).format('YYYY년 M월 D일 HH:mm') : '',
-          location: location?.memo || '',
+          location: location?.placeName || '',
           participants: friends
         }}
       />

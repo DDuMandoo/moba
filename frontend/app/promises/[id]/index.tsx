@@ -8,7 +8,6 @@ import {
   FlatList,
   StyleSheet,
   Dimensions,
-  NativeSyntheticEvent,
   ScrollView,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -17,8 +16,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppSelector } from '@/redux/hooks';
 import axiosInstance from '@/app/axiosInstance';
 import Colors from '@/constants/Colors';
-import PagerView, { PagerViewOnPageSelectedEventData } from 'react-native-pager-view';
-import DotIndicator from '@/components/promises/DotIndicator';
 import MapViewSection from '@/components/promises/MapViewSection';
 import InterestViewSection from '@/components/promises/InterestViewSection';
 import dayjs from 'dayjs';
@@ -37,12 +34,11 @@ export default function AppointmentDetailPage() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { profile } = useAppSelector((state) => state.user);
   const insets = useSafeAreaInsets();
-  const pagerRef = useRef<PagerView>(null);
   const router = useRouter();
 
   const [appointment, setAppointment] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(0);
+  const [selectedTab, setSelectedTab] = useState<'map' | 'interest'>('map');
 
   const translateY = useSharedValue(0);
   const HEADER_MARGIN = insets.top + 60;
@@ -91,15 +87,6 @@ export default function AppointmentDetailPage() {
 
   const isHost = profile?.memberId === appointment.hostId;
 
-  const handleDotPress = (index: number) => {
-    pagerRef.current?.setPage(index);
-    setCurrentPage(index);
-  };
-
-  const handlePageSelected = (e: NativeSyntheticEvent<PagerViewOnPageSelectedEventData>) => {
-    setCurrentPage(e.nativeEvent.position);
-  };
-
   return (
     <View style={styles.container}>
       <ImageBackground
@@ -143,8 +130,12 @@ export default function AppointmentDetailPage() {
                   </View>
                 )}
               </View>
-              <Text style={styles.time}>{dayjs(appointment.time).format('YYYY년 M월 D일 HH:mm')}</Text>
-              <Text style={styles.location}>📍 {appointment.memo || '장소 정보 없음'}</Text>
+              <Text style={styles.time}>
+                {dayjs(appointment.time).format('YYYY년 M월 D일 HH:mm')}
+              </Text>
+              <Text style={styles.location}>
+                📍 {appointment.placeName || '장소 정보 없음'} {appointment.memo ? `- ${appointment.memo}` : ''}
+              </Text>
             </View>
 
             <FlatList
@@ -169,37 +160,39 @@ export default function AppointmentDetailPage() {
             />
 
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 12, paddingHorizontal: 20 }}>
-              <TouchableOpacity style={styles.smallBtn}><Text style={styles.smallBtnText}>정산하기</Text></TouchableOpacity>
-              <TouchableOpacity style={styles.smallBtn}><Text style={styles.smallBtnText}>채팅</Text></TouchableOpacity>
+              <TouchableOpacity style={styles.smallBtn}>
+                <Text style={styles.smallBtnText}>정산하기</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.smallBtn}>
+                <Text style={styles.smallBtnText}>채팅</Text>
+              </TouchableOpacity>
             </View>
 
-            <View style={{ alignItems: 'center', marginVertical: 10 }}>
-              <DotIndicator activeIndex={currentPage} onDotPress={handleDotPress} />
+            <View style={styles.tabContainer}>
+              <TouchableOpacity
+                style={[styles.tab, selectedTab === 'map' && styles.activeTab]}
+                onPress={() => setSelectedTab('map')}
+              >
+                <Text style={selectedTab === 'map' ? styles.activeTabText : styles.tabText}>지도</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.tab, selectedTab === 'interest' && styles.activeTab]}
+                onPress={() => setSelectedTab('interest')}
+              >
+                <Text style={selectedTab === 'interest' ? styles.activeTabText : styles.tabText}>관심사</Text>
+              </TouchableOpacity>
             </View>
+
+            {selectedTab === 'map' ? (
+              <MapViewSection
+                placeId={appointment.placeId}
+                placeName={appointment.placeName}
+                isHost={isHost}
+              />
+            ) : (
+              <InterestViewSection />
+            )}
           </ScrollView>
-
-          <PagerView
-            ref={pagerRef}
-            style={styles.pagerView}
-            initialPage={0}
-            onPageSelected={handlePageSelected}
-          >
-            <View key="map" style={styles.pagerPage}>
-              <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled>
-                <MapViewSection
-                  latitude={appointment.latitude}
-                  longitude={appointment.longitude}
-                  places={[{ title: appointment.memo || '장소 없음', order: 1 }]}
-                  isHost={isHost}
-                />
-              </ScrollView>
-            </View>
-            <View key="interest" style={styles.pagerPage}>
-              <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled>
-                <InterestViewSection />
-              </ScrollView>
-            </View>
-          </PagerView>
         </Animated.View>
       </PanGestureHandler>
     </View>
@@ -236,6 +229,29 @@ const styles = StyleSheet.create({
   profilePlaceholder: { width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' },
   smallBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12, borderColor: Colors.grayDarkText, borderWidth: 1 },
   smallBtnText: { fontSize: 13, color: Colors.text },
-  pagerView: { flex: 1, height: SCREEN_HEIGHT * 0.6 },
-  pagerPage: { flex: 1 },
+  tabContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 20,
+    marginBottom: 12,
+    gap: 16,
+  },
+  tab: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderBottomWidth: 2,
+    borderColor: 'transparent'
+  },
+  activeTab: {
+    borderColor: Colors.primary
+  },
+  tabText: {
+    fontSize: 16,
+    color: Colors.grayDarkText,
+  },
+  activeTabText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: Colors.primary
+  },
 });

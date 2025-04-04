@@ -303,7 +303,8 @@ const styles = StyleSheet.create({
   selectedScrollWrap: {
     flexDirection: 'row',
     paddingHorizontal: 2,
-    alignItems: 'center'
+    alignItems: 'center',
+    minWidth: '100%'
   },
   selectedItem: {
     marginTop: 10,

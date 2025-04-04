@@ -163,13 +163,29 @@ export default function AppointmentCreatePage() {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.label}>날짜 및 시간 선택 <Text style={{ color: Colors.secondary }}>*</Text></Text>
-          <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.selectBox} activeOpacity={0.7}>
+          <Text style={styles.label}>
+            날짜 및 시간 선택 <Text style={{ color: Colors.secondary }}>*</Text>
+          </Text>
+
+          {/* 선택된 날짜/시간 */}
+          {dateTime && (
+            <View style={styles.selectedRow}>
+              <Ionicons name="calendar-outline" size={18} color={Colors.primary} />
+              <Text style={styles.selectedText}>
+                {dayjs(dateTime).format('YYYY년 M월 D일 HH:mm')}
+              </Text>
+            </View>
+          )}
+
+          <TouchableOpacity
+            onPress={() => setShowDatePicker(true)}
+            style={styles.selectBox}
+            activeOpacity={0.7}
+          >
             <Ionicons name="calendar-outline" size={20} color={Colors.grayDarkText} />
-            <Text style={styles.selectText}>
-              {dateTime ? dayjs(dateTime).format('YYYY년 M월 D일 HH:mm') : '날짜 및 시간 선택'}
-            </Text>
+            <Text style={styles.selectText}>날짜 및 시간 선택</Text>
           </TouchableOpacity>
+
           <CustomDateTimePicker
             visible={showDatePicker}
             initialValue={dateTime || new Date()}
@@ -202,7 +218,19 @@ export default function AppointmentCreatePage() {
 
         <View style={styles.card}>
           <Text style={styles.label}>장소 선택</Text>
-          <TouchableOpacity onPress={() => router.push('/promises/locationSearch')} style={styles.selectBox} activeOpacity={0.7}>
+
+          {/* 선택된 장소 */}
+          {location?.memo && (
+            <View style={styles.selectedRow}>
+              <Ionicons name="location-outline" size={18} color={Colors.primary} />
+              <Text style={styles.selectedText}>{location.memo}</Text>
+            </View>
+          )}
+          <TouchableOpacity
+            onPress={() => router.push('/promises/locationSearch')}
+            style={styles.selectBox}
+            activeOpacity={0.7}
+          >
             <Ionicons name="location-outline" size={20} color={Colors.grayDarkText} />
             <Text style={styles.selectText}>장소 검색</Text>
           </TouchableOpacity>
@@ -337,5 +365,18 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 0.6,
     borderColor: Colors.logo
-  }
+  },
+  selectedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+    marginLeft: 2,
+    padding: 5
+  },
+  selectedText: {
+    color: Colors.primary,
+    fontSize: 15,
+  },
+
 });

@@ -124,7 +124,7 @@ export default function AppointmentDetailPage() {
 
       <PanGestureHandler onGestureEvent={gestureHandler}>
         <Animated.View style={[styles.contentBox, animatedStyle]}>
-          <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} nestedScrollEnabled>
+          <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
             <View style={styles.infoBox}>
               <View style={styles.titleRow}>
                 <Text style={styles.title}>{appointment.name}</Text>
@@ -169,33 +169,30 @@ export default function AppointmentDetailPage() {
             <View style={{ alignItems: 'center', marginVertical: 10 }}>
               <DotIndicator activeIndex={currentPage} onDotPress={handleDotPress} />
             </View>
-
-            <View style={styles.pagerWrapper}>
-              <PagerView
-                ref={pagerRef}
-                style={styles.pagerView}
-                initialPage={0}
-                onPageSelected={handlePageSelected}
-                scrollEnabled={true}
-              >
-                <View key="map" style={styles.pagerPage}>
-                  <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled>
-                    <MapViewSection
-                      latitude={appointment.latitude}
-                      longitude={appointment.longitude}
-                      places={[{ title: appointment.memo || '장소 없음', order: 1 }]}
-                      isHost={isHost}
-                    />
-                  </ScrollView>
-                </View>
-                <View key="interest" style={styles.pagerPage}>
-                  <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled>
-                    <InterestViewSection />
-                  </ScrollView>
-                </View>
-              </PagerView>
-            </View>
           </ScrollView>
+
+          <PagerView
+            ref={pagerRef}
+            style={styles.pagerView}
+            initialPage={0}
+            onPageSelected={handlePageSelected}
+          >
+            <View key="map" style={styles.pagerPage}>
+              <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled>
+                <MapViewSection
+                  latitude={appointment.latitude}
+                  longitude={appointment.longitude}
+                  places={[{ title: appointment.memo || '장소 없음', order: 1 }]}
+                  isHost={isHost}
+                />
+              </ScrollView>
+            </View>
+            <View key="interest" style={styles.pagerPage}>
+              <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled>
+                <InterestViewSection />
+              </ScrollView>
+            </View>
+          </PagerView>
         </Animated.View>
       </PanGestureHandler>
     </View>
@@ -232,7 +229,6 @@ const styles = StyleSheet.create({
   profilePlaceholder: { width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' },
   smallBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12, borderColor: Colors.grayDarkText, borderWidth: 1 },
   smallBtnText: { fontSize: 13, color: Colors.text },
-  pagerWrapper: { height: SCREEN_HEIGHT * 0.6 },
-  pagerView: { flex: 1 },
+  pagerView: { flex: 1, height: SCREEN_HEIGHT * 0.6 },
   pagerPage: { flex: 1 },
 });

@@ -1,7 +1,6 @@
 spring:
   config:
     import:
-      #      - classpath:application-auth.yml
       - classpath:application-redis.yml
       - classpath:application-mail.yml
       - classpath:application-jwt.yml
@@ -10,8 +9,9 @@ spring:
       - classpath:application-s3.yml
       - classpath:application-cors.yml
       - classpath:application-wallet.yml
+      - classpath:application-mongo.yml
+      #      - classpath:application-auth.yml
       #      - classpath:application-firebase.yml
-      #      - classpath:application-mongo.yml
       #      - classpath:application-elastic.yml
       - optional:file:.env[.properties]
   application:

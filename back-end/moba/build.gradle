@@ -57,6 +57,12 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
     implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
 
+    //webSocket + STOMP
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+    //MongoDB
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+
 }
 
 

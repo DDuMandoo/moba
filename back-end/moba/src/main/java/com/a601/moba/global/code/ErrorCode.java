@@ -1,6 +1,7 @@
 package com.a601.moba.global.code;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 import lombok.Getter;
@@ -25,6 +26,7 @@ public enum ErrorCode {
     TRANSFER_ACCOUNT_DUPLICATE(4009, BAD_REQUEST, "자기 자신한테는 이체할 수 없습니다"),
     INVALID_TRANSACTION_ID(4010, BAD_REQUEST, "존재하지 않는 거래 내역입니다"),
     INVALID_UNIQUE_ID(4011, BAD_REQUEST, "사용자의 계좌가 아닙니다"),
+    INVALID_ACCOUNT_PASSWORD(4012, BAD_REQUEST, "계좌의 비밀번호가 일치하지 않습니다"),
     ;
 
     private final int code;

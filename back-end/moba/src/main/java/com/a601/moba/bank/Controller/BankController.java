@@ -1,21 +1,27 @@
 package com.a601.moba.bank.Controller;
 
 import com.a601.moba.bank.Controller.Request.CreateBankRequest;
+import com.a601.moba.bank.Controller.Request.GetTransactionRequest;
 import com.a601.moba.bank.Controller.Request.SearchTransactionRequest;
 import com.a601.moba.bank.Controller.Request.TransferBankRequest;
 import com.a601.moba.bank.Controller.Request.ValidBankRequest;
 import com.a601.moba.bank.Controller.Response.CreateBankResponse;
+import com.a601.moba.bank.Controller.Response.GetAccountResponse;
+import com.a601.moba.bank.Controller.Response.GetReceiptResponse;
+import com.a601.moba.bank.Controller.Response.GetTransactionResponse;
 import com.a601.moba.bank.Controller.Response.SearchTransactionResponse;
 import com.a601.moba.bank.Controller.Response.TransferBankResponse;
 import com.a601.moba.bank.Controller.Response.ValidBankResponse;
 import com.a601.moba.bank.Service.BankService;
 import com.a601.moba.global.code.SuccessCode;
 import com.a601.moba.global.response.JSONResponse;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,6 +47,27 @@ public class BankController {
         );
 
         return ResponseEntity.ok(JSONResponse.onSuccess(response));
+    }
+
+    @GetMapping("/{uniqueId}/account")
+    public ResponseEntity<JSONResponse<List<GetAccountResponse>>> getAccount(
+            @PathVariable Integer uniqueId
+    ){
+        List<GetAccountResponse> responses = bankService.getAccount(uniqueId);
+
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.REQUEST_SUCCESS, responses));
+    }
+
+    @GetMapping("/transaction")
+    public ResponseEntity<JSONResponse<List<GetTransactionResponse>>> getTransaction(
+            @RequestBody GetTransactionRequest request
+    ){
+        List<GetTransactionResponse> responses = bankService.getTransaction(
+                request.account(),
+                request.password()
+        );
+
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.REQUEST_SUCCESS, responses));
     }
 
     // 이체 요청
@@ -77,6 +104,14 @@ public class BankController {
         SearchTransactionResponse response = bankService.searchTransaction(request.id(), request.accessToken());
 
         return ResponseEntity.ok(JSONResponse.onSuccess(response));
+    }
+
+    @GetMapping("/{uniqueId}/receipt")
+    public ResponseEntity<JSONResponse<List<GetReceiptResponse>>> getReceipt(
+            @PathVariable Integer uniqueId
+    ){
+        List<GetReceiptResponse> responses = bankService.getReceipt(uniqueId);
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.REQUEST_SUCCESS, responses));
     }
 
 }

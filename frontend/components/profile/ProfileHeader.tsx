@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, ActivityIndicator } from 'react-native';
+import { View, Text, Image, ActivityIndicator, StyleSheet } from 'react-native';
 import Colors from '@/constants/Colors';
 
 interface Props {
@@ -7,7 +7,7 @@ interface Props {
   image: string;
   isLoading: boolean;
   isError: boolean;
-  titleFormat?: (name: string) => string; // ✅ 포맷 함수
+  titleFormat?: (name: string) => string;
 }
 
 export default function ProfileHeader({
@@ -18,10 +18,11 @@ export default function ProfileHeader({
   titleFormat,
 }: Props) {
   const [imgError, setImgError] = useState(false);
+  const size = 68;
 
   if (isLoading) {
     return (
-      <View style={{ alignItems: 'center', marginVertical: 20 }}>
+      <View style={styles.centered}>
         <ActivityIndicator color={Colors.primary} />
       </View>
     );
@@ -29,32 +30,65 @@ export default function ProfileHeader({
 
   if (isError || !name || name.trim() === '') {
     return (
-      <Text style={{ fontSize: 16, fontWeight: 'bold', color: Colors.grayDarkText }}>
+      <Text style={styles.errorText}>
         유저 정보를 불러올 수 없습니다.
       </Text>
     );
   }
 
+  const displayName = titleFormat ? titleFormat(name) : name;
+
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-      <Image
-        source={
-          !image || image.trim() === '' || imgError
-            ? require('@/assets/images/defaultprofile.png')
-            : { uri: image }
-        }
-        onError={() => setImgError(true)}
-        style={{
-          width: 56,
-          height: 56,
-          borderRadius: 20,
-          backgroundColor: Colors.grayLightText,
-          marginRight: 12,
-        }}
-      />
-      <Text style={{ fontSize: 18, fontWeight: 'bold', color: Colors.text }}>
-        {titleFormat ? titleFormat(name) : name}
+    <View style={styles.row}>
+      <View style={[styles.imageBox, { width: size, height: size, borderRadius: size * 0.3 }]}>
+        <Image
+          source={
+            !image || image.trim() === '' || imgError
+              ? require('@/assets/images/defaultprofile.png')
+              : { uri: image }
+          }
+          onError={() => setImgError(true)}
+          style={{ width: '100%', height: '100%', borderRadius: size * 0.25 }}
+        />
+      </View>
+      <Text style={[styles.name, { fontSize: size * 0.36 }]}>
+        {displayName}
+        <Text style={[styles.suffix, { fontSize: size * 0.28 }]}> 님</Text>
       </Text>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 16,
+  },
+  imageBox: {
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.logoInner,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  name: {
+    color: Colors.black,
+    fontFamily: 'NanumSquareRound',
+  },
+  suffix: {
+    color: Colors.black,
+    fontFamily: 'NanumSquareRound',
+  },
+  centered: {
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: Colors.grayDarkText,
+    textAlign: 'center',
+  },
+});

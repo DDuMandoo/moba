@@ -171,8 +171,7 @@ export default function MyPageScreen() {
               imageUrl={promise.imageUrl}
               title={promise.name}
               time={promise.time}
-              location={promise.memo}
-              participants={[]} // 참여자 정보 필요시 추가
+              location={promise.placeName}
               onPress={() =>
                 router.push({
                   pathname: '/promises/[id]',

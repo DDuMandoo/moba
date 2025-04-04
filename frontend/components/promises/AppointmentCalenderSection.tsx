@@ -173,8 +173,7 @@ export default function AppointmentCalendarSection() {
               imageUrl={promise.imageUrl}
               title={promise.name}
               time={promise.time}
-              location={promise.memo}
-              participants={[]}
+              location={promise.placeName}
               onPress={() =>
                 router.push({
                   pathname: '/promises/[id]',

@@ -10,8 +10,7 @@ export interface AppointmentResponse {
     name: string;
     imageUrl?: string;
     time: string;
-    latitude?: number;
-    longitude?: number;
+    placeId?: number;
     memo?: string;
     inviteCode: string;
     isEnded: boolean;

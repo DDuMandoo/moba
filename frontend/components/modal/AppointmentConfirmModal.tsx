@@ -104,7 +104,7 @@ export default function AppointmentConfirmModal({
           </ScrollView>
 
           <View style={styles.buttonWrap}>
-            <Button.Medium title="약속 생성" onPress={onConfirm} />
+            <Button.Medium title="확인" onPress={onConfirm} />
           </View>
         </View>
       </View>

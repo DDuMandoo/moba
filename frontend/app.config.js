@@ -10,12 +10,12 @@ export default {
     scheme: 'myapp',
     userInterfaceStyle: 'automatic',
     newArchEnabled: true,
-    owner: 'erin523',
+    owner: 'keon21',
     ios: {
       supportsTablet: true
     },
     android: {
-      package: 'com.erin523.frontend',
+      package: 'com.keon21.frontend',
       adaptiveIcon: {
         foregroundImage: './assets/icons/header/Logo.png',
         backgroundColor: '#F2F0EF'
@@ -52,7 +52,7 @@ export default {
     },
     extra: {
       eas: {
-        projectId: '96b90ddf-c230-437d-8d4c-8f56db76acc8'
+        "projectId": "8a4e1f1c-4b39-4b1b-8a62-ad91849b85bb"
       },
       API_URL: process.env.EXPO_PUBLIC_API_URL || 'http://j12a601.p.ssafy.io/api'
     }

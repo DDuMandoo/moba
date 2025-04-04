@@ -136,6 +136,7 @@ export default function AppointmentDetailPage() {
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
+            {/* 약속 정보 */}
             <View style={styles.infoBox}>
               <View style={styles.titleRow}>
                 <Text style={styles.title}>{appointment.name}</Text>
@@ -151,6 +152,7 @@ export default function AppointmentDetailPage() {
               <Text style={styles.location}>📍 {appointment.memo || '장소 정보 없음'}</Text>
             </View>
 
+            {/* 참가자 목록 */}
             <FlatList
               horizontal
               data={appointment.participants}
@@ -158,45 +160,60 @@ export default function AppointmentDetailPage() {
               contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
               renderItem={({ item }) => (
                 <View style={{ alignItems: 'center' }}>
-                  <View style={styles.profileImageBox}>
-                    {item.profileImage ? (
-                      <Image source={{ uri: item.profileImage }} style={styles.profileImage} />
-                    ) : (
-                      <View style={styles.profilePlaceholder}>
-                        <Text>{item.name.charAt(0)}</Text>
-                      </View>
-                    )}
-                  </View>
+                  <Image
+                    source={{ uri: item.profileImage || 'https://via.placeholder.com/48' }}
+                    style={{ width: 48, height: 48 }}
+                  />
                   <Text>{item.name}</Text>
                 </View>
               )}
+              showsHorizontalScrollIndicator={false}
             />
 
+            {/* 버튼 영역 */}
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 12, paddingHorizontal: 20 }}>
               <TouchableOpacity style={styles.smallBtn}><Text style={styles.smallBtnText}>정산하기</Text></TouchableOpacity>
               <TouchableOpacity style={styles.smallBtn}><Text style={styles.smallBtnText}>채팅</Text></TouchableOpacity>
             </View>
 
+            {/* 하단 콘텐츠 */}
             <View style={styles.bottomContent}>
+              {/* 페이지 인디케이터 */}
               <DotIndicator activeIndex={currentPage} onDotPress={handleDotPress} />
-              <PagerView
-                ref={pagerRef}
-                style={styles.pagerView}
-                initialPage={0}
-                onPageSelected={handlePageSelected}
-              >
-                <View key="map" style={styles.pagerPage}>
-                  <MapViewSection
-                    latitude={appointment.latitude}
-                    longitude={appointment.longitude}
-                    places={[{ title: appointment.memo || '장소 없음', order: 1 }]}
-                    isHost={isHost}
-                  />
-                </View>
-                <View key="interest" style={styles.pagerPage}>
-                  <InterestViewSection />
-                </View>
-              </PagerView>
+              <View style={{ flex: 1 }}>
+                <PagerView
+                  ref={pagerRef}
+                  style={styles.pagerView}
+                  initialPage={0}
+                  onPageSelected={handlePageSelected}
+                  overScrollMode="never"
+                  orientation="horizontal"
+                >
+                  <View key="map" style={styles.pagerPage}>
+                    <ScrollView
+                      showsVerticalScrollIndicator={false}
+                      nestedScrollEnabled
+                      scrollEnabled={true}
+                    >
+                      <MapViewSection
+                        latitude={appointment.latitude}
+                        longitude={appointment.longitude}
+                        places={[{ title: appointment.memo || '장소 없음', order: 1 }]}
+                        isHost={isHost}
+                      />
+                    </ScrollView>
+                  </View>
+                  <View key="interest" style={styles.pagerPage}>
+                    <ScrollView
+                      showsVerticalScrollIndicator={false}
+                      nestedScrollEnabled
+                      scrollEnabled={true}
+                    >
+                      <InterestViewSection />
+                    </ScrollView>
+                  </View>
+                </PagerView>
+              </View>
             </View>
           </ScrollView>
         </Animated.View>

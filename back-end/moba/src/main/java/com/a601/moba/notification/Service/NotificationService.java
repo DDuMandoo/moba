@@ -80,9 +80,10 @@ public class NotificationService {
                 .build());
     }
 
-    public void sendSettlementStarted(Member sender, Member receiver, String appointmentTitle, int totalAmount,
-                                      int peopleCount, int userAmount,
-                                      Integer settlementId) throws FirebaseMessagingException {
+    public void
+    sendSettlementStarted(Member sender, Member receiver, String appointmentTitle, Long totalAmount,
+                          int peopleCount, Long userAmount,
+                          Integer settlementId) throws FirebaseMessagingException {
         String title = appointmentTitle + " 정산을 시작합니다.";
         String body = "참여 인원 : " + peopleCount +
                 "\n총 액 : " + totalAmount +
@@ -99,7 +100,7 @@ public class NotificationService {
         notify(sender, receiver, dto);
     }
 
-    public void sendSettlementPaid(Member sender, Member receiver, int amount) throws FirebaseMessagingException {
+    public void sendSettlementPaid(Member sender, Member receiver, Long amount) throws FirebaseMessagingException {
         String title = sender.getName() + "님이 송금하였습니다.";
         String body = "금액 : " + amount;
 

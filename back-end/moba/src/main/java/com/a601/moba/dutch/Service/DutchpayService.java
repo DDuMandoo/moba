@@ -22,6 +22,7 @@ import com.a601.moba.dutch.Service.Dto.FindReceiptsByWalletDto;
 import com.a601.moba.global.code.ErrorCode;
 import com.a601.moba.member.Entity.Member;
 import com.a601.moba.member.Repository.MemberRepository;
+import com.a601.moba.notification.Service.NotificationService;
 import com.a601.moba.wallet.Entity.Transaction;
 import com.a601.moba.wallet.Entity.TransactionStatus;
 import com.a601.moba.wallet.Entity.TransactionType;
@@ -56,6 +57,7 @@ public class DutchpayService {
     private final DutchpayRepository dutchpayRepository;
     private final AuthUtil authUtil;
     private final WalletService walletService;
+    private final NotificationService notificationService;
 
     public Member getMemberByEmail(String email) {
         return memberRepository.findByEmail(email)
@@ -123,7 +125,15 @@ public class DutchpayService {
             Transaction withdrawTransaction = createTransaction(wallet, hostWallet, participant.getValue(),
                     TransactionType.W);
 
-            createParticipant(depositTransaction, withdrawTransaction, wallet, participant.getValue(), dutchpay, false);
+            DutchpayParticipant dutchpayParticipant = createParticipant(depositTransaction, withdrawTransaction, wallet,
+                    participant.getValue(), dutchpay, false);
+
+            try {
+                notificationService.sendSettlementStarted(host, member, appointment.getName(), sumPrice,
+                        sumParticipants.size(), participant.getValue(), dutchpay.getId());
+            } catch (Exception e) {
+                throw new DutchpayException(ErrorCode.FCM_SEND_FAILED);
+            }
 
             participantResponse.add(createParticipantResponse(member, false, participant.getValue()));
         }
@@ -153,9 +163,10 @@ public class DutchpayService {
                 .build());
     }
 
-    public void createParticipant(Transaction depositTransaction, Transaction withdrawTransaction, Wallet wallet,
-                                  Long price, Dutchpay dutchpay, boolean status) {
-        dutchpayParticipantRepository.save(DutchpayParticipant.builder()
+    public DutchpayParticipant createParticipant(Transaction depositTransaction, Transaction withdrawTransaction,
+                                                 Wallet wallet,
+                                                 Long price, Dutchpay dutchpay, boolean status) {
+        return dutchpayParticipantRepository.save(DutchpayParticipant.builder()
                 .dutchpay(dutchpay)
                 .wallet(wallet)
                 .price(price)
@@ -230,8 +241,14 @@ public class DutchpayService {
         log.info("🟢 이체 완료");
 
         boolean isCompleted = dutchpay.updateSettlement(dutchpayParticipant.getPrice());
-
         Appointment appointment = dutchpay.getAppointment();
+        if (isCompleted) {
+            try {
+                notificationService.sendSettlementCompleted(appointment.getName(), member, host, dutchpayId);
+            } catch (Exception e) {
+                throw new DutchpayException(ErrorCode.FCM_SEND_FAILED);
+            }
+        }
 
         return TransferDutchpayResponse.builder()
                 .appointmentId(appointment.getId())

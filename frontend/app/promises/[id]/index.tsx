@@ -11,7 +11,7 @@ import {
   NativeSyntheticEvent,
   ScrollView,
 } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppSelector } from '@/redux/hooks';
@@ -38,6 +38,7 @@ export default function AppointmentDetailPage() {
   const { profile } = useAppSelector((state) => state.user);
   const insets = useSafeAreaInsets();
   const pagerRef = useRef<PagerView>(null);
+  const router = useRouter();
 
   const [appointment, setAppointment] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
@@ -130,9 +131,15 @@ export default function AppointmentDetailPage() {
                 <Text style={styles.title}>{appointment.name}</Text>
                 {isHost && (
                   <View style={styles.hostButtons}>
-                    <TouchableOpacity><Text style={styles.hostBtn}>수정</Text></TouchableOpacity>
-                    <TouchableOpacity><Text style={styles.hostBtn}>위임</Text></TouchableOpacity>
-                    <TouchableOpacity><Text style={[styles.hostBtn, styles.redText]}>종료</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={() => router.push(`/promises/${id}/edit`)}>
+                      <Text style={styles.hostBtn}>수정</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity>
+                      <Text style={styles.hostBtn}>위임</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity>
+                      <Text style={[styles.hostBtn, styles.redText]}>종료</Text>
+                    </TouchableOpacity>
                   </View>
                 )}
               </View>

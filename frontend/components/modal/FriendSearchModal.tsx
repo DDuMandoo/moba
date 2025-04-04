@@ -22,6 +22,7 @@ import {
 import SelectedProfileItem from '../profile/SelectedProfileItem';
 import ProfileWithEmail from '../profile/ProfileWithEmail';
 import AppointmentSummaryItem from '../profile/AppointmentSummaryItem';
+import axiosInstance from '@/app/axiosInstance';
 
 interface Props {
   visible: boolean;
@@ -37,6 +38,10 @@ const FriendSearchModal = ({ visible, onClose, onSelect, initialSelected = [] }:
   const [dropdownOption, setDropdownOption] = useState<'약속명' | '참가자'>('약속명');
   const [tab, setTab] = useState<'참가자' | '약속'>('참가자');
   const [selected, setSelected] = useState<Member[]>(initialSelected);
+  const [data, setData] = useState<(Appointment | Member)[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [cursorId, setCursorId] = useState<number | null>(null);
 
   const mode: SearchMode = dropdownOption === '약속명'
     ? '약속명'
@@ -44,12 +49,37 @@ const FriendSearchModal = ({ visible, onClose, onSelect, initialSelected = [] }:
     ? '참가자'
     : '참가자의 약속';
 
-  const { data, fetchMore, loading, hasMore } = useSearchFriends(debouncedKeyword, mode);
+  const { data: friendData, fetchMore, loading: friendLoading, hasMore: friendHasMore } = useSearchFriends(debouncedKeyword, mode);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedKeyword(searchText.trim()), 400);
     return () => clearTimeout(timer);
   }, [searchText]);
+
+  useEffect(() => {
+    if (mode === '약속명') fetchAppointments();
+  }, [debouncedKeyword]);
+
+  const fetchAppointments = async () => {
+    setLoading(true);
+    try {
+      const res = await axiosInstance.get('/appointments/search', {
+        params: {
+          keyword: debouncedKeyword,
+          size: 10,
+          cursorId: null,
+        },
+      });
+      const result = res.data?.result?.appointments ?? [];
+      setData(result);
+      setCursorId(res.data?.result?.cursorId);
+      setHasMore(result.length === 10);
+    } catch (err) {
+      console.error('❌ 약속 검색 실패:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const toggleSelect = (item: Member) => {
     const exists = selected.find((s) => s.memberId === item.memberId);
@@ -203,13 +233,17 @@ const FriendSearchModal = ({ visible, onClose, onSelect, initialSelected = [] }:
             {renderTabs()}
 
             <FlatList
-              data={data}
+              data={mode === '약속명' ? data : friendData}
               keyExtractor={(item) =>
                 'memberId' in item ? `m-${item.memberId}` : `a-${item.appointmentId}`
               }
               renderItem={renderItem}
               onEndReached={() => {
-                if (hasMore && !loading) fetchMore();
+                if (mode === '약속명') {
+                  if (hasMore && !loading) fetchAppointments();
+                } else {
+                  if (friendHasMore && !friendLoading) fetchMore();
+                }
               }}
               ListEmptyComponent={!loading ? () => (
                 <View style={styles.emptyBox}>
@@ -267,12 +301,15 @@ const styles = StyleSheet.create({
     maxHeight: 100,
   },
   selectedScrollWrap: {
+    flexDirection: 'row',
     paddingHorizontal: 2,
-    alignItems: 'center'
+    alignItems: 'center',
+    minWidth: '100%'
   },
   selectedItem: {
     marginTop: 10,
-    marginRight: 8
+    marginRight: 8,
+    flexShrink: 0
   },
   searchRow: {
     flexDirection: 'row',

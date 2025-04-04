@@ -11,15 +11,13 @@ interface Participant {
 }
 
 interface Props {
-  imageUrl: string;
+  imageUrl: string | null;
   title: string;
   time: string;
-  location?: string;
+  location?: string | null;
   amount?: string;
   appointmentId: number;
   onPress?: () => void;
-  participants?: { profileImage: string | null }[]; // ✅ 여기를 추가
-
 }
 
 export default function PromiseCard({
@@ -39,38 +37,41 @@ export default function PromiseCard({
         const res = await axiosInstance.get(`/appointments/${appointmentId}/participants`);
         const participants = res.data.result?.participants ?? [];
         setParticipants(participants);
-        console.log('✅ 참가자 목록:', participants);
       } catch (err: any) {
         console.error('❌ 참가자 정보 로딩 실패:', err?.response?.data || err.message);
       }
     };
-  
     fetchParticipants();
   }, [appointmentId]);
-  
-  
 
-  const displayExtraInfo = location || amount;
-
-  let formattedTime = '-';
-  try {
-    const date = new Date(time);
-    if (!isNaN(date.getTime())) {
-      formattedTime = date.toLocaleString('ko-KR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-      });
-    }
-  } catch {}
+  const formattedTime = (() => {
+    try {
+      const date = new Date(time);
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleString('ko-KR', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        });
+      }
+    } catch {}
+    return '-';
+  })();
 
   return (
     <View style={styles.wrapper}>
       <TouchableOpacity onPress={onPress} activeOpacity={0.9} style={styles.container}>
-        <Image source={{ uri: imageUrl }} style={styles.image} />
+        <Image
+          source={
+            imageUrl
+              ? { uri: imageUrl }
+              : require('@/assets/images/defaultpromise.png')
+          }
+          style={styles.image}
+        />
 
         <View style={styles.content}>
           <Text style={styles.title}>{title}</Text>
@@ -80,16 +81,17 @@ export default function PromiseCard({
             <Text style={styles.metaText}>{formattedTime}</Text>
           </View>
 
-          {displayExtraInfo && (
+          {location && (
             <View style={styles.metaRow}>
-              <Feather
-                name={location ? 'map' : 'credit-card'}
-                size={16}
-                color={Colors.black}
-              />
-              <Text style={styles.metaText}>
-                {location ? location : `${Number(amount).toLocaleString()}원`}
-              </Text>
+              <Feather name="map" size={16} color={Colors.black} />
+              <Text style={styles.metaText}>{location}</Text>
+            </View>
+          )}
+
+          {amount && (
+            <View style={styles.metaRow}>
+              <Feather name="credit-card" size={16} color={Colors.black} />
+              <Text style={styles.metaText}>{`${Number(amount).toLocaleString()}원`}</Text>
             </View>
           )}
 
@@ -121,7 +123,7 @@ const styles = StyleSheet.create({
   wrapper: {
     borderRadius: 12,
     backgroundColor: Colors.white,
-    padding: 10,
+    padding: 12,
     marginBottom: 12,
   },
   container: {
@@ -132,11 +134,12 @@ const styles = StyleSheet.create({
   image: {
     width: 90,
     height: 90,
-    borderRadius: 10,
+    borderRadius: 8,
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    height: 88,
   },
   title: {
     fontSize: 18,
@@ -154,7 +157,6 @@ const styles = StyleSheet.create({
     color: Colors.black,
     marginLeft: 6,
     lineHeight: 18,
-    textAlignVertical: 'center',
   },
   participantsRow: {
     flexDirection: 'row',
@@ -164,13 +166,13 @@ const styles = StyleSheet.create({
   },
   profileGroup: {
     flexDirection: 'row',
-    marginLeft: 6,
+    marginLeft: 2,
     gap: 5,
   },
   profileImage: {
-    width: 26,
-    height: 26,
-    borderRadius: 8,
+    width: 22,
+    height: 22,
+    borderRadius: 5,
     borderWidth: 0.4,
     borderColor: Colors.logo,
     backgroundColor: Colors.grayLightText,

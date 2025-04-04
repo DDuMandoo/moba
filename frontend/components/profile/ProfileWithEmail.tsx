@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
   },
   imageBox: {
     backgroundColor: Colors.white,
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: Colors.logoInner,
     justifyContent: 'center',
     alignItems: 'center',

@@ -27,7 +27,7 @@ export default function MyPageScreen() {
   const user = useAppSelector((state) => state.user.profile);
   const [appointments, setAppointments] = useState<any[]>([]);
   const [summary, setSummary] = useState({ totalAttendanceCount: 0, totalSpent: 0 });
-  const [selectedTab, setSelectedTab] = useState<typeof tabs[number]>('전체');
+  const [selectedTab, setSelectedTab] = useState<typeof tabs[number]>('진행중/예정');
   const [tabLayouts, setTabLayouts] = useState<{ x: number; width: number }[]>([]);
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -148,7 +148,7 @@ export default function MyPageScreen() {
             ))}
           </View>
 
-          {tabLayouts.length === tabs.length && (
+          {/* {tabLayouts.length === tabs.length && (
             <Animated.View
               style={{
                 position: 'absolute',
@@ -159,7 +159,7 @@ export default function MyPageScreen() {
                 backgroundColor: Colors.logo
               }}
             />
-          )}
+          )} */}
         </View>
 
         {/* 약속 카드 리스트 */}

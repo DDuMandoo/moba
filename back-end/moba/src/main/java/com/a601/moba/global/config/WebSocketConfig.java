@@ -22,14 +22,14 @@ public class WebSocketConfig implements WebSocketConfigurer, WebSocketMessageBro
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(locationWebSocketHandler, "/ws/location")
+        registry.addHandler(locationWebSocketHandler, "/api/ws/location")
                 .setAllowedOrigins("*")
                 .addInterceptors(new AuthHandshakeInterceptor());
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws-chat")
+        registry.addEndpoint("/api/ws/chat")
                 .setAllowedOriginPatterns("*")
                 .withSockJS();
     }

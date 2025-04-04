@@ -14,7 +14,7 @@ public class ChatController {
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatMessageService chatMessageService;
 
-    @MessageMapping("/chat.send")
+    @MessageMapping("/api/chat.send")
     public void receiveMessage(ChatMessage message) {
         ChatMessage saved = chatMessageService.save(message); // 저장
         messagingTemplate.convertAndSend("/topic/chat." + saved.appointmentId(), saved); // 저장된 메시지 전송

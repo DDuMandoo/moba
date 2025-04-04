@@ -35,6 +35,7 @@ export default function AppointmentEditPage() {
   const [dateTime, setDateTime] = useState<Date | null>(null);
   const [location, setLocation] = useState<{ placeId: number; placeName?: string; memo?: string } | null>(null);
   const [friends, setFriends] = useState<{ id: number; name: string; image: string }[]>([]);
+  const [originalFriends, setOriginalFriends] = useState<{ id: number }[]>([]);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
@@ -52,6 +53,8 @@ export default function AppointmentEditPage() {
         setImage(a.imageUrl);
         setDateTime(new Date(a.time));
         setLocation(a.placeId ? { placeId: a.placeId, placeName: a.placeName, memo: a.memo } : null);
+        const original = (a.participants || []).map((m: any) => ({ id: m.memberId }));
+        setOriginalFriends(original);
         setFriends((a.participants || []).map((m: any) => ({ id: m.memberId, name: m.name, image: m.profileImage || '' })));
       } catch (err) {
         console.error('❌ 약속 불러오기 실패:', err);
@@ -84,6 +87,10 @@ export default function AppointmentEditPage() {
       return;
     }
     setConfirmVisible(true);
+  };
+
+  const handleCancel = () => {
+    if (id) router.replace(`/promises/${id}`);
   };
 
   const handleConfirmSubmit = async () => {
@@ -123,6 +130,24 @@ export default function AppointmentEditPage() {
           'Content-Type': 'multipart/form-data'
         }
       });
+
+      const originalIds = originalFriends.map(f => f.id);
+      const currentIds = friends.map(f => f.id);
+
+      const toKick = originalIds.filter(id => !currentIds.includes(id));
+      const toInvite = currentIds.filter(id => !originalIds.includes(id));
+
+      if (toKick.length > 0) {
+        await axiosInstance.patch(`/appointments/${id}/kick`, {
+          memberIds: toKick
+        });
+      }
+      if (toInvite.length > 0) {
+        await axiosInstance.patch(`/appointments/${id}/invite`, {
+          memberIds: toInvite
+        });
+      }
+
       router.replace(`/promises/${id}`);
     } catch (err: any) {
       console.error('❌ 수정 실패:', err);
@@ -130,7 +155,6 @@ export default function AppointmentEditPage() {
       setAlertVisible(true);
     }
   };
-
   return (
     <>
       <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
@@ -226,7 +250,22 @@ export default function AppointmentEditPage() {
         </View>
 
         <View style={styles.buttonBox}>
-          <Button.Large title="수정 완료" onPress={handleSubmit} />
+          <View style={styles.rowButtons}>
+            <Button.MidSmall
+              title="취소"
+              onPress={handleCancel}
+              textColor={Colors.primary}
+              style={{
+                backgroundColor: 'transparent',
+                borderWidth: 1,
+                borderColor: Colors.primary,
+              }}
+            />
+            <Button.MidSmall
+              title="수정"
+              onPress={handleSubmit}
+            />
+          </View>
         </View>
       </ScrollView>
 
@@ -276,4 +315,10 @@ const styles = StyleSheet.create({
   participantRow: { flexDirection: 'row', gap: 4, flexWrap: 'wrap', marginBottom: 2, marginTop: 6 },
   selectedRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6, marginLeft: 2, padding: 5 },
   selectedText: { color: Colors.primary, fontSize: 15 },
+  rowButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  
 });

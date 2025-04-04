@@ -73,4 +73,9 @@ public class Member extends BaseTimeEntity {
     public void updateMydataToken(String token) {
         this.mydataToken = token;
     }
+
+    public void setDeleted(boolean b) {
+        this.isDeleted = b;
+        this.deletedAt = b ? LocalDateTime.now() : null;
+    }
 }

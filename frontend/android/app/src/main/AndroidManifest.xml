@@ -28,7 +28,7 @@
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="myapp"/>
-        <data android:scheme="com.erin523.frontend"/>
+        <data android:scheme="com.keon21.frontend"/>
       </intent-filter>
     </activity>
   </application>

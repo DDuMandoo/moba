@@ -3,7 +3,7 @@ import 'dotenv/config';
 export default {
   expo: {
     name: '모여바라',
-    slug: 'moba',
+    slug: 'frontend',
     version: '1.0.0',
     orientation: 'portrait',
     icon: './assets/icons/header/Logo.png',

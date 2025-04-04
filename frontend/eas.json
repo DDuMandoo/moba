@@ -1,24 +1,21 @@
 {
+  "cli": {
+    "version": ">= 16.0.1",
+    "appVersionSource": "remote"
+  },
   "build": {
-    "production": {
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://j12a601.p.ssafy.io/api"
-      },
-      "android": {
-        "buildType": "apk"
-      }
-    },
     "development": {
       "developmentClient": true,
-      "distribution": "internal",
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://j12a601.p.ssafy.io/api"
-      },
-      "android": {
-        "buildType": "apk"
-      }
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {
+      "autoIncrement": true
     }
+  },
+  "submit": {
+    "production": {}
   }
 }
-
-

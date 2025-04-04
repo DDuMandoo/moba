@@ -10,14 +10,12 @@ export default {
     scheme: 'myapp',
     userInterfaceStyle: 'automatic',
     newArchEnabled: true,
-    owner: 'choseunggeun',
+    owner: 'keon21',
     ios: {
       supportsTablet: true
     },
     android: {
-      package: 'com.choseunggeun.moba',
-      googleServicesFile: './android/app/google-services.json',
-      permissions: ['NOTIFICATIONS'],
+      package: 'com.keon21.frontend',
       adaptiveIcon: {
         foregroundImage: './assets/icons/header/Logo.png',
         backgroundColor: '#F2F0EF'
@@ -54,7 +52,7 @@ export default {
     },
     extra: {
       eas: {
-        projectId: 'deb2bc3e-3308-4873-aeb6-fc7218e8033a'
+        "projectId": "8a4e1f1c-4b39-4b1b-8a62-ad91849b85bb"
       },
       API_URL: process.env.EXPO_PUBLIC_API_URL || 'http://j12a601.p.ssafy.io/api'
     }

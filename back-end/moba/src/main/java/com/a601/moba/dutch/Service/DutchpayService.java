@@ -31,6 +31,7 @@ import com.a601.moba.wallet.Exception.WalletAuthException;
 import com.a601.moba.wallet.Repository.TransactionRepository;
 import com.a601.moba.wallet.Repository.WalletRepository;
 import com.a601.moba.wallet.Service.WalletService;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -131,8 +132,8 @@ public class DutchpayService {
             try {
                 notificationService.sendSettlementStarted(host, member, appointment.getName(), sumPrice,
                         sumParticipants.size(), participant.getValue(), dutchpay.getId());
-            } catch (Exception e) {
-                throw new DutchpayException(ErrorCode.FCM_SEND_FAILED);
+            } catch (FirebaseMessagingException e) {
+                log.error("🔴 FCM 알림 정송 실패");
             }
 
             participantResponse.add(createParticipantResponse(member, false, participant.getValue()));

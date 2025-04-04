@@ -17,6 +17,7 @@ import axios from 'axios';
 import { saveTokens } from '@/app/axiosInstance';
 import Constants from 'expo-constants';
 import CustomAlert from '@/components/CustomAlert';
+import {getFcmToken} from '@/utils/fcmToken';
 
 // const BASE_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_API_URL;
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
@@ -64,6 +65,20 @@ export default function LoginScreen() {
 
         console.log('💾 토큰 저장 완료');
   
+        const fcmToken = await getFcmToken();
+        if (fcmToken) {
+          console.log('📮 서버로 FCM 토큰 전송 중...');
+          await axios.post(`${BASE_URL}/fcm`, { token: fcmToken }, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          console.log('✅ FCM 토큰 서버 전송 완료');
+        } else {
+          console.warn('❗ FCM 토큰이 없어 서버에 전송되지 않았습니다');
+        }
+
         router.replace('/(bottom-navigation)');
         console.log('➡️ 라우팅 완료');
       } else {

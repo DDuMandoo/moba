@@ -1,4 +1,4 @@
-package com.erin523.frontend
+package com.keon21.frontend
 
 import android.app.Application
 import android.content.res.Configuration

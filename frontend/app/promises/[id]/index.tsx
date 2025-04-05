@@ -8,7 +8,6 @@ import {
   FlatList,
   StyleSheet,
   Dimensions,
-  ScrollView,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
@@ -16,7 +15,7 @@ import {
   Entypo,
   MaterialIcons,
   FontAwesome5,
-  Feather
+  Feather,
 } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppSelector } from '@/redux/hooks';
@@ -66,9 +65,13 @@ export default function AppointmentDetailPage() {
     },
   });
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-  }));
+  const animatedStyle = useAnimatedStyle(() => {
+    const dynamicHeight = SCREEN_HEIGHT - translateY.value;
+    return {
+      transform: [{ translateY: translateY.value }],
+      height: dynamicHeight,
+    };
+  });
 
   const getAppointment = async () => {
     if (!id) return;
@@ -121,7 +124,7 @@ export default function AppointmentDetailPage() {
 
       <PanGestureHandler onGestureEvent={gestureHandler}>
         <Animated.View style={[styles.contentBox, animatedStyle]}>
-          <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <View style={styles.scrollContent}>
             <View style={styles.infoBox}>
               <View style={styles.titleRow}>
                 <Text style={styles.title}>{appointment.name}</Text>
@@ -131,10 +134,10 @@ export default function AppointmentDetailPage() {
                       <MaterialIcons name="edit" size={18} color={Colors.primary} />
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.iconButtonSmall}>
-                    <MaterialIcons name="published-with-changes" size={18} color={ Colors.primary } />
+                      <MaterialIcons name="published-with-changes" size={18} color={Colors.primary} />
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.iconButtonSmall}>
-                    <Feather name="x" size={18} color={ Colors.primary} />
+                      <Feather name="x" size={18} color={Colors.primary} />
                     </TouchableOpacity>
                   </View>
                 )}
@@ -152,13 +155,6 @@ export default function AppointmentDetailPage() {
                   {appointment.memo ? appointment.memo : ''}
                 </Text>
               </View>
-
-              {/* <View style={styles.detailRow}>
-                <FontAwesome5 name="sticky-note" size={18} color={Colors.primary} style={{ marginRight: 2 }} />
-                <Text style={styles.detailText}>
-                  {appointment.memo ? appointment.memo : <Text style={{ fontStyle: 'italic', color: Colors.grayLightText, fontSize: 14 }}>작성한 메모가 없습니다.</Text>}
-                </Text>
-              </View> */}
 
               <View style={styles.detailRow}>
                 <Ionicons name="people-outline" size={18} color={Colors.primary} style={{ marginRight: 2 }} />
@@ -186,7 +182,7 @@ export default function AppointmentDetailPage() {
                 {isHost && (
                   <View style={styles.actionRow}>
                     <TouchableOpacity style={styles.iconButtonSmall}>
-                    <MaterialIcons name="attach-money" size={18} color={ Colors.primary } />
+                      <MaterialIcons name="attach-money" size={18} color={Colors.primary} />
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.iconButtonSmall}>
                       <Ionicons name="chatbubble-outline" size={18} color={Colors.primary} />
@@ -211,17 +207,19 @@ export default function AppointmentDetailPage() {
               </TouchableOpacity>
             </View>
 
-            {selectedTab === 'map' ? (
-              <MapViewSection
-                appointmentId={appointment.appointmentId}
-                placeId={appointment.placeId}
-                placeName={appointment.placeName}
-                isHost={isHost}
-              />
-            ) : (
-              <InterestViewSection />
-            )}
-          </ScrollView>
+            <View style={{ flex: 1 }}>
+              {selectedTab === 'map' ? (
+                <MapViewSection
+                  appointmentId={appointment.appointmentId}
+                  placeId={appointment.placeId}
+                  placeName={appointment.placeName}
+                  isHost={isHost}
+                />
+              ) : (
+                <InterestViewSection />
+              )}
+            </View>
+          </View>
         </Animated.View>
       </PanGestureHandler>
     </View>
@@ -275,7 +273,6 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   contentBox: {
-    flex: 1,
     marginTop: TOP_IMAGE_HEIGHT,
     backgroundColor: Colors.white,
     borderTopLeftRadius: 40,
@@ -283,7 +280,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   scrollContent: {
-    paddingBottom: 40,
+    flex: 1,
   },
   infoBox: {
     paddingHorizontal: 20,
@@ -314,12 +311,7 @@ const styles = StyleSheet.create({
   detailText: {
     fontSize: 17,
     color: Colors.primary,
-    marginBottom: 4
-  },
-  participantRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
+    marginBottom: 4,
   },
   profileImageBox: {
     width: 26,

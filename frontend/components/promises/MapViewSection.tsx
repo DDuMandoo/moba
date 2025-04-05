@@ -1,6 +1,7 @@
 import React from 'react';
-import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import WebView from 'react-native-webview';
+import Colors from '@/constants/Colors';
 
 interface MapViewSectionProps {
   appointmentId: number;
@@ -10,8 +11,6 @@ interface MapViewSectionProps {
 }
 
 export default function MapViewSection({
-  appointmentId,
-  placeId,
   placeName,
   isHost,
 }: MapViewSectionProps) {
@@ -56,13 +55,8 @@ export default function MapViewSection({
   `;
 
   return (
-    <ScrollView
-      style={{ flex: 1 }}
-      contentContainerStyle={styles.scrollContainer}
-      showsVerticalScrollIndicator={false}
-    >
-      <Text style={styles.title}>약속 장소</Text>
-
+    <View style={styles.wrapper}>
+      {/* 지도: 고정 높이 */}
       <View style={styles.mapBox}>
         <WebView
           originWhitelist={['*']}
@@ -75,43 +69,61 @@ export default function MapViewSection({
         />
       </View>
 
-      {placeName && <Text style={styles.placeName}>📍 {placeName}</Text>}
+      {/* 아래 정보: 스크롤 가능 */}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.title}>약속 장소</Text>
 
-      <View style={styles.descriptionBox}>
-        <Text style={styles.descriptionText}>
-          {isHost
-            ? '약속 장소는 호스트만 수정할 수 있어요.'
-            : '호스트가 지정한 장소를 확인해 주세요.'}
-        </Text>
-      </View>
-    </ScrollView>
+        {placeName && <Text style={styles.placeName}>📍 {placeName}</Text>}
+
+        <View style={styles.descriptionBox}>
+          <Text style={styles.descriptionText}>
+            {isHost
+              ? '약속 장소는 호스트만 수정할 수 있어요.'
+              : '호스트가 지정한 장소를 확인해 주세요.'}
+          </Text>
+        </View>
+
+        <View style={styles.listSection}>
+          <Text style={styles.sectionTitle}>약속 장소 목록</Text>
+          <Text style={styles.subText}>약속에서 방문할 장소들을 추가해보세요.</Text>
+          <Text style={styles.listItem}>1. 스타벅스 강남대로점</Text>
+          <Text style={styles.listItem}>카페 / 서울 강남구 대현길 218</Text>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
+  wrapper: {
+    flex: 1,
+  },
+  mapBox: {
+    width: '100%',
+    height: 240,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: '#eee',
+  },
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 30,
+    gap: 14,
+    backgroundColor: Colors.white,
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 12,
-  },
-  mapBox: {
-    width: '100%',
-    aspectRatio: 1,
-    borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: '#eee',
-    marginBottom: 16,
+    color: Colors.primary,
   },
   placeName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#555',
-    marginBottom: 12,
+    color: Colors.primary,
   },
   descriptionBox: {
     padding: 12,
@@ -122,5 +134,21 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#444',
     lineHeight: 22,
+  },
+  listSection: {
+    gap: 6,
+  },
+  listItem: {
+    fontSize: 15,
+    color: '#333',
+  },
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: 'bold',
+    color: Colors.primary,
+  },
+  subText: {
+    fontSize: 14,
+    color: Colors.grayDarkText,
   },
 });

@@ -57,6 +57,11 @@ const FriendSearchModal = ({ visible, onClose, onSelect, initialSelected = [] }:
   }, [searchText]);
 
   useEffect(() => {
+    setSelected(initialSelected);
+  }, [initialSelected]);
+  
+
+  useEffect(() => {
     if (mode === '약속명') fetchAppointments();
   }, [debouncedKeyword]);
 

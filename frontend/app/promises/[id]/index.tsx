@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,13 @@ import {
   ScrollView,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Ionicons, Feather } from '@expo/vector-icons';
+import {
+  Ionicons,
+  Entypo,
+  MaterialIcons,
+  FontAwesome5,
+  Feather
+} from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppSelector } from '@/redux/hooks';
 import axiosInstance from '@/app/axiosInstance';
@@ -40,14 +46,17 @@ export default function AppointmentDetailPage() {
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState<'map' | 'interest'>('map');
 
-  const translateY = useSharedValue(0);
+  const translateY = useSharedValue(-TOP_IMAGE_HEIGHT / 2);
   const HEADER_MARGIN = insets.top + 60;
   const minTranslateY = -TOP_IMAGE_HEIGHT + HEADER_MARGIN;
   const maxTranslateY = 0;
 
   const gestureHandler = useAnimatedGestureHandler({
     onActive: (event) => {
-      translateY.value = Math.max(minTranslateY, Math.min(maxTranslateY, translateY.value + event.translationY));
+      translateY.value = Math.max(
+        minTranslateY,
+        Math.min(maxTranslateY, translateY.value + event.translationY)
+      );
     },
     onEnd: () => {
       translateY.value = withSpring(
@@ -97,14 +106,14 @@ export default function AppointmentDetailPage() {
         <View style={styles.headerOverlay} />
         <View style={[styles.headerButtons, { paddingTop: insets.top + 10 }]}>
           <TouchableOpacity style={styles.iconButton}>
-            <Ionicons name="menu" size={26} color="white" />
+            <Ionicons name="menu" size={24} color={Colors.primary} />
           </TouchableOpacity>
           <View style={styles.headerRightButtons}>
             <TouchableOpacity style={styles.iconButton}>
-              <Feather name="share" size={22} color="white" />
+              <Entypo name="share" size={24} color={Colors.primary} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton}>
-              <Ionicons name="log-out-outline" size={24} color="white" />
+              <Ionicons name="log-out-outline" size={24} color={Colors.primary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -118,54 +127,73 @@ export default function AppointmentDetailPage() {
                 <Text style={styles.title}>{appointment.name}</Text>
                 {isHost && (
                   <View style={styles.hostButtons}>
-                    <TouchableOpacity onPress={() => router.push(`/promises/${id}/edit`)}>
-                      <Text style={styles.hostBtn}>수정</Text>
+                    <TouchableOpacity style={styles.iconButtonSmall} onPress={() => router.push(`/promises/${id}/edit`)}>
+                      <MaterialIcons name="edit" size={18} color={Colors.primary} />
                     </TouchableOpacity>
-                    <TouchableOpacity>
-                      <Text style={styles.hostBtn}>위임</Text>
+                    <TouchableOpacity style={styles.iconButtonSmall}>
+                    <MaterialIcons name="published-with-changes" size={18} color={ Colors.primary } />
                     </TouchableOpacity>
-                    <TouchableOpacity>
-                      <Text style={[styles.hostBtn, styles.redText]}>종료</Text>
+                    <TouchableOpacity style={styles.iconButtonSmall}>
+                    <Feather name="x" size={18} color={ Colors.primary} />
                     </TouchableOpacity>
                   </View>
                 )}
               </View>
-              <Text style={styles.time}>
-                {dayjs(appointment.time).format('YYYY년 M월 D일 HH:mm')}
-              </Text>
-              <Text style={styles.location}>
-                📍 {appointment.placeName || '장소 정보 없음'} {appointment.memo ? `- ${appointment.memo}` : ''}
-              </Text>
-            </View>
 
-            <FlatList
-              horizontal
-              data={appointment.participants}
-              keyExtractor={(item) => String(item.memberId)}
-              contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
-              renderItem={({ item }) => (
-                <View style={{ alignItems: 'center' }}>
-                  <View style={styles.profileImageBox}>
-                    {item.profileImage ? (
-                      <ImageBackground source={{ uri: item.profileImage }} style={styles.profileImage} />
-                    ) : (
-                      <View style={styles.profilePlaceholder}>
-                        <Text>{item.name.charAt(0)}</Text>
+              <View style={styles.detailRow}>
+                <Feather name="calendar" size={18} color={Colors.primary} style={{ marginRight: 2 }} />
+                <Text style={styles.detailText}>{dayjs(appointment.time).format('YYYY년 M월 D일 HH:mm')}</Text>
+              </View>
+
+              <View style={styles.detailRow}>
+                <FontAwesome5 name="map-marker-alt" size={18} color={Colors.primary} style={{ marginRight: 2 }} />
+                <Text style={styles.detailText}>
+                  {appointment.placeName ? appointment.placeName : <Text style={{ fontStyle: 'italic', color: Colors.grayLightText, fontSize: 14 }}>선택한 장소가 없습니다.</Text>}
+                  {appointment.memo ? appointment.memo : ''}
+                </Text>
+              </View>
+
+              {/* <View style={styles.detailRow}>
+                <FontAwesome5 name="sticky-note" size={18} color={Colors.primary} style={{ marginRight: 2 }} />
+                <Text style={styles.detailText}>
+                  {appointment.memo ? appointment.memo : <Text style={{ fontStyle: 'italic', color: Colors.grayLightText, fontSize: 14 }}>작성한 메모가 없습니다.</Text>}
+                </Text>
+              </View> */}
+
+              <View style={styles.detailRow}>
+                <Ionicons name="people-outline" size={18} color={Colors.primary} style={{ marginRight: 2 }} />
+                {appointment.participants?.length > 0 ? (
+                  <FlatList
+                    horizontal
+                    data={appointment.participants}
+                    keyExtractor={(item) => String(item.memberId)}
+                    contentContainerStyle={{ gap: 5 }}
+                    renderItem={({ item }) => (
+                      <View style={styles.profileImageBox}>
+                        {item.profileImage ? (
+                          <ImageBackground source={{ uri: item.profileImage }} style={styles.profileImage} />
+                        ) : (
+                          <View style={styles.profilePlaceholder}>
+                            <Text>{item.name.charAt(0)}</Text>
+                          </View>
+                        )}
                       </View>
                     )}
+                  />
+                ) : (
+                  <Text style={{ fontStyle: 'italic', color: Colors.grayLightText }}>선택한 참가자가 없습니다.</Text>
+                )}
+                {isHost && (
+                  <View style={styles.actionRow}>
+                    <TouchableOpacity style={styles.iconButtonSmall}>
+                    <MaterialIcons name="attach-money" size={18} color={ Colors.primary } />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.iconButtonSmall}>
+                      <Ionicons name="chatbubble-outline" size={18} color={Colors.primary} />
+                    </TouchableOpacity>
                   </View>
-                  <Text>{item.name}</Text>
-                </View>
-              )}
-            />
-
-            <View style={{ flexDirection: 'row', gap: 10, marginTop: 12, paddingHorizontal: 20 }}>
-              <TouchableOpacity style={styles.smallBtn}>
-                <Text style={styles.smallBtnText}>정산하기</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.smallBtn}>
-                <Text style={styles.smallBtnText}>채팅</Text>
-              </TouchableOpacity>
+                )}
+              </View>
             </View>
 
             <View style={styles.tabContainer}>
@@ -185,6 +213,7 @@ export default function AppointmentDetailPage() {
 
             {selectedTab === 'map' ? (
               <MapViewSection
+                appointmentId={appointment.appointmentId}
                 placeId={appointment.placeId}
                 placeName={appointment.placeName}
                 isHost={isHost}
@@ -200,13 +229,51 @@ export default function AppointmentDetailPage() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.white },
-  centeredContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  headerImage: { position: 'absolute', width: '100%', height: TOP_IMAGE_HEIGHT, top: 0, left: 0, right: 0 },
-  headerOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(233,217,197,0.7)' },
-  headerButtons: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, position: 'absolute', width: '100%', zIndex: 10 },
-  headerRightButtons: { flexDirection: 'row', gap: 10 },
-  iconButton: { borderWidth: 1, borderColor: Colors.black, borderRadius: 10, padding: 6 },
+  container: {
+    flex: 1,
+    backgroundColor: Colors.white,
+  },
+  centeredContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerImage: {
+    position: 'absolute',
+    width: '100%',
+    height: TOP_IMAGE_HEIGHT,
+    top: 0,
+    left: 0,
+    right: 0,
+  },
+  headerOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(233,217,197,0.7)',
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    position: 'absolute',
+    width: '100%',
+    zIndex: 10,
+  },
+  headerRightButtons: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  iconButton: {
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    borderRadius: 8,
+    padding: 4,
+  },
+  iconButtonSmall: {
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    borderRadius: 7,
+    padding: 4,
+  },
   contentBox: {
     flex: 1,
     marginTop: TOP_IMAGE_HEIGHT,
@@ -215,24 +282,66 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 40,
     overflow: 'hidden',
   },
-  scrollContent: { paddingBottom: 40 },
-  infoBox: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 12 },
-  titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  title: { fontSize: 20, fontWeight: 'bold', color: Colors.text },
-  hostButtons: { flexDirection: 'row', gap: 10 },
-  hostBtn: { fontSize: 14, color: Colors.grayDarkText },
-  redText: { color: 'red' },
-  time: { marginTop: 4, color: Colors.grayDarkText },
-  location: { marginTop: 6, color: Colors.text },
-  profileImageBox: { width: 48, height: 48, borderRadius: 24, overflow: 'hidden', backgroundColor: '#ddd' },
-  profileImage: { width: '100%', height: '100%' },
-  profilePlaceholder: { width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' },
-  smallBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12, borderColor: Colors.grayDarkText, borderWidth: 1 },
-  smallBtnText: { fontSize: 13, color: Colors.text },
+  scrollContent: {
+    paddingBottom: 40,
+  },
+  infoBox: {
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 12,
+    gap: 7,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '500',
+    color: Colors.primary,
+  },
+  hostButtons: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  detailText: {
+    fontSize: 17,
+    color: Colors.primary,
+    marginBottom: 4
+  },
+  participantRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  profileImageBox: {
+    width: 26,
+    height: 26,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#ddd',
+  },
+  profileImage: {
+    width: '100%',
+    height: '100%',
+  },
+  profilePlaceholder: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   tabContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 20,
+    marginTop: 5,
     marginBottom: 12,
     gap: 16,
   },
@@ -240,10 +349,10 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderBottomWidth: 2,
-    borderColor: 'transparent'
+    borderColor: 'transparent',
   },
   activeTab: {
-    borderColor: Colors.primary
+    borderColor: Colors.primary,
   },
   tabText: {
     fontSize: 16,
@@ -252,6 +361,11 @@ const styles = StyleSheet.create({
   activeTabText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: Colors.primary
+    color: Colors.primary,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginLeft: 'auto',
   },
 });

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Dimensions,
   ScrollView,
+  Animated,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
@@ -25,6 +26,7 @@ import Colors from '@/constants/Colors';
 import MapViewSection from '@/components/promises/MapViewSection';
 import InterestViewSection from '@/components/promises/InterestViewSection';
 import dayjs from 'dayjs';
+import { ParticipantProfile } from '@/components/profile/ParticipantProfile';
 
 const TOP_IMAGE_HEIGHT = 280;
 const { width } = Dimensions.get('window');
@@ -38,6 +40,10 @@ export default function AppointmentDetailPage() {
   const [appointment, setAppointment] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState<'map' | 'interest'>('map');
+  // toastData: { name, x, y, width, height } 저장해서 토스트 위치 결정
+  const [toastData, setToastData] = useState<{ name: string; x: number; y: number; width: number; height: number } | null>(null);
+  const toastOpacity = useRef(new Animated.Value(0)).current;
+  const [toastWidth, setToastWidth] = useState(0);
 
   const getAppointment = async () => {
     if (!id) return;
@@ -54,6 +60,23 @@ export default function AppointmentDetailPage() {
   useEffect(() => {
     if (id) getAppointment();
   }, [id]);
+
+  const handleParticipantPress = (name: string, x: number, y: number, boxWidth: number, boxHeight: number) => {
+    setToastData({ name, x, y, width: boxWidth, height: boxHeight });
+    Animated.timing(toastOpacity, {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      setTimeout(() => {
+        Animated.timing(toastOpacity, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }).start(() => setToastData(null));
+      }, 2000);
+    });
+  };
 
   if (loading || !appointment) {
     return (
@@ -89,9 +112,8 @@ export default function AppointmentDetailPage() {
         </View>
       </ImageBackground>
 
-      {/* 하얀 박스: 상단 절반은 약속 사진 위에 고정, 아래 영역은 스크롤 */}
+      {/* 하얀 박스 */}
       <View style={styles.whiteBox}>
-        {/* 고정된 정보와 탭 영역 */}
         <View style={styles.fixedHeader}>
           <View style={styles.infoBox}>
             <View style={styles.titleRow}>
@@ -139,18 +161,7 @@ export default function AppointmentDetailPage() {
                   keyExtractor={(item) => String(item.memberId)}
                   contentContainerStyle={{ gap: 5 }}
                   renderItem={({ item }) => (
-                    <View style={styles.profileImageBox}>
-                      {item.profileImage ? (
-                        <ImageBackground
-                          source={{ uri: item.profileImage }}
-                          style={styles.profileImage}
-                        />
-                      ) : (
-                        <View style={styles.profilePlaceholder}>
-                          <Text>{item.name.charAt(0)}</Text>
-                        </View>
-                      )}
-                    </View>
+                    <ParticipantProfile item={item} onPress={handleParticipantPress} />
                   )}
                 />
               ) : (
@@ -188,7 +199,6 @@ export default function AppointmentDetailPage() {
           </View>
         </View>
 
-        {/* 스크롤 가능한 하단 영역 – 스크롤바는 숨김 */}
         <ScrollView style={styles.scrollableContent} showsVerticalScrollIndicator={false}>
           {selectedTab === 'map' ? (
             <MapViewSection
@@ -203,6 +213,24 @@ export default function AppointmentDetailPage() {
           )}
         </ScrollView>
       </View>
+
+      {/* 토스트 오버레이: 클릭한 참가자 프로필 위에 위치 (위치 조정 및 자동 너비 적용) */}
+      {toastData && (
+        <Animated.View
+          onLayout={(e) => setToastWidth(e.nativeEvent.layout.width)}
+          style={[
+            styles.toastContainer,
+            {
+              left: toastData.x + toastData.width / 2,
+              top: toastData.y - 35, // 이전보다 5px 아래
+              opacity: toastOpacity,
+              transform: [{ translateX: -toastWidth / 2 }],
+            },
+          ]}
+        >
+          <Text style={styles.toastText}>{toastData.name}</Text>
+        </Animated.View>
+      )}
     </View>
   );
 }
@@ -251,7 +279,7 @@ const styles = StyleSheet.create({
   },
   whiteBox: {
     position: 'absolute',
-    top: TOP_IMAGE_HEIGHT / 2, // 시작 위치: 약속 사진의 절반
+    top: TOP_IMAGE_HEIGHT / 2,
     left: 0,
     right: 0,
     bottom: 0,
@@ -262,7 +290,6 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   fixedHeader: {
-    // 고정 영역(약속 정보 + 탭)
     paddingBottom: 10,
     backgroundColor: Colors.white,
   },
@@ -296,7 +323,7 @@ const styles = StyleSheet.create({
   detailText: {
     fontSize: 16,
     color: Colors.primary,
-    marginBottom: 1
+    marginBottom: 1,
   },
   profileImageBox: {
     width: 26,
@@ -314,6 +341,21 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  waitingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(128,128,128,0.5)',
+  },
+  hourglassIconContainer: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 6,
+    padding: 1,
+  },
+  waitingPlaceholder: {
+    backgroundColor: 'rgba(128,128,128,0.5)',
   },
   actionRow: {
     flexDirection: 'row',
@@ -348,5 +390,19 @@ const styles = StyleSheet.create({
   scrollableContent: {
     flex: 1,
     backgroundColor: Colors.white,
+  },
+  toastContainer: {
+    position: 'absolute',
+    alignItems: 'center',
+    backgroundColor: Colors.logoInner,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 5,
+    elevation: 3,
+    marginTop: 3
+  },
+  toastText: {
+    fontSize: 10,
+    color: Colors.primary,
   },
 });

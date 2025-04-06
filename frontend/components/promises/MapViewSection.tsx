@@ -15,6 +15,7 @@ import dayjs from 'dayjs';
 import More10CheckModal from '@/components/modal/More10CheckModal';
 import * as Location from 'expo-location';
 import { useAppSelector } from '@/redux/hooks';
+import AntDesign from '@expo/vector-icons/AntDesign';
 
 interface MapViewSectionProps {
   appointmentId: number;
@@ -168,12 +169,14 @@ export default function MapViewSection({
 
       <View style={styles.locationButtonWrapper}>
         <TouchableOpacity style={styles.locationButton} onPress={checkLocationSharing}>
-          <Text style={styles.locationButtonText}>✅ 위치 체크</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <AntDesign name="checksquare" size={20} color={Colors.secondary} />
+            <Text style={styles.locationButtonText}>위치 체크</Text>
+          </View>
         </TouchableOpacity>
       </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
-        <Text style={styles.title}>약속 장소</Text>
         {placeName && <Text style={styles.placeName}>📍 {placeName}</Text>}
 
         <View style={styles.placeListBox}>
@@ -214,6 +217,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     paddingHorizontal: 30,
     zIndex: 10,
+    marginBottom: 10,
   },
   locationButton: {
     backgroundColor: Colors.white,
@@ -254,7 +258,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   sectionTitle: {
-    fontSize: 17,
+    fontSize: 20,
     fontWeight: 'bold',
     color: Colors.primary,
   },

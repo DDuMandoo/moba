@@ -95,6 +95,9 @@ public class AppointmentService {
 
         List<Member> members = memberRepository.findAllByIdIn(request.friends());
         for (Member m : members) {
+            if (m.isDeleted()) {
+                continue;
+            }
             participants.add(createAppointmentParticipant(appointment, m, Role.PARTICIPANT, State.WAIT));
         }
 
@@ -193,7 +196,7 @@ public class AppointmentService {
         // JOINED 상태의 참여자만 필터링
         List<AppointmentParticipant> participantList = appointmentParticipantRepository
                 .findAllByAppointment(appointment).stream()
-                .filter(p -> p.getState() == State.JOINED || p.getState() == State.WAIT)
+                .filter(p -> (p.getState() == State.JOINED || p.getState() == State.WAIT) && !p.getMember().isDeleted())
                 .toList();
 
         Integer hostId = participantList.stream()
@@ -324,7 +327,7 @@ public class AppointmentService {
 
         List<AppointmentParticipant> joinedParticipants = appointmentParticipantRepository
                 .findAllByAppointment(appointment).stream()
-                .filter(p -> p.getState() == State.JOINED)
+                .filter(p -> p.getState() == State.JOINED && !p.getMember().isDeleted())
                 .toList();
 
         List<AppointmentParticipantResponse.ParticipantInfo> participants = joinedParticipants.stream()
@@ -358,6 +361,10 @@ public class AppointmentService {
         AppointmentParticipant newHost = appointmentParticipantRepository
                 .findByAppointmentAndMember(appointment, host)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_PARTICIPANT_NOT_FOUND));
+
+        if (newHost.getMember().isDeleted()) {
+            throw new AuthException(ErrorCode.ALREADY_DELETED_MEMBER);
+        }
 
         if (newHost.getState() != State.JOINED) {
             throw new AppointmentException(ErrorCode.INVALID_REQUEST);
@@ -402,7 +409,7 @@ public class AppointmentService {
                 appointment, members);
         Set<Integer> alreaySaved = new HashSet<>();
         for (AppointmentParticipant ap : alreadyParticipants) {
-            if (ap.getState() == State.JOINED) {
+            if (ap.getState() == State.JOINED || ap.getMember().isDeleted()) {
                 continue;
             }
             ap.updateState(State.WAIT);
@@ -411,6 +418,9 @@ public class AppointmentService {
 
         List<AppointmentParticipant> participants = new ArrayList<>();
         for (Member m : members) {
+            if (m.isDeleted()) {
+                continue;
+            }
             if (alreaySaved.contains(m.getId())) {
                 continue;
             }

@@ -43,15 +43,14 @@ public class AppointmentSearchService {
                             appointmentParticipantRepository.findAllByAppointmentId(appointment.getId());
 
                     List<AppointmentSearchWithMembersResponse.MemberInfo> memberInfos = participants.stream()
-                            .map(p -> {
-                                Member m = p.getMember();
-                                return AppointmentSearchWithMembersResponse.MemberInfo.builder()
-                                        .memberId(m.getId())
-                                        .name(m.getName())
-                                        .email(m.getEmail())
-                                        .profileImage(m.getProfileImage())
-                                        .build();
-                            })
+                            .map(AppointmentParticipant::getMember)
+                            .filter(m -> !m.isDeleted())
+                            .map(m -> AppointmentSearchWithMembersResponse.MemberInfo.builder()
+                                    .memberId(m.getId())
+                                    .name(m.getName())
+                                    .email(m.getEmail())
+                                    .profileImage(m.getProfileImage())
+                                    .build())
                             .toList();
 
                     return AppointmentSearchWithMembersResponse.AppointmentInfo.builder()
@@ -114,6 +113,7 @@ public class AppointmentSearchService {
 
                     List<AppointmentSearchWithMembersResponse.MemberInfo> members = participants.stream()
                             .map(AppointmentParticipant::getMember)
+                            .filter(m -> !m.isDeleted())
                             .map(m -> AppointmentSearchWithMembersResponse.MemberInfo.builder()
                                     .memberId(m.getId())
                                     .name(m.getName())

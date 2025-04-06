@@ -1,5 +1,5 @@
-// ✅ 약속 상세 MapViewSection - 디자인 개선 및 위치 공유 + 장소 목록 API 연결 + 모달 연동
-import React, { useEffect, useState } from 'react';
+// ✅ 약속 시작 10분 이상 남았을 때 뜨는 안내 모달 컴포넌트
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,9 +11,10 @@ import {
 import WebView from 'react-native-webview';
 import Colors from '@/constants/Colors';
 import axiosInstance from '@/app/axiosInstance';
-import { useLocalSearchParams } from 'expo-router';
 import dayjs from 'dayjs';
 import More10CheckModal from '@/components/modal/More10CheckModal';
+import * as Location from 'expo-location';
+import { useAppSelector } from '@/redux/hooks';
 
 interface MapViewSectionProps {
   appointmentId: number;
@@ -38,9 +39,20 @@ export default function MapViewSection({
   isHost,
   appointmentTime,
 }: MapViewSectionProps) {
+  const { profile } = useAppSelector((state) => state.user);
   const [participants, setParticipants] = useState<any[]>([]);
   const [places, setPlaces] = useState<PlaceItem[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const ws = useRef<WebSocket | null>(null);
+
+  const fetchPlaces = async () => {
+    try {
+      const res = await axiosInstance.get(`/appointments/${appointmentId}/places`);
+      setPlaces(res.data.result.places);
+    } catch (err) {
+      console.error('❌ 장소 목록 조회 실패:', err);
+    }
+  };
 
   const checkLocationSharing = async () => {
     if (!appointmentTime) return;
@@ -58,18 +70,47 @@ export default function MapViewSection({
     }
   };
 
-  const fetchPlaces = async () => {
-    try {
-      const res = await axiosInstance.get(`/appointments/${appointmentId}/places`);
-      setPlaces(res.data.result.places);
-    } catch (err) {
-      console.error('❌ 장소 목록 조회 실패:', err);
-    }
+  const connectWebSocket = () => {
+    ws.current = new WebSocket(`wss://j12a601.p.ssafy.io/ws/location?appointmentId=${appointmentId}`);
+
+    ws.current.onopen = () => {
+      console.log('✅ WebSocket 연결됨');
+    };
+
+    ws.current.onmessage = async (e) => {
+      const message = JSON.parse(e.data);
+      if (message.type === 'request_location') {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') return;
+
+        const location = await Location.getCurrentPositionAsync({});
+        const payload = {
+          memberId: profile?.memberId,
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        };
+        ws.current?.send(JSON.stringify(payload));
+      }
+    };
+
+    ws.current.onerror = (err) => {
+      console.error('❌ WebSocket 에러:', err);
+    };
+
+    ws.current.onclose = () => {
+      console.log('ℹ️ WebSocket 연결 종료');
+    };
   };
 
   useEffect(() => {
     fetchPlaces();
-  }, [appointmentId]);
+    if (appointmentTime && dayjs(appointmentTime).diff(dayjs(), 'minute') <= 10) {
+      connectWebSocket();
+    }
+    return () => {
+      ws.current?.close();
+    };
+  }, [appointmentId, appointmentTime]);
 
   const KAKAO_API_KEY = process.env.EXPO_PUBLIC_KAKAO_JS_KEY;
   const mapHtml = `

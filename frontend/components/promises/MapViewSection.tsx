@@ -1,4 +1,3 @@
-// ✅ 약속 시작 10분 이상 남았을 때 뜨는 안내 모달 컴포넌트
 import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
@@ -23,6 +22,7 @@ interface MapViewSectionProps {
   placeName?: string;
   isHost: boolean;
   appointmentTime?: string;
+  isEnded: boolean;
 }
 
 interface PlaceItem {
@@ -39,6 +39,7 @@ export default function MapViewSection({
   placeName,
   isHost,
   appointmentTime,
+  isEnded
 }: MapViewSectionProps) {
   const { profile } = useAppSelector((state) => state.user);
   const [participants, setParticipants] = useState<any[]>([]);
@@ -167,27 +168,31 @@ export default function MapViewSection({
         />
       </View>
 
-      <View style={styles.locationButtonWrapper}>
-        <TouchableOpacity style={styles.locationButton} onPress={checkLocationSharing}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <AntDesign name="checksquare" size={20} color={Colors.secondary} />
-            <Text style={styles.locationButtonText}>위치 체크</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
+      {!isEnded && (
+        <View style={styles.locationButtonWrapper}>
+          <TouchableOpacity style={styles.locationButton} onPress={checkLocationSharing}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <AntDesign name="checksquare" size={20} color={Colors.secondary} />
+              <Text style={styles.locationButtonText}>위치 체크</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
         {placeName && <Text style={styles.placeName}>📍 {placeName}</Text>}
 
-        <View style={styles.placeListBox}>
-          <Text style={styles.sectionTitle}>약속 장소 목록</Text>
-          <Text style={styles.subText}>약속에서 방문할 장소들을 추가해보세요.</Text>
-          {places.map((place, index) => (
-            <View key={place.placeId}>
-              <Text style={styles.listItem}>{index + 1}. {place.name}</Text>
-              <Text style={styles.listItem}>{place.category} / {place.address}</Text>
-            </View>
-          ))}
+        <View style={styles.placeListBoxWrapper}>
+          <View style={styles.placeListBox}>
+            <Text style={styles.sectionTitle}>약속 장소 목록</Text>
+            <Text style={styles.subText}>약속에서 방문할 장소들을 추가해보세요.</Text>
+            {places.map((place, index) => (
+              <View key={place.placeId}>
+                <Text style={styles.listItem}>{index + 1}. {place.name}</Text>
+                <Text style={styles.listItem}>{place.category} / {place.address}</Text>
+              </View>
+            ))}
+          </View>
         </View>
       </ScrollView>
 
@@ -210,18 +215,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.primary,
     overflow: 'hidden',
-    backgroundColor: '#eee',
   },
   locationButtonWrapper: {
-    marginTop: -33,
+    marginTop: 10 ,
     alignItems: 'flex-end',
-    paddingHorizontal: 30,
+    paddingHorizontal: '5%',
     zIndex: 10,
-    marginBottom: 10,
   },
   locationButton: {
     backgroundColor: Colors.white,
-    borderRadius: 10,
+    borderRadius: 7,
     borderWidth: 1,
     borderColor: Colors.primary,
     paddingVertical: 4,
@@ -247,12 +250,17 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.primary,
   },
+  placeListBoxWrapper: {
+    alignItems: 'center',
+    width: '100%',
+  },
   placeListBox: {
-    padding: 14,
+    width: width * 0.9,
     backgroundColor: Colors.background,
     borderRadius: 10,
+    padding: 16,
     gap: 6,
-  },
+  },  
   listItem: {
     fontSize: 15,
     color: '#333',

@@ -13,13 +13,19 @@ import {
   Image,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Ionicons, Entypo, FontAwesome5, Feather } from '@expo/vector-icons';
+import {
+  Ionicons,
+  Entypo,
+  FontAwesome5,
+  Feather,
+} from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppSelector } from '@/redux/hooks';
 import axiosInstance from '@/app/axiosInstance';
 import Colors from '@/constants/Colors';
 import dayjs from 'dayjs';
 import { ParticipantProfile } from '@/components/profile/ParticipantProfile';
+import MapViewSection from '@/components/promises/MapViewSection';
 
 const TOP_IMAGE_HEIGHT = 280;
 const { width } = Dimensions.get('window');
@@ -67,7 +73,13 @@ export default function EndedAppointmentPage() {
     fetchData();
   }, [id]);
 
-  const handleParticipantPress = (name: string, x: number, y: number, boxWidth: number, boxHeight: number) => {
+  const handleParticipantPress = (
+    name: string,
+    x: number,
+    y: number,
+    boxWidth: number,
+    boxHeight: number
+  ) => {
     setToastData({ name, x, y, width: boxWidth, height: boxHeight });
     Animated.timing(toastOpacity, {
       toValue: 1,
@@ -94,90 +106,96 @@ export default function EndedAppointmentPage() {
 
   return (
     <View style={styles.container}>
-      <ImageBackground source={{ uri: appointment.imageUrl }} style={styles.headerImage} resizeMode="cover">
+      <ImageBackground
+        source={{ uri: appointment.imageUrl }}
+        style={styles.headerImage}
+        resizeMode="cover"
+      >
         <View style={styles.headerOverlay} />
       </ImageBackground>
 
       <View style={styles.whiteBox}>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={styles.infoBox}>
-            <Text style={styles.title}>{appointment.name}</Text>
-            <View style={styles.detailRow}>
-              <Feather name="calendar" size={18} color={Colors.primary} style={{ marginRight: 2 }} />
-              <Text style={styles.detailText}>{dayjs(appointment.time).format('YYYY년 M월 D일 HH:mm')}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <FontAwesome5 name="map-marker-alt" size={18} color={Colors.primary} style={{ marginRight: 2 }} />
-              <Text style={styles.detailText}>
-                {appointment.placeName || (
-                  <Text style={{ fontStyle: 'italic', color: Colors.grayLightText, fontSize: 14 }}>
-                    선택한 장소가 없습니다.
-                  </Text>
-                )}
-                {appointment.memo ? ` - ${appointment.memo}` : ''}
-              </Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Ionicons name="people-outline" size={18} color={Colors.primary} style={{ marginRight: 2 }} />
-              {appointment.participants?.length > 0 ? (
-                <FlatList
-                  horizontal
-                  data={appointment.participants}
-                  keyExtractor={(item) => String(item.memberId)}
-                  contentContainerStyle={{ gap: 5 }}
-                  renderItem={({ item }) => (
-                    <ParticipantProfile item={item} onPress={handleParticipantPress} />
-                  )}
-                />
-              ) : (
-                <Text style={{ fontStyle: 'italic', color: Colors.grayLightText }}>
-                  선택한 참가자가 없습니다.
+        
+        <View style={styles.infoBox}>
+          <Text style={styles.title}>{appointment.name}</Text>
+          <View style={styles.detailRow}>
+            <Feather name="calendar" size={18} color={Colors.primary} style={{ marginRight: 2 }} />
+            <Text style={styles.detailText}>{dayjs(appointment.time).format('YYYY년 M월 D일 HH:mm')}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <FontAwesome5 name="map-marker-alt" size={18} color={Colors.primary} style={{ marginRight: 2 }} />
+            <Text style={styles.detailText}>
+              {appointment.placeName || (
+                <Text style={{ fontStyle: 'italic', color: Colors.grayLightText, fontSize: 14 }}>
+                  선택한 장소가 없습니다.
                 </Text>
               )}
-            </View>
-
-            {/* ✅ 갤러리 섹션 */}
-            <View style={styles.galleryWrapper}>
-              <TouchableOpacity onPress={() => router.push(`/promises/${id}/gallery?ended=true`)}>
-                <View style={styles.galleryHeader}>
-                  <Text style={styles.galleryTitle}>갤러리</Text>
-                  <Ionicons name="chevron-forward" size={20} color={Colors.text} />
-                </View>
-                <View style={styles.galleryBox}>
-                  {images.length > 0 ? (
-                    <FlatList
-                      horizontal
-                      data={images}
-                      keyExtractor={(item) => String(item.imageId)}
-                      renderItem={({ item }) => (
-                        <Image source={{ uri: item.imageUrl }} style={styles.galleryImage} />
-                      )}
-                      contentContainerStyle={{
-                        justifyContent: 'center', // ✅ 가로 방향 중앙 정렬
-                        alignItems: 'center',     // ✅ 세로 방향 중앙 정렬
-                        flexGrow: 1,
-                      }}
-                      showsHorizontalScrollIndicator={false}
-                    />
-                  ) : (
-                    <Text style={styles.noImageText}>약속 사진이 없어요.</Text>
-                  )}
-                </View>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.placeListBox}>
-              <Text style={styles.sectionTitle}>약속 장소 목록</Text>
-              <Text style={styles.subText}>약속에서 방문했던 장소들을 확인해보세요.</Text>
-              {places.map((place, index) => (
-                <View key={place.placeId}>
-                  <Text style={styles.listItem}>{index + 1}. {place.name}</Text>
-                  <Text style={styles.listItem}>{place.category} / {place.address}</Text>
-                </View>
-              ))}
-            </View>
+              {appointment.memo ? ` - ${appointment.memo}` : ''}
+            </Text>
           </View>
-        </ScrollView>
+          <View style={styles.detailRow}>
+            <Ionicons name="people-outline" size={18} color={Colors.primary} style={{ marginRight: 2 }} />
+            {appointment.participants?.length > 0 ? (
+              <FlatList
+                horizontal
+                data={appointment.participants}
+                keyExtractor={(item) => String(item.memberId)}
+                contentContainerStyle={{ gap: 5 }}
+                renderItem={({ item }) => (
+                  <ParticipantProfile item={item} onPress={handleParticipantPress} />
+                )}
+              />
+            ) : (
+              <Text style={{ fontStyle: 'italic', color: Colors.grayLightText }}>
+                선택한 참가자가 없습니다.
+              </Text>
+            )}
+          </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+
+              <View style={styles.galleryWrapper}>
+                <TouchableOpacity onPress={() => router.push(`/promises/${id}/gallery?ended=true`)}>
+                  <View style={styles.galleryHeader}>
+                    <Text style={styles.galleryTitle}>갤러리</Text>
+                    <Ionicons name="chevron-forward" size={20} color={Colors.text} />
+                  </View>
+                  <View style={styles.galleryBox}>
+                    {images.length > 0 ? (
+                      <FlatList
+                        horizontal
+                        data={images}
+                        keyExtractor={(item) => String(item.imageId)}
+                        renderItem={({ item }) => (
+                          <Image source={{ uri: item.imageUrl }} style={styles.galleryImage} />
+                        )}
+                        contentContainerStyle={{
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          flexGrow: 1,
+                        }}
+                        showsHorizontalScrollIndicator={false}
+                      />
+                    ) : (
+                      <Text style={styles.noImageText}>약속 사진이 없어요.</Text>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              </View>
+
+              {/* ✅ 지도 섹션 */}
+              <View style={{ marginTop: 24 }}>
+                <MapViewSection
+                  appointmentId={appointment.appointmentId}
+                  placeId={appointment.placeId}
+                  placeName={appointment.placeName}
+                  isHost={false}
+                  appointmentTime={appointment.time}
+                  isEnded={true}
+                />
+              </View>
+            </ScrollView>
+          </View>
       </View>
 
       {toastData && (
@@ -201,22 +219,22 @@ export default function EndedAppointmentPage() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: Colors.white 
+  container: {
+    flex: 1,
+    backgroundColor: Colors.white,
   },
-  centeredContainer: { 
-    flex: 1, 
-    justifyContent: 'center', 
-    alignItems: 'center' 
+  centeredContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  headerImage: { 
-    width: '100%', 
-    height: TOP_IMAGE_HEIGHT 
+  headerImage: {
+    width: '100%',
+    height: TOP_IMAGE_HEIGHT,
   },
-  headerOverlay: { 
-    ...StyleSheet.absoluteFillObject, 
-    backgroundColor: 'rgba(233,217,197,0.7)' 
+  headerOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(233,217,197,0.7)',
   },
   whiteBox: {
     position: 'absolute',
@@ -230,25 +248,25 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     paddingTop: 10,
   },
-  infoBox: { 
-    paddingHorizontal: 20, 
-    paddingTop: 12 
+  infoBox: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
   },
-  title: { 
-    fontSize: 24, 
-    fontWeight: '500', 
-    color: Colors.primary, 
-    marginBottom: 8 
+  title: {
+    fontSize: 24,
+    fontWeight: '500',
+    color: Colors.primary,
+    marginBottom: 8,
   },
-  detailRow: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    gap: 4, 
-    marginBottom: 8 
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 8,
   },
-  detailText: { 
-    fontSize: 16, 
-    color: Colors.primary 
+  detailText: {
+    fontSize: 16,
+    color: Colors.primary,
   },
   galleryWrapper: {
     marginTop: 20,
@@ -287,16 +305,6 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginLeft: 10,
   },
-  placeListBox: {
-    padding: 14,
-    marginTop: 20,
-    backgroundColor: Colors.background,
-    borderRadius: 10,
-    gap: 6,
-  },
-  listItem: { fontSize: 15, color: '#333' },
-  sectionTitle: { fontSize: 20, fontWeight: 'bold', color: Colors.primary },
-  subText: { fontSize: 14, color: Colors.grayDarkText },
   toastContainer: {
     position: 'absolute',
     alignItems: 'center',
@@ -306,5 +314,8 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     elevation: 3,
   },
-  toastText: { fontSize: 10, color: Colors.primary },
+  toastText: {
+    fontSize: 10,
+    color: Colors.primary,
+  },
 });

@@ -245,6 +245,7 @@ export default function AppointmentDetailPage() {
               placeName={appointment.placeName}
               isHost={isHost}
               appointmentTime={appointment.time}
+              isEnded={false}
             />
           ) : (
             <InterestViewSection />

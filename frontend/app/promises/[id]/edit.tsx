@@ -21,18 +21,27 @@ import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import axiosInstance, { getAccessToken } from '@/app/axiosInstance';
 import * as FileSystem from 'expo-file-system';
+import { Image as RNImageComponent } from 'react-native';
 import SelectedProfileItem from '@/components/profile/SelectedProfileItem';
+import { useAppSelector } from '@/redux/hooks';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || Constants.expoConfig?.extra?.API_URL;
 
 export default function AppointmentEditPage() {
-  const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const params = useLocalSearchParams<{ 
+    id: string;
+    placeId?: string;
+    placeName?: string;
+    memo?: string;
+  }>();
+  const { id, placeId, placeName, memo } = params;
 
   const [name, setName] = useState('');
   const [image, setImage] = useState<string | null>(null);
   const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [dateTime, setDateTime] = useState<Date | null>(null);
+  // location: placeId, placeName, memo
   const [location, setLocation] = useState<{ placeId: number; placeName?: string; memo?: string } | null>(null);
   const [friends, setFriends] = useState<{ id: number; name: string; image: string }[]>([]);
   const [originalFriends, setOriginalFriends] = useState<{ id: number }[]>([]);
@@ -63,11 +72,22 @@ export default function AppointmentEditPage() {
     fetchData();
   }, [id]);
 
+  // 장소 검색 페이지에서 선택한 값이 전달되면 location state 업데이트
+  useEffect(() => {
+    if (placeName) {
+      setLocation({
+        placeId: Number(placeId),
+        placeName: placeName,
+        memo: memo,
+      });
+    }
+  }, [placeName, placeId, memo]);
+
   const handleSelectImage = async () => {
     const result = await launchImageLibraryAsync({
       mediaTypes: MediaTypeOptions.Images,
       allowsEditing: true,
-      quality: 1
+      quality: 1,
     });
     if (!result.canceled && result.assets.length > 0) {
       const uri = result.assets[0].uri;
@@ -100,7 +120,7 @@ export default function AppointmentEditPage() {
         name,
         time: dateTime?.toISOString(),
         placeId: location?.placeId ?? null,
-        memo: location?.memo ?? ''
+        memo: location?.memo ?? '',
       };
 
       const fileUri = FileSystem.documentDirectory + 'data.json';
@@ -110,14 +130,14 @@ export default function AppointmentEditPage() {
       formData.append('data', {
         uri: fileUri,
         type: 'application/json',
-        name: 'data.json'
+        name: 'data.json',
       } as any);
 
       if (image && image !== originalImage) {
         formData.append('image', {
           uri: image,
           type: 'image/jpeg',
-          name: 'appointment.jpg'
+          name: 'appointment.jpg',
         } as any);
       } else if (!image && originalImage) {
         await axiosInstance.delete(`/appointments/${id}/image`);
@@ -127,24 +147,24 @@ export default function AppointmentEditPage() {
       await axiosInstance.patch(`${API_URL}/appointments/${id}`, formData, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'multipart/form-data'
-        }
+          'Content-Type': 'multipart/form-data',
+        },
       });
 
-      const originalIds = originalFriends.map(f => f.id);
-      const currentIds = friends.map(f => f.id);
+      const originalIds = originalFriends.map((f) => f.id);
+      const currentIds = friends.map((f) => f.id);
 
-      const toKick = originalIds.filter(id => !currentIds.includes(id));
-      const toInvite = currentIds.filter(id => !originalIds.includes(id));
+      const toKick = originalIds.filter((id) => !currentIds.includes(id));
+      const toInvite = currentIds.filter((id) => !originalIds.includes(id));
 
       if (toKick.length > 0) {
         await axiosInstance.patch(`/appointments/${id}/kick`, {
-          memberIds: toKick
+          memberIds: toKick,
         });
       }
       if (toInvite.length > 0) {
         await axiosInstance.patch(`/appointments/${id}/invite`, {
-          memberIds: toInvite
+          memberIds: toInvite,
         });
       }
 
@@ -155,6 +175,7 @@ export default function AppointmentEditPage() {
       setAlertVisible(true);
     }
   };
+
   return (
     <>
       <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
@@ -241,7 +262,12 @@ export default function AppointmentEditPage() {
             </View>
           )}
           <TouchableOpacity
-            onPress={() => router.push('/promises/locationSearch')}
+            onPress={() => router.push({
+              pathname: '/promises/locationSearch',
+              params: {
+                mode: 'create',
+              },
+            })}
             style={styles.selectBox}
           >
             <Ionicons name="location-outline" size={20} color={Colors.grayDarkText} />

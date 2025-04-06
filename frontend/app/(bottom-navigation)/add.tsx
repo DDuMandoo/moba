@@ -231,7 +231,12 @@ export default function AppointmentCreatePage() {
             </View>
           )}
           <TouchableOpacity
-            onPress={() => router.push('/promises/locationSearch')}
+            onPress={() => router.push({
+              pathname: '/promises/locationSearch',
+              params: {
+                mode: 'create',
+              },
+            })}
             style={styles.selectBox}
             activeOpacity={0.7}
           >

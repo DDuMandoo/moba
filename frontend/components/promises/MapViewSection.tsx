@@ -58,15 +58,16 @@ export default function MapViewSection({
     if (!appointmentTime) return;
     const diffMinutes = dayjs(appointmentTime).diff(dayjs(), 'minute');
 
-    if (diffMinutes > 10) {
+    if (diffMinutes > 10 || diffMinutes < -10) {
       setShowModal(true);
-    } else {
-      try {
-        const res = await axiosInstance.get(`/appointments/${appointmentId}/locations`);
-        setParticipants(res.data.result.participants);
-      } catch (err) {
-        console.error('❌ 위치 조회 실패:', err);
-      }
+      return;
+    }
+
+    try {
+      const res = await axiosInstance.get(`/appointments/${appointmentId}/locations`);
+      setParticipants(res.data.result.participants);
+    } catch (err) {
+      console.error('❌ 위치 조회 실패:', err);
     }
   };
 
@@ -104,7 +105,8 @@ export default function MapViewSection({
 
   useEffect(() => {
     fetchPlaces();
-    if (appointmentTime && dayjs(appointmentTime).diff(dayjs(), 'minute') <= 10) {
+    const diffMinutes = dayjs(appointmentTime).diff(dayjs(), 'minute');
+    if (diffMinutes <= 10 && diffMinutes >= -10) {
       connectWebSocket();
     }
     return () => {

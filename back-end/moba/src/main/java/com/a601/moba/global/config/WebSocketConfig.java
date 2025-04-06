@@ -36,7 +36,8 @@ public class WebSocketConfig implements WebSocketConfigurer, WebSocketMessageBro
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/topic"); // 메시지 구독 prefix
+        registry.enableSimpleBroker("/topic")  // 메시지 구독 prefix
+                .setHeartbeatValue(new long[]{10000, 10000});  // 클라이언트 ↔ 서버 10초 간격 heartbeat
         registry.setApplicationDestinationPrefixes("/app"); // 메시지 발송 prefix
     }
 }

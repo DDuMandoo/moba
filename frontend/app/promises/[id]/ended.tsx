@@ -90,16 +90,6 @@ export default function EndedAppointmentPage() {
     <View style={styles.container}>
       <ImageBackground source={{ uri: appointment.imageUrl }} style={styles.headerImage} resizeMode="cover">
         <View style={styles.headerOverlay} />
-        <View style={[styles.headerButtons, { paddingTop: insets.top + 10 }]}>
-          <TouchableOpacity style={styles.iconButton} onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={24} color={Colors.primary} />
-          </TouchableOpacity>
-          <View style={styles.headerRightButtons}>
-            <TouchableOpacity style={styles.iconButton}>
-              <Entypo name="share" size={24} color={Colors.primary} />
-            </TouchableOpacity>
-          </View>
-        </View>
       </ImageBackground>
 
       <View style={styles.whiteBox}>

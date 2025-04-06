@@ -29,6 +29,8 @@ import dayjs from 'dayjs';
 import { ParticipantProfile } from '@/components/profile/ParticipantProfile';
 import DelegateModal from '@/components/promises/DelegateModal';
 import QuitAppointmentModal from '@/components/promises/QuitAppointmentModal';
+import CustomAlert from '@/components/CustomAlert';
+import AppointmentSidebar from '@/components/promises/AppointmentSidebar';
 
 const TOP_IMAGE_HEIGHT = 280;
 const { width } = Dimensions.get('window');
@@ -48,6 +50,9 @@ export default function AppointmentDetailPage() {
   const [toastWidth, setToastWidth] = useState(0);
   const [delegateModalVisible, setDelegateModalVisible] = useState(false);
   const [quitModalVisible, setQuitModalVisible] = useState(false);
+  const [leaveAlertVisible, setLeaveAlertVisible] = useState(false);
+  const [showPostDelegateLeave, setShowPostDelegateLeave] = useState(false);
+  const [sidebarVisible, setSidebarVisible] = useState(false);
 
 
   const getAppointment = async () => {
@@ -102,6 +107,16 @@ export default function AppointmentDetailPage() {
       console.error('약속 종료 실패:', err);
     }
   };
+
+  const handleLeaveAppointment = async () => {
+    try {
+      await axiosInstance.patch(`/appointments/${appointment.appointmentId}/leave`);
+      setLeaveAlertVisible(false);
+      router.back();
+    } catch (err) {
+      console.error('약속방 나가기 실패:', err);
+    }
+  };
   
 
   return (
@@ -114,14 +129,14 @@ export default function AppointmentDetailPage() {
       >
         <View style={styles.headerOverlay} />
         <View style={[styles.headerButtons, { paddingTop: insets.top + 10 }]}>
-          <TouchableOpacity style={styles.iconButton}>
-            <Ionicons name="menu" size={24} color={Colors.primary} />
-          </TouchableOpacity>
+        <TouchableOpacity style={styles.iconButton} onPress={() => setSidebarVisible(true)}>
+          <Ionicons name="menu" size={24} color={Colors.primary} />
+        </TouchableOpacity>
           <View style={styles.headerRightButtons}>
             <TouchableOpacity style={styles.iconButton}>
               <Entypo name="share" size={24} color={Colors.primary} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton}>
+            <TouchableOpacity style={styles.iconButton} onPress={() => setLeaveAlertVisible(true)}>
               <Ionicons name="log-out-outline" size={24} color={Colors.primary} />
             </TouchableOpacity>
           </View>
@@ -180,7 +195,11 @@ export default function AppointmentDetailPage() {
                   keyExtractor={(item) => String(item.memberId)}
                   contentContainerStyle={{ gap: 5 }}
                   renderItem={({ item }) => (
-                    <ParticipantProfile item={item} onPress={handleParticipantPress} />
+                    <ParticipantProfile
+                      item={item}
+                      onPress={handleParticipantPress}
+                      isHost={item.memberId === appointment.hostId}
+                    />
                   )}
                 />
               ) : (
@@ -267,6 +286,35 @@ export default function AppointmentDetailPage() {
         visible={quitModalVisible}
         onClose={() => setQuitModalVisible(false)}
         onConfirm={handleQuitAppointment}
+      />
+
+      <CustomAlert
+        visible={leaveAlertVisible}
+        title="약속방 나가기"
+        message={isHost ? '방장은 권한 위임 후에 나갈 수 있어요.' : '정말로 이 약속방에서 나가시겠어요?'}
+        onClose={() => setLeaveAlertVisible(false)}
+        onConfirm={isHost ? () => {
+          setLeaveAlertVisible(false);
+          setDelegateModalVisible(true);
+        } : handleLeaveAppointment}
+        confirmText="확인"
+        cancelText="취소"
+      />
+
+      <CustomAlert
+        visible={showPostDelegateLeave}
+        title="약속방 나가기"
+        message="정말로 이 약속방에서 나가시겠어요?"
+        onClose={() => setShowPostDelegateLeave(false)}
+        onConfirm={handleLeaveAppointment}
+        confirmText="확인"
+        cancelText="취소"
+      />
+
+      <AppointmentSidebar
+        visible={sidebarVisible}
+        onClose={() => setSidebarVisible(false)}
+        appointmentId={Number(id)}
       />
 
     </View>

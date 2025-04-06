@@ -8,7 +8,7 @@ import {
   findNodeHandle, 
   UIManager 
 } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { FontAwesome6, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 
 interface ParticipantProfileProps {
@@ -19,10 +19,11 @@ interface ParticipantProfileProps {
     state: string;
   };
   onPress: (name: string, x: number, y: number, width: number, height: number) => void;
+  isHost?: boolean;
 }
 
-export const ParticipantProfile = ({ item, onPress }: ParticipantProfileProps) => {
-    const pressableRef = useRef<React.ElementRef<typeof Pressable>>(null);
+export const ParticipantProfile = ({ item, onPress, isHost = false }: ParticipantProfileProps) => {
+  const pressableRef = useRef<React.ElementRef<typeof Pressable>>(null);
 
   const handlePress = () => {
     const nodeHandle = findNodeHandle(pressableRef.current);
@@ -56,9 +57,14 @@ export const ParticipantProfile = ({ item, onPress }: ParticipantProfileProps) =
             <Text>{item.name.charAt(0)}</Text>
             {item.state === 'WAIT' && (
               <View style={styles.hourglassIconContainer}>
-                <MaterialIcons name="hourglass-empty" size={12} color="white" />
+                <MaterialIcons name="hourglass-empty" size={10} color="white" />
               </View>
             )}
+          </View>
+        )}
+        {isHost && (
+          <View style={styles.crownContainer}>
+            <FontAwesome6 name="crown" size={10} color="gold" />
           </View>
         )}
       </View>
@@ -104,5 +110,14 @@ const styles = StyleSheet.create({
   },
   waitingPlaceholder: {
     backgroundColor: 'rgba(128,128,128,0.5)',
+  },
+  crownContainer: {
+    position: 'absolute',
+    top: -1,
+    left: 0,
+    backgroundColor: Colors.white,
+    borderRadius: 6,
+    padding: 1,
+    elevation: 2,
   },
 });

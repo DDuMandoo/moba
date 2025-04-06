@@ -367,7 +367,7 @@ public class AppointmentService {
         }
 
         if (newHost.getState() != State.JOINED) {
-            throw new AppointmentException(ErrorCode.INVALID_REQUEST);
+            throw new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED);
         }
 
         // 권한 위임

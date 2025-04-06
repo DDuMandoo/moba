@@ -45,31 +45,29 @@ export default function AppointmentDetailPage() {
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState<'map' | 'interest'>('map');
 
-  const translateY = useSharedValue(-TOP_IMAGE_HEIGHT / 2);
-  const HEADER_MARGIN = insets.top + 60;
-  const minTranslateY = -TOP_IMAGE_HEIGHT + HEADER_MARGIN;
-  const maxTranslateY = 0;
+  const initialTranslateY = TOP_IMAGE_HEIGHT / 2;
+  const minTranslateY = 0;
+  const maxTranslateY = TOP_IMAGE_HEIGHT;
+
+
+  const translateY = useSharedValue(initialTranslateY);
 
   const gestureHandler = useAnimatedGestureHandler({
-    onActive: (event) => {
-      translateY.value = Math.max(
-        minTranslateY,
-        Math.min(maxTranslateY, translateY.value + event.translationY)
-      );
+    onStart: (_, ctx: any) => {
+      ctx.startY = translateY.value;
+    },
+    onActive: (event, ctx: any) => {
+      let nextY = ctx.startY + event.translationY;
+      translateY.value = Math.max(minTranslateY, Math.min(maxTranslateY, nextY));
     },
     onEnd: () => {
-      translateY.value = withSpring(
-        translateY.value < minTranslateY / 2 ? minTranslateY : maxTranslateY,
-        { damping: 20 }
-      );
+      translateY.value = withSpring(translateY.value);
     },
   });
 
   const animatedStyle = useAnimatedStyle(() => {
-    const dynamicHeight = SCREEN_HEIGHT - translateY.value;
     return {
       transform: [{ translateY: translateY.value }],
-      height: dynamicHeight,
     };
   });
 
@@ -107,23 +105,10 @@ export default function AppointmentDetailPage() {
         resizeMode="cover"
       >
         <View style={styles.headerOverlay} />
-        <View style={[styles.headerButtons, { paddingTop: insets.top + 10 }]}>
-          <TouchableOpacity style={styles.iconButton}>
-            <Ionicons name="menu" size={24} color={Colors.primary} />
-          </TouchableOpacity>
-          <View style={styles.headerRightButtons}>
-            <TouchableOpacity style={styles.iconButton}>
-              <Entypo name="share" size={24} color={Colors.primary} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton}>
-              <Ionicons name="log-out-outline" size={24} color={Colors.primary} />
-            </TouchableOpacity>
-          </View>
-        </View>
       </ImageBackground>
 
       <PanGestureHandler onGestureEvent={gestureHandler}>
-        <Animated.View style={[styles.contentBox, animatedStyle]}>
+        <Animated.View style={[styles.contentBox, animatedStyle]}>  
           <View style={styles.scrollContent}>
             <View style={styles.infoBox}>
               <View style={styles.titleRow}>
@@ -214,6 +199,7 @@ export default function AppointmentDetailPage() {
                   placeId={appointment.placeId}
                   placeName={appointment.placeName}
                   isHost={isHost}
+                  appointmentTime={appointment.time}
                 />
               ) : (
                 <InterestViewSection />
@@ -222,6 +208,22 @@ export default function AppointmentDetailPage() {
           </View>
         </Animated.View>
       </PanGestureHandler>
+
+      <View style={styles.headerButtonsContainer} pointerEvents="box-none">
+        <View style={[styles.headerButtons, { paddingTop: insets.top + 10 }]}>
+          <TouchableOpacity style={styles.iconButton}>
+            <Ionicons name="menu" size={24} color={Colors.primary} />
+          </TouchableOpacity>
+          <View style={styles.headerRightButtons}>
+            <TouchableOpacity style={styles.iconButton}>
+              <Entypo name="share" size={24} color={Colors.primary} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconButton}>
+              <Ionicons name="log-out-outline" size={24} color={Colors.primary} />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
     </View>
   );
 }
@@ -248,13 +250,17 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(233,217,197,0.7)',
   },
+  headerButtonsContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1,
+  },
   headerButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    position: 'absolute',
-    width: '100%',
-    zIndex: 10,
   },
   headerRightButtons: {
     flexDirection: 'row',
@@ -273,11 +279,13 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   contentBox: {
-    marginTop: TOP_IMAGE_HEIGHT,
+    ...StyleSheet.absoluteFillObject,
+    top: 0,
     backgroundColor: Colors.white,
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
     overflow: 'hidden',
+    zIndex: 2,
   },
   scrollContent: {
     flex: 1,

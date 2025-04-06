@@ -9,13 +9,13 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public record ChatMessage(
         @Id String id,
         Integer appointmentId,
-        Long senderId,
+        Integer senderId,
         String senderName,
         String message,
         LocalDateTime sentAt
 ) {
     @Builder
-    public ChatMessage(String id, Integer appointmentId, Long senderId, String senderName, String message,
+    public ChatMessage(String id, Integer appointmentId, Integer senderId, String senderName, String message,
                        LocalDateTime sentAt) {
         this.id = id;
         this.appointmentId = appointmentId;

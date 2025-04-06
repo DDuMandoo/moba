@@ -27,6 +27,7 @@ import MapViewSection from '@/components/promises/MapViewSection';
 import InterestViewSection from '@/components/promises/InterestViewSection';
 import dayjs from 'dayjs';
 import { ParticipantProfile } from '@/components/profile/ParticipantProfile';
+import DelegateModal from '@/components/promises/DelegateModal';
 
 const TOP_IMAGE_HEIGHT = 280;
 const { width } = Dimensions.get('window');
@@ -44,6 +45,7 @@ export default function AppointmentDetailPage() {
   const [toastData, setToastData] = useState<{ name: string; x: number; y: number; width: number; height: number } | null>(null);
   const toastOpacity = useRef(new Animated.Value(0)).current;
   const [toastWidth, setToastWidth] = useState(0);
+  const [delegateModalVisible, setDelegateModalVisible] = useState(false);
 
   const getAppointment = async () => {
     if (!id) return;
@@ -126,7 +128,7 @@ export default function AppointmentDetailPage() {
                   >
                     <MaterialIcons name="edit" size={18} color={Colors.primary} />
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.iconButtonSmall}>
+                  <TouchableOpacity onPress={() => setDelegateModalVisible(true)} style={styles.iconButtonSmall}>
                     <MaterialIcons name="published-with-changes" size={18} color={Colors.primary} />
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.iconButtonSmall}>
@@ -231,6 +233,18 @@ export default function AppointmentDetailPage() {
           <Text style={styles.toastText}>{toastData.name}</Text>
         </Animated.View>
       )}
+
+      <DelegateModal
+        visible={delegateModalVisible}
+        onClose={() => setDelegateModalVisible(false)}
+        appointmentId={appointment.appointmentId}
+        currentHostId={appointment.hostId}
+        participants={appointment.participants}
+        onSuccess={(newHost) => {
+          // 필요 시 상태 업데이트 등 추가 처리
+          console.log('방장 위임 성공:', newHost);
+        }}
+      />
     </View>
   );
 }

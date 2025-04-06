@@ -12,7 +12,7 @@ import WebView from 'react-native-webview';
 import Colors from '@/constants/Colors';
 import axiosInstance from '@/app/axiosInstance';
 import dayjs from 'dayjs';
-import More10CheckModal from '@/components/modal/More10CheckModal';
+import More10CheckModal from '@/components/promises/More10CheckModal';
 import * as Location from 'expo-location';
 import { useAppSelector } from '@/redux/hooks';
 import AntDesign from '@expo/vector-icons/AntDesign';

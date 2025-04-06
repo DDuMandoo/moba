@@ -90,6 +90,7 @@ public enum ErrorCode {
     NOT_MATCH_PRICE(4703, BAD_REQUEST, "합산 금액이 일치하지 않습니다"),
     INVALID_HOST(4704, BAD_REQUEST, "더치페이 호스트의 권한이 없습니다"),
     ALREADY_COMPLETE_DUTCHPAY(4705, BAD_REQUEST, "이미 더치페이 완료한 참가자 입니다"),
+    FAILED_OCR_IMAGE(4706, INTERNAL_SERVER_ERROR, "영수증 ocr에 실패하였습니다"),
 
     // ================= FCM 관련 에러 (4800번대) ==================
     FCM_TOKEN_NOT_FOUND(4801, BAD_REQUEST, "FCM 토큰이 존재하지 않습니다"),

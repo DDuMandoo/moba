@@ -28,6 +28,7 @@ import InterestViewSection from '@/components/promises/InterestViewSection';
 import dayjs from 'dayjs';
 import { ParticipantProfile } from '@/components/profile/ParticipantProfile';
 import DelegateModal from '@/components/promises/DelegateModal';
+import QuitAppointmentModal from '@/components/promises/QuitAppointmentModal';
 
 const TOP_IMAGE_HEIGHT = 280;
 const { width } = Dimensions.get('window');
@@ -46,6 +47,8 @@ export default function AppointmentDetailPage() {
   const toastOpacity = useRef(new Animated.Value(0)).current;
   const [toastWidth, setToastWidth] = useState(0);
   const [delegateModalVisible, setDelegateModalVisible] = useState(false);
+  const [quitModalVisible, setQuitModalVisible] = useState(false);
+
 
   const getAppointment = async () => {
     if (!id) return;
@@ -90,6 +93,17 @@ export default function AppointmentDetailPage() {
 
   const isHost = profile?.memberId === appointment.hostId;
 
+  const handleQuitAppointment = async () => {
+    try {
+      await axiosInstance.delete(`/appointments/${appointment.appointmentId}`);
+      setQuitModalVisible(false);
+      router.replace(`/promises/${appointment.appointmentId}/ended`); // 또는 약속 목록 페이지 등으로 이동
+    } catch (err) {
+      console.error('약속 종료 실패:', err);
+    }
+  };
+  
+
   return (
     <View style={styles.container}>
       {/* 상단 약속 사진 */}
@@ -131,7 +145,10 @@ export default function AppointmentDetailPage() {
                   <TouchableOpacity onPress={() => setDelegateModalVisible(true)} style={styles.iconButtonSmall}>
                     <MaterialIcons name="published-with-changes" size={18} color={Colors.primary} />
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.iconButtonSmall}>
+                  <TouchableOpacity
+                    style={styles.iconButtonSmall}
+                    onPress={() => setQuitModalVisible(true)}
+                  >
                     <Feather name="x" size={18} color={Colors.primary} />
                   </TouchableOpacity>
                 </View>
@@ -241,10 +258,17 @@ export default function AppointmentDetailPage() {
         currentHostId={appointment.hostId}
         participants={appointment.participants}
         onSuccess={(newHost) => {
-          // 필요 시 상태 업데이트 등 추가 처리
+          setAppointment({ ...appointment, hostId: newHost.memberId });
           console.log('방장 위임 성공:', newHost);
         }}
       />
+
+      <QuitAppointmentModal
+        visible={quitModalVisible}
+        onClose={() => setQuitModalVisible(false)}
+        onConfirm={handleQuitAppointment}
+      />
+
     </View>
   );
 }

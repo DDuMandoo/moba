@@ -90,24 +90,19 @@ public class AppointmentPlaceService {
 
         AppointmentPlace appointmentPlace = AppointmentPlace.builder()
                 .appointment(appointment)
-                .companyCode(place.getId())
+                .place(place)
                 .order(currentMaxOrder + 1)
-                .name(place.getName())
-                .category(place.getCategory())
-                .latitude(place.getLatitude())
-                .longitude(place.getLongitude())
-                .kakaoUrl(place.getKakaoUrl())
                 .build();
 
         appointmentPlaceRepository.save(appointmentPlace);
 
         return AddAppointmentPlaceResponse.builder()
                 .placeId(appointmentPlace.getId())
-                .name(appointmentPlace.getName())
+                .name(appointmentPlace.getPlace().getName())
                 .order(appointmentPlace.getOrder())
-                .latitude(appointmentPlace.getLatitude())
-                .longitude(appointmentPlace.getLongitude())
-                .kakaoUrl(appointmentPlace.getKakaoUrl())
+                .latitude(appointmentPlace.getPlace().getLatitude())
+                .longitude(appointmentPlace.getPlace().getLongitude())
+                .kakaoUrl(appointmentPlace.getPlace().getKakaoUrl())
                 .address(place.getRoadAddress())
                 .build();
     }
@@ -154,12 +149,12 @@ public class AppointmentPlaceService {
                 .findAllByAppointmentOrderByOrderAsc(appointment)
                 .stream()
                 .map(p -> AppointmentPlaceListResponse.PlaceInfo.builder()
-                        .placeId(p.getCompanyCode())
-                        .name(p.getName())
-                        .latitude(p.getLatitude())
-                        .longitude(p.getLongitude())
-                        .address(p.getAddress())
-                        .category(p.getCategory())
+                        .placeId(p.getPlace().getId())
+                        .name(p.getPlace().getName())
+                        .latitude(p.getPlace().getLatitude())
+                        .longitude(p.getPlace().getLongitude())
+                        .address(p.getPlace().getRoadAddress())
+                        .category(p.getPlace().getCategory())
                         .build()
                 )
                 .toList();

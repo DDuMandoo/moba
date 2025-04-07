@@ -405,7 +405,7 @@ public class DutchpayService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
         headers.set("X-OCR-SECRET", secretKey);
-
+        log.info(secretKey);
         log.info("3. OCR 요청 전송");
         // 3. OCR 요청 전송
         HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);

@@ -60,6 +60,7 @@ public class AppointmentPlaceService {
                 .map(p -> PlaceInfo.builder()
                         .placeId(p.getId())
                         .name(p.getName())
+                        .address(p.getRoadAddress())
                         .latitude(p.getLatitude())
                         .longitude(p.getLongitude())
                         .category(p.getCategory())

@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
@@ -102,7 +102,7 @@ public class DutchpayController {
 
     @PostMapping("/ocr")
     public ResponseEntity<JSONResponse<List<OcrDutchpayResponse>>> ocr(
-            @RequestPart(value = "image") MultipartFile image
+            @RequestParam(value = "image") MultipartFile image
     ) {
         try {
             List<OcrDutchpayResponse> result = dutchpayService.ocrAndAnalyzeReceipt(image);

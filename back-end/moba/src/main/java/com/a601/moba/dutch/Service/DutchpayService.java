@@ -268,7 +268,7 @@ public class DutchpayService {
 
         walletService.dutchpayTransfer(wallet, hostWallet, dutchpayParticipant.getWithdrawTransaction(),
                 dutchpayParticipant.getDepositTransaction(),
-                dutchpay.getPrice());
+                dutchpayParticipant.getPrice());
         log.info("🟢 이체 완료");
 
         boolean isCompleted = dutchpay.updateSettlement(dutchpayParticipant.getPrice());

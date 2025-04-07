@@ -18,16 +18,28 @@ export interface AppointmentResponse {
   };
 }
 
+interface DraftAppointment {
+  name: string;
+  time: string;
+  image?: string;
+  friends: { id: number; name: string; image: string }[];
+  location?: { placeId: number; placeName?: string; memo?: string };
+}
+
 interface AppointmentState {
   loading: boolean;
   error: string | null;
   createdAppointment: AppointmentResponse | null;
+  draftAppointment: DraftAppointment | null;
+  draftAppointmentForEdit: DraftAppointment | null;
 }
 
 const initialState: AppointmentState = {
   loading: false,
   error: null,
   createdAppointment: null,
+  draftAppointment: null,
+  draftAppointmentForEdit: null,
 };
 
 export const createAppointment = createAsyncThunk<
@@ -51,6 +63,19 @@ const appointmentSlice = createSlice({
     resetAppointmentState: (state) => {
       state.createdAppointment = null;
       state.error = null;
+      state.draftAppointment = null;
+    },
+    setDraftAppointment: (state, action) => {
+      state.draftAppointment = action.payload;
+    },
+    clearDraftAppointment: (state) => {
+      state.draftAppointment = null;
+    },
+    setDraftAppointmentForEdit: (state, action) => {
+      state.draftAppointmentForEdit = action.payload;
+    },
+    clearDraftAppointmentForEdit: (state) => {
+      state.draftAppointmentForEdit = null;
     },
   },
   extraReducers: (builder) => {
@@ -70,5 +95,5 @@ const appointmentSlice = createSlice({
   },
 });
 
-export const { resetAppointmentState } = appointmentSlice.actions;
+export const { resetAppointmentState, setDraftAppointment, clearDraftAppointment, setDraftAppointmentForEdit, clearDraftAppointmentForEdit } = appointmentSlice.actions;
 export default appointmentSlice.reducer;

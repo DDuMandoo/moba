@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Calendar, DateData } from 'react-native-calendars';
 import Colors from '@/constants/Colors';
@@ -7,6 +7,7 @@ import 'dayjs/locale/ko';
 import axiosInstance from '@/app/axiosInstance';
 import { useRouter } from 'expo-router';
 import PromiseCard from '@/components/promises/PromiseCard';
+import { useFocusEffect } from 'expo-router';
 
 dayjs.locale('ko');
 
@@ -59,6 +60,13 @@ export default function AppointmentCalendarSection() {
   useEffect(() => {
     fetchAppointments(currentMonth.year(), currentMonth.month() + 1);
   }, [currentMonth]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchAppointments(currentMonth.year(), currentMonth.month() + 1);
+    }, [currentMonth])
+  );
+  
 
   const selectedDateStr = selectedDate.format('YYYY-MM-DD');
   const todayStr = dayjs().format('YYYY-MM-DD');
@@ -176,7 +184,7 @@ export default function AppointmentCalendarSection() {
               location={promise.placeName}
               onPress={() =>
                 router.push({
-                  pathname: '/promises/[id]',
+                  pathname: promise.isEnded ? '/promises/[id]/ended' : '/promises/[id]',
                   params: { id: String(promise.appointmentId) },
                 })
               }

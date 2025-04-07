@@ -4,11 +4,13 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 interface PermissionState {
   notification: boolean;
   location: boolean;
+  gallery: boolean;
 }
 
 const initialState: PermissionState = {
   notification: false,
-  location: false
+  location: false,
+  gallery: false,
 };
 
 const permissionSlice = createSlice({

@@ -5,7 +5,7 @@ import walletReducer from './slices/walletSlice';
 import permissionReducer from './slices/permissionSlice';
 import chargeReducer from './slices/chargeSlice';
 import transferReducer from './slices/transferSlice';
-
+import appointmentReducer from './slices/appointmentSlice';
 
 
 export const store = configureStore({
@@ -15,7 +15,8 @@ export const store = configureStore({
     wallet: walletReducer,
     permissions: permissionReducer,
     charge:chargeReducer,
-    transfer:transferReducer
+    transfer:transferReducer,
+    appointment:  appointmentReducer,
   },
 });
 

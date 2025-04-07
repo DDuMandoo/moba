@@ -393,24 +393,29 @@ public class DutchpayService {
         String fileName = image.getOriginalFilename();
         String format = fileName.substring(fileName.lastIndexOf('.') + 1);
 
+        log.info("1. OCR 요청 본문 구성");
         // 1. OCR 요청 본문 구성
         String message = objectMapper.writeValueAsString(new ClovaOcrRequest(format, fileName));
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("message", message);
         body.add("file", new MultipartInputStreamFileResource(image.getInputStream(), fileName));
 
+        log.info("2. OCR 헤더 설정");
         // 2. OCR 헤더 설정
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
         headers.set("X-OCR-SECRET", secretKey);
 
+        log.info("3. OCR 요청 전송");
         // 3. OCR 요청 전송
         HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(apiUrl, request, String.class);
 
+        log.info("4. OCR 응답으로부터 텍스트 추출");
         // 4. OCR 응답으로부터 텍스트 추출
         String receiptText = extractAllText(objectMapper.readTree(response.getBody()));
 
+        log.info("5. GPT 분석");
         // 5. GPT 분석
         return analyzeReceiptWithGpt(receiptText);
     }
@@ -418,6 +423,7 @@ public class DutchpayService {
     public List<OcrDutchpayResponse> analyzeReceiptWithGpt(String receiptText) throws IOException {
         RestTemplate restTemplate = new RestTemplate();
 
+        log.info("1. GPT 프롬프트 구성");
         // 1. GPT 프롬프트 구성
         String prompt = """
                 다음 영수증에서 품목 이름, 수량, 단가, 총액을 JSON 형식으로 뽑아줘.
@@ -433,6 +439,7 @@ public class DutchpayService {
         requestBody.put("model", "gpt-3.5-turbo");
         requestBody.set("messages", objectMapper.createArrayNode().add(userMessage));
 
+        log.info("2. GPT 요청 헤더 구성");
         // 2. GPT 요청 헤더 구성
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -442,10 +449,12 @@ public class DutchpayService {
         ResponseEntity<String> response = restTemplate.postForEntity(
                 "https://api.openai.com/v1/chat/completions", request, String.class);
 
+        log.info("3. GPT 응답 파싱");
         // 3. GPT 응답 파싱
         JsonNode root = objectMapper.readTree(response.getBody());
         String content = root.path("choices").get(0).path("message").path("content").asText();
 
+        log.info("4. JSON 응답을 리스트로 변환");
         // 4. JSON 응답을 리스트로 변환
         List<OcrDutchpayResponse> result = new ArrayList<>();
         try {

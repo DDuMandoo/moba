@@ -149,6 +149,7 @@ public class AppointmentPlaceService {
                 .findAllByAppointmentOrderByOrderAsc(appointment)
                 .stream()
                 .map(p -> AppointmentPlaceListResponse.PlaceInfo.builder()
+                        .appointmentPlaceId(p.getId())
                         .placeId(p.getPlace().getId())
                         .name(p.getPlace().getName())
                         .latitude(p.getPlace().getLatitude())

@@ -22,9 +22,9 @@ export default function SettlementHistoryPage() {
 
   const fetchHistory = async () => {
     try {
-      console.log('[📤 API 요청 시작] /dutchpays/demand');
+      console.log('[📤 API 요청 시작] /dutchpays/receipt');
 
-      const { data } = await axios.get('/dutchpays/demand');
+      const { data } = await axios.get('/dutchpays/receipt');
 
       console.log('[✅ 정산 내역 응답 전체]', JSON.stringify(data, null, 2));
 
@@ -33,25 +33,27 @@ export default function SettlementHistoryPage() {
       }
 
       const mapped = data.result.map((item: any, index: number) => {
+        const participantList = item.participants ?? [];
+      
         console.log(`[🔍 항목 ${index + 1}]`, {
           dutchpayId: item.dutchpayId,
           appointmentId: item.appointmentId,
           title: item.appointmentName,
           time: item.time,
-          amount: item.totalPrice,
+          amount: item.price,
           settled: item.settled,
-          participantsCount: item.participants.length,
+          participantsCount: participantList.length,
         });
-
+      
         return {
           dutchpayId: item.dutchpayId,
           appointmentId: item.appointmentId,
           title: item.appointmentName,
           imageUrl: item.appointmentImage,
           time: item.time,
-          amount: item.totalPrice,
+          amount: item.price,
           settled: item.settled,
-          participants: item.participants.map((p: any) => p.memberImage ?? ''),
+          participants: participantList.map((p: any) => p.memberImage ?? ''),
         };
       });
 
@@ -84,19 +86,22 @@ export default function SettlementHistoryPage() {
       <View style={{ gap: 1 }}>
         {historyList.map((item) => (
           <PromiseCard
-            key={item.dutchpayId}
-            title={item.title}
-            imageUrl={item.imageUrl}
-            time={item.time}
-            amount={`${item.settled.toLocaleString()} / ${item.amount.toLocaleString()}원`}
-            participants={item.participants}
-            onPress={() =>
-              router.push({
-                pathname: '/wallet/settlement/send/[id]',
-                params: { id: String(item.appointmentId) },
-              })
-            }
-          />
+          key={item.dutchpayId}
+          title={item.title}
+          imageUrl={item.imageUrl}
+          time={item.time}
+          amount={item.amount}
+          appointmentId={item.appointmentId}
+          onPress={() =>
+            router.push({
+              pathname: '/wallet/settlement/send/[id]',
+              params: { 
+                id: String(item.appointmentId),
+                dutchpayId: String(item.dutchpayId),
+              },
+            })
+          }
+        />
         ))}
       </View>
     </ScrollView>

@@ -105,10 +105,11 @@ public class DutchpayController {
             @RequestParam(value = "image") MultipartFile image
     ) {
         try {
+            log.info(String.valueOf(image));
             List<OcrDutchpayResponse> result = dutchpayService.ocrAndAnalyzeReceipt(image);
             return ResponseEntity.ok(JSONResponse.of(SuccessCode.REQUEST_SUCCESS, result));
         } catch (Exception e) {
-            log.error("OCR 및 GPT 분석 실패");
+            log.error("OCR 및 GPT 분석 실패", e);
             throw new DutchpayException(ErrorCode.FAILED_OCR_IMAGE);
         }
     }

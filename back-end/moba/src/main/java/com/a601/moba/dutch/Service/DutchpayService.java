@@ -118,6 +118,10 @@ public class DutchpayService {
         Appointment appointment = getAppointmentById(appointmentId);
         Wallet hostWallet = getWalletByMemberId(host.getId());
 
+        if (participants.size() == 1 && Objects.equals(participants.get(0).memberId(), host.getId())) {
+            throw new DutchpayException(ErrorCode.FAILED_CREATE_DUTCHPAY);
+        }
+
         Dutchpay dutchpay = dutchpayRepository.save(Dutchpay.builder()
                 .appointment(appointment)
                 .host(host)

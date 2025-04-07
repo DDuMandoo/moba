@@ -175,16 +175,18 @@ export default function AppointmentDetailPage() {
                 {dayjs(appointment.time).format('YYYY년 M월 D일 HH:mm')}
               </Text>
             </View>
-            <View style={styles.detailRow}>
+            <View style={[styles.detailRow, { flexWrap: 'wrap' }]}>
               <FontAwesome5 name="map-marker-alt" size={18} color={Colors.primary} style={{ marginRight: 2 }} />
-              <Text style={styles.detailText}>
-                {appointment.placeName ? appointment.placeName : (
-                  <Text style={{ fontStyle: 'italic', color: Colors.grayLightText, fontSize: 14 }}>
-                    선택한 장소가 없습니다.
-                  </Text>
-                )}
-                {appointment.memo ? ` - ${appointment.memo}` : ''}
-              </Text>
+              {appointment.placeName ? (
+                <Text style={styles.detailText}>
+                  {appointment.placeName}
+                  {appointment.memo ? `\n${appointment.memo}` : ''}
+                </Text>
+              ) : (
+                <Text style={{ fontStyle: 'italic', color: Colors.grayLightText, fontSize: 14 }}>
+                  선택한 장소가 없습니다.
+                </Text>
+              )}
             </View>
             <View style={styles.detailRow}>
               <Ionicons name="people-outline" size={18} color={Colors.primary} style={{ marginRight: 2 }} />
@@ -405,12 +407,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginBottom: 8,
+    marginBottom: 4,
   },
   detailText: {
     fontSize: 16,
     color: Colors.primary,
     marginBottom: 1,
+    padding: 1
   },
   profileImageBox: {
     width: 26,

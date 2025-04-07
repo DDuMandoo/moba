@@ -1,3 +1,4 @@
+// app/promises/PlaceSearchPage.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
@@ -11,13 +12,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   Modal,
-  TouchableWithoutFeedback
+  TouchableWithoutFeedback,
 } from 'react-native';
 import WebView from 'react-native-webview';
 import Colors from '@/constants/Colors';
 import axiosInstance from '@/app/axiosInstance';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import DetailedMemoModal from '@/components/promises/DetaildMemoModal';
 
 interface PlaceItem {
   placeId: number;
@@ -31,16 +33,15 @@ interface PlaceItem {
 
 export default function PlaceSearchPage() {
   const router = useRouter();
-  // 쿼리 파라미터: appointmentId, mode (여기서는 mode를 "create"로 고정)
-  const params = useLocalSearchParams<{ appointmentId?: string; mode?: string }>();
+  const params = useLocalSearchParams<{ appointmentId?: string; mode?: 'create' | 'edit' }>();
+  const mode = params.mode;
   const appointmentId = params.appointmentId;
-  const mode: 'create' = 'create';
 
   const [searchKeyword, setSearchKeyword] = useState('');
   const [places, setPlaces] = useState<PlaceItem[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<PlaceItem | null>(null);
-  const [modalVisible, setModalVisible] = useState(false); // 검색 결과 모달
-  const [memoModalVisible, setMemoModalVisible] = useState(false); // 메모 모달
+  const [modalVisible, setModalVisible] = useState(false);
+  const [memoModalVisible, setMemoModalVisible] = useState(false);
   const [memoText, setMemoText] = useState('');
   const webViewRef = useRef<WebView>(null);
 
@@ -54,11 +55,9 @@ export default function PlaceSearchPage() {
       return;
     }
     try {
-      console.log(`📡 검색 요청: ${keyword}`);
       const res = await axiosInstance.get(
         `/appointments/places/search?keyword=${encodeURIComponent(keyword)}${cursorId ? `&cursorId=${cursorId}` : ''}`
       );
-      console.log('📍 검색 결과:', res.data.result.results);
       setPlaces(res.data.result.results);
       setModalVisible(true);
     } catch (err) {
@@ -66,35 +65,41 @@ export default function PlaceSearchPage() {
     }
   };
 
-  // 장소 리스트 아이템 선택 시: 모달을 닫고 WebView에 JS 주입하여 커스텀 오버레이 생성
   const handleSelectPlaceItem = (item: PlaceItem) => {
-    if (mode === 'create') {
-      setSelectedPlace(item);
-      setModalVisible(false);
-      const jsCode = `
-        if (window.setCustomOverlay) {
-          window.setCustomOverlay(${JSON.stringify(item)});
-        }
-      `;
-      webViewRef.current?.injectJavaScript(jsCode);
-    }
+    setSelectedPlace(item);
+    setModalVisible(false);
+    const jsCode = `
+      if (window.setCustomOverlay) {
+        window.setCustomOverlay(${JSON.stringify(item)});
+      }
+    `;
+    webViewRef.current?.injectJavaScript(jsCode);
   };
 
-  // 메모 모달에서 확인 누르면 약속 생성(수정) 페이지로 이동하면서 정보 전달
   const handleMemoConfirm = () => {
     if (!selectedPlace) return;
-    router.replace({
-      pathname: '/(bottom-navigation)/add',
-      params: {
-        selectedPlaceId: String(selectedPlace.placeId),
-        selectedPlaceName: selectedPlace.name,
-        selectedPlaceMemo: memoText,
-      },
-    });
+  
+    const routeParams = {
+      selectedPlaceId: String(selectedPlace.placeId),
+      selectedPlaceName: selectedPlace.name,
+      selectedPlaceMemo: memoText,
+    };
+  
+    if (mode === 'edit' && appointmentId) {
+      router.replace(
+        `/promises/${appointmentId}/edit?selectedPlaceId=${selectedPlace.placeId}&selectedPlaceName=${encodeURIComponent(selectedPlace.name)}&selectedPlaceMemo=${encodeURIComponent(memoText)}`
+      );
+    } else {
+      router.replace({
+        pathname: '/(bottom-navigation)/add',
+        params: routeParams,
+      });
+    }
+    
   };
-
-  // Kakao Maps HTML (WebView)
+  
   const KAKAO_API_KEY = process.env.EXPO_PUBLIC_KAKAO_JS_KEY;
+  const customMarkerImage = 'https://moba-image.s3.ap-northeast-2.amazonaws.com/profile/CustomMarker.png';
   const mapHtml = `
     <!DOCTYPE html>
     <html>
@@ -105,8 +110,8 @@ export default function PlaceSearchPage() {
           html, body, #map { margin: 0; padding: 0; width: 100%; height: 100%; }
           .customOverlay {
             position: relative;
-            width: 380px;
-            height: 230px;
+            width: 300px;
+            height: 165px;
             background: #FFFFFF;
             box-shadow: 0px 4px 4px rgba(0,0,0,0.25);
             border-radius: 10px;
@@ -117,18 +122,18 @@ export default function PlaceSearchPage() {
             align-items: center;
             background: #B29486;
             border-radius: 10px 10px 0 0;
-            padding: 11px 20px;
+            padding: 7px 15px;
           }
           .overlayTitle {
             font-family: 'NanumSquare';
-            font-weight: 700;
-            font-size: 32px;
-            line-height: 36px;
+            font-weight: 400;
+            font-size: 19px;
+            line-height: 20px;
             color: #FFFFFF;
           }
           .overlayClose {
-            width: 48px;
-            height: 48px;
+            width: 36px;
+            height: 36px;
             border: none;
             background: transparent;
             font-size: 32px;
@@ -136,44 +141,49 @@ export default function PlaceSearchPage() {
             cursor: pointer;
           }
           .overlayBody {
-            padding: 20px;
+            padding: 12px 16px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 2px;
           }
           .overlayCategory {
             font-family: 'NanumSquare';
             font-weight: 400;
-            font-size: 20px;
-            line-height: 30px;
+            font-size: 16px;
+            line-height: 24px;
             color: #A47764;
           }
           .overlayAddress {
             font-family: 'NanumSquare';
             font-weight: 400;
-            font-size: 20px;
-            line-height: 23px;
+            font-size: 16px;
+            line-height: 25px;
             color: #333;
+          }
+          .overlayFooter {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
           }
           .overlayDetail {
             font-family: 'NanumSquare';
             font-weight: 400;
-            font-size: 20px;
-            line-height: 23px;
+            font-size: 16px;
+            line-height: 16px;
             text-decoration: underline;
             color: #1570EF;
             cursor: pointer;
           }
           .selectBtn {
-            width: 80px;
-            height: 50px;
+            width: 50px;
+            height: 32px;
             border: 1px solid #431905;
-            border-radius: 10px;
+            border-radius: 8px;
             background: transparent;
             font-family: 'NanumSquare';
-            font-weight: 700;
-            font-size: 20px;
-            line-height: 23px;
+            font-weight: 500;
+            font-size: 14px;
+            line-height: 16px;
             color: #000000;
             cursor: pointer;
           }
@@ -202,13 +212,23 @@ export default function PlaceSearchPage() {
               map = new kakao.maps.Map(container, options);
             });
           };
+
           window.setCustomOverlay = function(place) {
             var latLng = new kakao.maps.LatLng(place.latitude, place.longitude);
-            // 기본 마커 생성
-            var marker = new kakao.maps.Marker({ position: latLng });
+
+            // 커스텀 마커 (80x80)
+            var markerImgSrc = '${customMarkerImage}';
+            var markerImgSize = new kakao.maps.Size(80, 80);
+            var markerImgOption = { offset: new kakao.maps.Point(40, 80) };
+            var markerImage = new kakao.maps.MarkerImage(markerImgSrc, markerImgSize, markerImgOption);
+            var marker = new kakao.maps.Marker({
+              position: latLng,
+              image: markerImage
+            });
             marker.setMap(map);
             map.panTo(latLng);
-            // 커스텀 오버레이 생성
+
+            // 커스텀 오버레이 생성 (yAnchor를 1.5로 설정하여 마커 위로 5 정도 더 띄움)
             var content = '<div class="customOverlay">' +
                             '<div class="overlayHeader">' +
                               '<span class="overlayTitle">' + place.name + '</span>' +
@@ -217,21 +237,25 @@ export default function PlaceSearchPage() {
                             '<div class="overlayBody">' +
                               '<div class="overlayCategory">' + place.category + '</div>' +
                               '<div class="overlayAddress">' + place.address + '</div>' +
-                              '<div class="overlayDetail" onclick="window.open(\\'' + place.kakaoUrl + '\\', \\'' + '_blank\\')">상세정보 보기</div>' +
-                              '<button class="selectBtn" onclick="selectPlace()">선택</button>' +
+                              '<div class="overlayFooter">' +
+                                '<div class="overlayDetail" onclick="window.open(\\'' + place.kakaoUrl + '\\', \\'' + '_blank\\')">상세정보 보기</div>' +
+                                '<button class="selectBtn" onclick="selectPlace()">선택</button>' +
+                              '</div>' +
                             '</div>' +
                             '<div class="arrow"></div>' +
                           '</div>';
+
             var overlayDiv = document.createElement('div');
             overlayDiv.innerHTML = content;
             var customOverlay = new kakao.maps.CustomOverlay({
               position: latLng,
               content: overlayDiv,
               xAnchor: 0.5,
-              yAnchor: 1.2
+              yAnchor: 1.5
             });
             customOverlay.setMap(map);
             window.currentOverlay = customOverlay;
+
             window.selectPlace = function() {
               var data = {
                 type: 'SELECT_PLACE',
@@ -245,6 +269,7 @@ export default function PlaceSearchPage() {
               };
               window.ReactNativeWebView.postMessage(JSON.stringify(data));
             };
+
             window.removeOverlay = function() {
               if (window.currentOverlay) {
                 window.currentOverlay.setMap(null);
@@ -270,9 +295,7 @@ export default function PlaceSearchPage() {
           longitude: data.longitude,
           kakaoUrl: data.kakaoUrl,
         });
-        if (mode === 'create') {
-          setMemoModalVisible(true);
-        }
+        setMemoModalVisible(true);
       }
     } catch (error) {
       console.error('onMessage 파싱 실패:', error);
@@ -281,7 +304,7 @@ export default function PlaceSearchPage() {
 
   return (
     <View style={styles.wrapper}>
-      {/* 지도 WebView */}
+      {/* Map WebView */}
       <WebView
         ref={webViewRef}
         originWhitelist={['*']}
@@ -293,8 +316,7 @@ export default function PlaceSearchPage() {
         style={StyleSheet.absoluteFill}
         onMessage={handleOnMessage}
       />
-
-      {/* 검색창 */}
+      {/* Search box */}
       <SafeAreaView style={styles.overlay}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={styles.searchBox}>
@@ -313,8 +335,7 @@ export default function PlaceSearchPage() {
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
-
-      {/* 검색 결과 모달 */}
+      {/* Search results modal */}
       <Modal visible={modalVisible} transparent animationType="fade">
         <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
           <View style={styles.modalWrapper}>
@@ -322,50 +343,47 @@ export default function PlaceSearchPage() {
               <FlatList
                 data={places}
                 keyExtractor={(item) => item.placeId.toString()}
-                renderItem={({ item }) => (
+                renderItem={({ item, index }) => (
                   <TouchableOpacity
-                    style={styles.placeItem}
+                    style={[
+                      styles.placeItem,
+                      index !== places.length - 1 && styles.itemSeparator,
+                    ]}
                     onPress={() => handleSelectPlaceItem(item)}
                     activeOpacity={0.9}
                   >
                     <View style={styles.placeItemInner}>
                       <Text style={styles.placeName}>{item.name}</Text>
-                      <Text style={styles.placeCategory}>{item.category} · {item.address}</Text>
+                      <Text style={styles.placeCategory}>{item.category}</Text>
+                      <Text style={styles.placeAddress}>{item.address}</Text>
                     </View>
                     <Ionicons name="location-outline" size={20} color={Colors.primary} />
                   </TouchableOpacity>
                 )}
                 contentContainerStyle={styles.listContent}
                 ListEmptyComponent={
-                  searchKeyword
-                    ? <Text style={styles.emptyText}>검색 결과가 없습니다.</Text>
-                    : <Text style={styles.emptyText}>장소를 검색해주세요.</Text>
+                  searchKeyword ? (
+                    <Text style={styles.emptyText}>검색 결과가 없습니다.</Text>
+                  ) : (
+                    <Text style={styles.emptyText}>장소를 검색해주세요.</Text>
+                  )
                 }
               />
             </View>
           </View>
         </TouchableWithoutFeedback>
       </Modal>
-
-      {/* 메모 모달 */}
-      <Modal visible={memoModalVisible} transparent animationType="slide">
-        <View style={styles.memoModalWrapper}>
-          <View style={styles.memoContainer}>
-            <Text style={styles.memoTitle}>상세 장소 메모 (선택)</Text>
-            <TextInput
-              style={styles.memoInput}
-              placeholder="예) 이 카페 2층이 예뻐요"
-              placeholderTextColor={Colors.grayLightText}
-              value={memoText}
-              onChangeText={setMemoText}
-              multiline
-            />
-            <TouchableOpacity style={styles.confirmButton} onPress={handleMemoConfirm}>
-              <Text style={styles.confirmText}>확인</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      {/* Detailed Memo Modal */}
+      <DetailedMemoModal
+        visible={memoModalVisible}
+        memo={memoText}
+        setMemo={setMemoText}
+        selectedPlaceName={selectedPlace?.name}
+        selectedPlaceCategory={selectedPlace?.category}
+        selectedPlaceAddress={selectedPlace?.address}
+        onConfirm={handleMemoConfirm}
+        onClose={() => setMemoModalVisible(false)}
+      />
     </View>
   );
 }
@@ -379,6 +397,7 @@ const styles = StyleSheet.create({
     top: 8,
     left: 16,
     right: 16,
+    zIndex: 10,
   },
   searchBox: {
     flexDirection: 'row',
@@ -387,7 +406,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.logo,
     borderWidth: 1,
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 14,
     marginBottom: 12,
     elevation: 3,
     alignItems: 'center',
@@ -397,12 +416,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
   },
-  input: { fontSize: 15, color: Colors.text, flex: 1 },
+  input: {
+    fontSize: 15,
+    color: Colors.text,
+    flex: 1,
+  },
   modalWrapper: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'center',
     padding: 20,
+    zIndex: 20,
   },
   modalContainer: {
     backgroundColor: Colors.white,
@@ -410,64 +434,39 @@ const styles = StyleSheet.create({
     padding: 16,
     maxHeight: SCREEN_WIDTH * 1.2,
   },
+  listContent: { paddingBottom: 0 },
   placeItem: {
     flexDirection: 'row',
     backgroundColor: '#fff',
-    marginVertical: 4,
     padding: 12,
-    borderRadius: 8,
-    borderColor: '#eee',
-    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  itemSeparator: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    marginBottom: 4,
+  },
   placeItemInner: { flex: 1, marginRight: 8 },
   placeName: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '600',
     color: Colors.text,
-    marginBottom: 2,
+    marginBottom: 4,
   },
-  placeCategory: { fontSize: 13, color: Colors.grayDarkText },
-  listContent: { paddingBottom: 80 },
+  placeCategory: {
+    fontSize: 14,
+    color: Colors.logo,
+    marginBottom: 4,
+  },
+  placeAddress: {
+    fontSize: 14,
+    color: Colors.grayDarkText,
+  },
   emptyText: {
     textAlign: 'center',
     color: Colors.grayDarkText,
     marginTop: 20,
     fontSize: 14,
-  },
-  memoModalWrapper: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  memoContainer: {
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: 20,
-    width: '100%',
-  },
-  memoTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 10 },
-  memoInput: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    padding: 10,
-    minHeight: 80,
-    textAlignVertical: 'top',
-    marginBottom: 12,
-  },
-  confirmButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: 10,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  confirmText: {
-    color: Colors.white,
-    fontSize: 16,
-    fontWeight: '600',
   },
 });

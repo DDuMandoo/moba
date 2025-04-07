@@ -5,6 +5,7 @@ import lombok.Builder;
 public record PlaceInfo(
         Integer placeId,
         String name,
+        String address,
         Double latitude,
         Double longitude,
         String category,

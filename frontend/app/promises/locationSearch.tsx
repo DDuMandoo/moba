@@ -33,7 +33,7 @@ interface PlaceItem {
 
 export default function PlaceSearchPage() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ appointmentId?: string; mode?: 'create' | 'edit' }>();
+  const params = useLocalSearchParams<{ appointmentId?: string; mode?: 'create' | 'edit' | 'list'}>();
   const mode = params.mode;
   const appointmentId = params.appointmentId;
 
@@ -76,7 +76,7 @@ export default function PlaceSearchPage() {
     webViewRef.current?.injectJavaScript(jsCode);
   };
 
-  const handleMemoConfirm = () => {
+  const handleMemoConfirm = async () => {
     if (!selectedPlace) return;
   
     const routeParams = {
@@ -84,6 +84,17 @@ export default function PlaceSearchPage() {
       selectedPlaceName: selectedPlace.name,
       selectedPlaceMemo: memoText,
     };
+  
+    if (mode === 'list' && appointmentId) {
+      try {
+        // memo 입력했더라도 그냥 장소만 추가하고 끝
+        await axiosInstance.post(`/appointments/${appointmentId}/places/${selectedPlace.placeId}`);
+        router.back(); // 다시 EditPlaceListModal로
+      } catch (err) {
+        console.error('❌ 장소 추가 실패:', err);
+      }
+      return;
+    }
   
     if (mode === 'edit' && appointmentId) {
       router.replace(
@@ -95,8 +106,7 @@ export default function PlaceSearchPage() {
         params: routeParams,
       });
     }
-    
-  };
+  };  
   
   const KAKAO_API_KEY = process.env.EXPO_PUBLIC_KAKAO_JS_KEY;
   const customMarkerImage = 'https://moba-image.s3.ap-northeast-2.amazonaws.com/profile/CustomMarker.png';
@@ -282,11 +292,11 @@ export default function PlaceSearchPage() {
     </html>
   `;
 
-  const handleOnMessage = (event: any) => {
+  const handleOnMessage = async (event: any) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
       if (data.type === 'SELECT_PLACE') {
-        setSelectedPlace({
+        const selected = {
           placeId: data.placeId,
           name: data.name,
           address: data.address,
@@ -294,13 +304,26 @@ export default function PlaceSearchPage() {
           latitude: data.latitude,
           longitude: data.longitude,
           kakaoUrl: data.kakaoUrl,
-        });
+        };
+  
+        if (mode === 'list' && appointmentId) {
+          try {
+            await axiosInstance.post(`/appointments/${appointmentId}/places/${selected.placeId}`);
+            router.back(); // 모달 복귀
+          } catch (err) {
+            console.error('❌ 장소 추가 실패:', err);
+          }
+          return; // 🚨 이거 꼭 있어야 함!
+        }
+  
+        // 이 아래는 create/edit 용
+        setSelectedPlace(selected);
         setMemoModalVisible(true);
       }
     } catch (error) {
       console.error('onMessage 파싱 실패:', error);
     }
-  };
+  };  
 
   return (
     <View style={styles.wrapper}>

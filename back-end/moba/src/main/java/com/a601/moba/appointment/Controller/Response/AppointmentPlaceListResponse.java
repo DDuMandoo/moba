@@ -9,6 +9,7 @@ public record AppointmentPlaceListResponse(
 ) {
     @Builder
     public record PlaceInfo(
+            Integer appointmentPlaceId,
             Integer placeId,
             String name,
             Double latitude,

@@ -270,6 +270,7 @@ public class DutchpayService {
                 dutchpayParticipant.getDepositTransaction(),
                 dutchpayParticipant.getPrice());
         log.info("🟢 이체 완료");
+        dutchpayParticipant.updateStatus(true);
 
         boolean isCompleted = dutchpay.updateSettlement(dutchpayParticipant.getPrice());
         Appointment appointment = dutchpay.getAppointment();

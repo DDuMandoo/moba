@@ -4,6 +4,7 @@ import { Stack } from 'expo-router';
 import LayoutInner from './LayoutInner';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Colors from '@/constants/Colors';
+import { Image } from 'react-native';
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,18 @@ export default function RootLayout() {
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="promises" options={{ headerShown: false }} />
           <Stack.Screen name="wallet" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="chat"
+            options={{
+              headerTitle: () => (
+                <Image
+                  source={require('@/assets/icons/header/Logo.png')}
+                  style={{ width: 32, height: 32, resizeMode: 'contain' }}
+                />
+              ),
+              headerTitleAlign: 'center',
+            }}
+          />
         </Stack>
       </LayoutInner>
     </QueryClientProvider>

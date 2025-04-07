@@ -216,7 +216,10 @@ export default function AppointmentDetailPage() {
               >
                 <MaterialIcons name="attach-money" size={18} color={Colors.primary} />
               </TouchableOpacity>
-                <TouchableOpacity style={styles.iconButtonSmall}>
+                <TouchableOpacity
+                  style={styles.iconButtonSmall}
+                  onPress={() => router.push(`/chat/${id}`)} // 채팅 화면으로 이동
+                >
                   <Ionicons name="chatbubble-outline" size={18} color={Colors.primary} />
                 </TouchableOpacity>
               </View>

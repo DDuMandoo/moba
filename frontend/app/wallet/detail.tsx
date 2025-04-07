@@ -95,7 +95,7 @@ export default function WalletDetailPage() {
         />
         <FeatureButton
           iconName="credit-card"
-          label="계좌 관리"
+          label="계좌 보기"
           onPress={() => router.push('/wallet/account')}
         />
       </View>

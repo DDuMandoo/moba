@@ -1,42 +1,78 @@
-import React from 'react';
-import { ScrollView, View, Text } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ScrollView, View, Text, Alert } from 'react-native';
 import PromiseCard from '@/components/promises/PromiseCard';
 import Colors from '@/constants/Colors';
 import { useRouter } from 'expo-router';
+import axios from '@/app/axiosInstance';
+
+interface HistoryItem {
+  dutchpayId: number;
+  appointmentId: number;
+  title: string;
+  imageUrl: string;
+  time: string;
+  amount: number;
+  settled: number;
+  participants: string[];
+}
 
 export default function SettlementHistoryPage() {
   const router = useRouter();
+  const [historyList, setHistoryList] = useState<HistoryItem[]>([]);
 
-  const mockData = [
-    {
-      appointmentId: 1,
-      title: '알고리즘 스터디',
-      imageUrl:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRQul4bTIHNjv5EQGpXWc5KzPDi-fLdS6Z77A&usqp=CAU',
-      time: '2025-04-11T18:30:00',
-      amount: '50000',
-      participants: [
-        'https://avatars.githubusercontent.com/u/1?v=4',
-        'https://avatars.githubusercontent.com/u/2?v=4',
-        'https://avatars.githubusercontent.com/u/3?v=4',
-        'https://avatars.githubusercontent.com/u/4?v=4',
-      ],
-    },
-    {
-      appointmentId: 2,
-      title: 'A601',
-      imageUrl:
-        'https://cdn.class101.net/images/3f5f97f0-6bd7-4ef9-82b0-04fcdeec95bf',
-      time: '2025-04-13T11:30:00',
-      amount: '100000',
-      participants: [
-        'https://avatars.githubusercontent.com/u/4?v=4',
-        'https://avatars.githubusercontent.com/u/3?v=4',
-        'https://avatars.githubusercontent.com/u/2?v=4',
-        'https://avatars.githubusercontent.com/u/1?v=4',
-      ],
-    },
-  ];
+  const fetchHistory = async () => {
+    try {
+      console.log('[📤 API 요청 시작] /dutchpays/receipt');
+
+      const { data } = await axios.get('/dutchpays/receipt');
+
+      console.log('[✅ 정산 내역 응답 전체]', JSON.stringify(data, null, 2));
+
+      if (!data.result || data.result.length === 0) {
+        console.log('[⚠️ 응답은 성공했지만 result가 비어 있음]');
+      }
+
+      const mapped = data.result.map((item: any, index: number) => {
+        const participantList = item.participants ?? [];
+      
+        console.log(`[🔍 항목 ${index + 1}]`, {
+          dutchpayId: item.dutchpayId,
+          appointmentId: item.appointmentId,
+          title: item.appointmentName,
+          time: item.time,
+          amount: item.price,
+          settled: item.settled,
+          participantsCount: participantList.length,
+        });
+      
+        return {
+          dutchpayId: item.dutchpayId,
+          appointmentId: item.appointmentId,
+          title: item.appointmentName,
+          imageUrl: item.appointmentImage,
+          time: item.time,
+          amount: item.price,
+          settled: item.settled,
+          participants: participantList.map((p: any) => p.memberImage ?? ''),
+        };
+      });
+
+      console.log('[📦 최종 매핑된 데이터]', mapped);
+      setHistoryList(mapped);
+    } catch (e: any) {
+      console.log('[❌ 정산 내역 에러]', e);
+
+      if (e.response) {
+        console.log('[❌ 서버 응답 에러]', JSON.stringify(e.response.data, null, 2));
+      }
+
+      Alert.alert('불러오기 실패', '정산 내역을 가져오지 못했어요.');
+    }
+  };
+
+  useEffect(() => {
+    fetchHistory();
+  }, []);
 
   return (
     <ScrollView
@@ -48,17 +84,24 @@ export default function SettlementHistoryPage() {
       </Text>
 
       <View style={{ gap: 1 }}>
-        {mockData.map((item) => (
+        {historyList.map((item) => (
           <PromiseCard
-            key={item.appointmentId}
-            {...item}
-            onPress={() =>
-              router.push({
-                pathname: '/wallet/settlement/send/[id]',
-                params: { id: String(item.appointmentId) },
-              })
-            }
-          />
+          key={item.dutchpayId}
+          title={item.title}
+          imageUrl={item.imageUrl}
+          time={item.time}
+          amount={item.amount}
+          appointmentId={item.appointmentId}
+          onPress={() =>
+            router.push({
+              pathname: '/wallet/settlement/send/[id]',
+              params: { 
+                id: String(item.appointmentId),
+                dutchpayId: String(item.dutchpayId),
+              },
+            })
+          }
+        />
         ))}
       </View>
     </ScrollView>

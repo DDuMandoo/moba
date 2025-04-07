@@ -210,9 +210,12 @@ export default function AppointmentDetailPage() {
                 </Text>
               )}
               <View style={styles.actionRow}>
-                <TouchableOpacity style={styles.iconButtonSmall}>
-                  <MaterialIcons name="attach-money" size={18} color={Colors.primary} />
-                </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.iconButtonSmall}
+                onPress={() => router.push(`/promises/${id}/settlement`)}
+              >
+                <MaterialIcons name="attach-money" size={18} color={Colors.primary} />
+              </TouchableOpacity>
                 <TouchableOpacity style={styles.iconButtonSmall}>
                   <Ionicons name="chatbubble-outline" size={18} color={Colors.primary} />
                 </TouchableOpacity>

@@ -138,8 +138,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    justifyContent: 'space-between',
-    height: 88,
+    justifyContent: 'center',
   },
   title: {
     fontSize: 18,
@@ -156,7 +155,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.black,
     marginLeft: 6,
-    lineHeight: 18,
+    lineHeight: 20,
   },
   participantsRow: {
     flexDirection: 'row',

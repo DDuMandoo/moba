@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -17,8 +17,9 @@ import { useAppSelector } from '@/redux/hooks';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import EditPlaceListModal from './EditPlaceListModal';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { PlaceItem } from '@/types/PlaceItem';
+import PlaceCardItem from './PlaceCardItem';
 
 interface MapViewSectionProps {
   appointmentId: number;
@@ -88,26 +89,20 @@ export default function MapViewSection({
     };
   };
 
-  useEffect(() => {
-    fetchPlaces();
-    const diffMinutes = dayjs(appointmentTime).diff(dayjs(), 'minute');
-    if (diffMinutes <= 10 && diffMinutes >= -10) connectWebSocket();
-    return () => ws.current?.close();
-  }, [appointmentId, appointmentTime]);
-
-  useEffect(() => {
-    if (from === 'list' && selectedPlace) {
-      try {
-        const parsed: PlaceItem = JSON.parse(selectedPlace);
-        setPlaces((prev) => {
-          const exists = prev.some((p) => p.placeId === parsed.placeId);
-          return exists ? prev : [...prev, parsed];
-        });
-      } catch (e) {
-        console.warn('❌ 선택된 장소 파싱 실패:', e);
+  useFocusEffect(
+    useCallback(() => {
+      fetchPlaces();
+  
+      const diffMinutes = dayjs(appointmentTime).diff(dayjs(), 'minute');
+      if (diffMinutes <= 10 && diffMinutes >= -10) {
+        connectWebSocket();
       }
-    }
-  }, [selectedPlace]);
+  
+      return () => {
+        ws.current?.close();
+      };
+    }, [appointmentId, appointmentTime])
+  );
 
   const matchedPlace = places.find((p) => p.placeId.toString() === placeId);
   const customMarkerImage = 'https://moba-image.s3.ap-northeast-2.amazonaws.com/profile/CustomMarker.png';
@@ -160,7 +155,13 @@ export default function MapViewSection({
               <Text style={styles.sectionTitle}>약속 장소 목록</Text>
               <View style={styles.actionButtons}>
                 {isHost && (
-                  <TouchableOpacity style={styles.iconButtonSmall} onPress={() => setShowEditModal(true)}>
+                  <TouchableOpacity
+                  style={styles.iconButtonSmall}
+                  onPress={async () => {
+                    await fetchPlaces();
+                    setShowEditModal(true);
+                  }}
+                >
                     <AntDesign name="edit" size={16} color={Colors.primary} />
                   </TouchableOpacity>
                 )}
@@ -169,12 +170,15 @@ export default function MapViewSection({
                 </TouchableOpacity>
               </View>
             </View>
-            <Text style={styles.subText}>약속에서 방문할 장소들을 추가해보세요.</Text>
+            <Text style={styles.subText}>약속에서 방문할 장소들을 확인해보세요.</Text>
             {places.map((place, index) => (
-              <View key={place.placeId}>
-                <Text style={styles.listItem}>{index + 1}. {place.name}</Text>
-                <Text style={styles.listItem}>{place.category} / {place.address}</Text>
-              </View>
+              <PlaceCardItem
+                key={place.placeId}
+                index={index + 1}
+                name={place.name}
+                category={place.category}
+                address={place.address}
+              />
             ))}
           </View>
         </View>
@@ -185,7 +189,9 @@ export default function MapViewSection({
         visible={showEditModal}
         onClose={() => setShowEditModal(false)}
         places={places}
-        onSave={handleSavePlaces}
+        onSave={(updated) => {
+          fetchPlaces(); 
+        }}
         onAddPlace={() => {
           setShowEditModal(false);
           router.push({
@@ -257,13 +263,14 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: Colors.primary,
+    fontSize: 22,
+    fontWeight: '600',
+    color: Colors.black,
   },
   subText: {
     fontSize: 14,
-    color: Colors.grayDarkText,
+    color: Colors.grayLightText,
+    marginBottom: 10,
   },
   listItem: {
     fontSize: 15,
@@ -273,6 +280,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 2,
   },
 });

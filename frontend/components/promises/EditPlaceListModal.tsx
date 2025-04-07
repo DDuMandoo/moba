@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Dimensions,
   Alert,
+  Pressable,
 } from 'react-native';
 import { Ionicons, AntDesign } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
@@ -16,6 +17,7 @@ import DraggableFlatList, {
 } from 'react-native-draggable-flatlist';
 import { PlaceItem } from '@/types/PlaceItem';
 import axiosInstance, { getAccessToken } from '@/app/axiosInstance';
+import PlaceCardItem from './PlaceCardItem';
 
 interface Props {
   visible: boolean;
@@ -37,8 +39,10 @@ export default function EditPlaceListModal({
   const [localPlaces, setLocalPlaces] = useState<PlaceItem[]>([]);
 
   useEffect(() => {
-    if (visible) setLocalPlaces(places);
-  }, [visible]);
+    if (visible && Array.isArray(places)) {
+      setLocalPlaces(places);
+    }
+  }, [visible, places]);
 
   const handleRemove = async (placeId: number) => {
     try {
@@ -79,6 +83,7 @@ export default function EditPlaceListModal({
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.overlay}>
         <View style={styles.modalBox}>
+          {/* Header */}
           <View style={styles.headerRow}>
             <Text style={styles.header}>약속 장소 목록 수정</Text>
             <TouchableOpacity onPress={onClose}>
@@ -87,41 +92,56 @@ export default function EditPlaceListModal({
           </View>
           <Text style={styles.subText}>약속 장소를 추가/삭제하거나 순서를 바꿔보세요.</Text>
 
-          <View style={styles.listBox}>
-            <DraggableFlatList
-              data={localPlaces}
-              keyExtractor={(item) => item.placeId.toString()}
-              onDragEnd={({ data }) => setLocalPlaces(data)}
-              renderItem={(params: RenderItemParams<PlaceItem>) => {
-                const { item, drag, isActive } = params;
-                const index = localPlaces.findIndex(p => p.placeId === item.placeId);
-                return (
-                  <ScaleDecorator>
-                    <View style={[styles.placeItem, isActive && styles.activeItem]}>
-                      <TouchableOpacity onLongPress={drag} style={styles.dragHandle}>
-                        <Ionicons name="menu" size={20} color={Colors.primary} />
-                      </TouchableOpacity>
-                      <View style={styles.placeTextBox}>
-                        <Text style={styles.placeName}>
-                          {index + 1}. {item.name}
-                        </Text>
-                        <Text style={styles.placeDetail}>{item.category}</Text>
-                        <Text style={styles.placeDetail}>{item.address}</Text>
-                      </View>
-                      <TouchableOpacity onPress={() => handleRemove(item.placeId)}>
-                        <Ionicons name="trash-outline" size={20} color={Colors.primary} />
-                      </TouchableOpacity>
-                    </View>
-                  </ScaleDecorator>
-                );
-              }}
-            />
-          </View>
-
+          {/* Add Button */}
           <TouchableOpacity onPress={onAddPlace} style={styles.addButton}>
             <AntDesign name="plus" size={20} color={Colors.primary} />
           </TouchableOpacity>
 
+          {/* List */}
+          <View style={styles.listSection}>
+            <View style={styles.listBox}>
+              <DraggableFlatList
+                data={localPlaces}
+                keyExtractor={(item) => item.placeId.toString()}
+                onDragEnd={({ data }) => setLocalPlaces(data)}
+                activationDistance={8}
+                scrollEnabled
+                keyboardShouldPersistTaps="handled"
+                containerStyle={{ flex: 1 }}
+                contentContainerStyle={{ paddingBottom: 10 }}
+                renderItem={({ item, drag, isActive }: RenderItemParams<PlaceItem>) => {
+                  const index = localPlaces.findIndex((p) => p.placeId === item.placeId);
+                  return (
+                    <ScaleDecorator>
+                      <View style={[styles.itemRow, isActive && styles.activeItem]}>
+                        <Pressable onLongPress={drag} style={styles.dragHandle}>
+                          <Ionicons name="reorder-three" size={22} color={Colors.primary} />
+                        </Pressable>
+
+                        <View style={{ flex: 1 }}>
+                          <PlaceCardItem
+                            index={index + 1}
+                            name={item.name}
+                            category={item.category}
+                            address={item.address}
+                          />
+                        </View>
+
+                        <TouchableOpacity
+                          onPress={() => handleRemove(item.placeId)}
+                          style={styles.trashButton}
+                        >
+                          <Ionicons name="trash-outline" size={20} color={Colors.primary} />
+                        </TouchableOpacity>
+                      </View>
+                    </ScaleDecorator>
+                  );
+                }}
+              />
+            </View>
+          </View>
+
+          {/* Footer */}
           <View style={styles.bottomRow}>
             <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
               <Text style={styles.cancelText}>취소</Text>
@@ -151,6 +171,7 @@ const styles = StyleSheet.create({
     padding: 20,
     width: width * 0.9,
     maxHeight: '90%',
+    minHeight: 800,
   },
   headerRow: {
     flexDirection: 'row',
@@ -163,41 +184,36 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   subText: {
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.grayDarkText,
+    marginBottom: 12,
+  },
+  listSection: {
+    flex: 1,
     marginBottom: 10,
   },
   listBox: {
     flex: 1,
-    maxHeight: 360,
-    marginBottom: 12,
   },
-  placeItem: {
+  itemRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    alignItems: 'center',
     gap: 8,
+    paddingVertical: 6,
+  },
+  dragHandle: {
+    padding: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  trashButton: {
+    padding: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   activeItem: {
     backgroundColor: Colors.background,
     borderRadius: 10,
-  },
-  dragHandle: {
-    marginTop: 4,
-  },
-  placeTextBox: {
-    flex: 1,
-  },
-  placeName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  placeDetail: {
-    fontSize: 13,
-    color: Colors.grayDarkText,
   },
   addButton: {
     alignSelf: 'flex-end',
@@ -205,7 +221,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
     borderRadius: 8,
     padding: 6,
-    marginVertical: 10,
+    marginBottom: 6,
   },
   bottomRow: {
     flexDirection: 'row',

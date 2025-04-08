@@ -4,6 +4,7 @@ uvicorn==0.32.1
 pydantic==2.10.3
 starlette==0.38.2
 python-dotenv==0.21.0
+requests==2.32.3
 
 # 모델/데이터 분석
 joblib==1.4.2

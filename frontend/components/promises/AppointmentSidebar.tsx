@@ -103,24 +103,24 @@ export default function AppointmentSidebar({
               <GameIcon
                 label="룰렛"
                 source={require('@/assets/images/game/rouletteGame.png')}
-                onPress={() => router.push(`/promises/${appointmentId}/games/roulette`)}
+                onPress={() => router.push(`/games/roulette`)}
               />
               <GameIcon
                 label="핀볼"
                 source={require('@/assets/images/game/pinballGame.png')}
-                onPress={() => router.push(`/promises/${appointmentId}/games/pinball`)}
+                onPress={() => router.push(`/games/pinball`)}
               />
             </View>
             <View style={styles.iconRowCenter}>
               <GameIcon
                 label="복불복"
                 source={require('@/assets/images/game/randomGame.png')}
-                onPress={() => router.push(`/promises/${appointmentId}/games/random`)}
+                onPress={() => router.push(`/games/random`)}
               />
               <GameIcon
                 label="주사위 굴리기"
                 source={require('@/assets/images/game/diceGame.png')}
-                onPress={() => router.push(`/promises/${appointmentId}/games/dice`)}
+                onPress={() => router.push(`/games/dice`)}
               />
             </View>
             <View style={styles.iconRowCenter}>

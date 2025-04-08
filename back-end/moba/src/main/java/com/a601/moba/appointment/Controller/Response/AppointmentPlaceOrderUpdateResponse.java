@@ -8,7 +8,7 @@ public record AppointmentPlaceOrderUpdateResponse(
 ) {
     @Builder
     public record PlaceOrderResult(
-            Integer placeId,
+            Integer appointmentPlaceId,
             Integer order
     ) {
     }

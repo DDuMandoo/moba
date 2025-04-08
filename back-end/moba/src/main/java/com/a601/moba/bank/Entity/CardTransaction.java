@@ -33,6 +33,12 @@ public class CardTransaction {
     @Column(nullable = false)
     private Long amount;
 
+    @Column(nullable = false)
+    private String category;
+
+    @Column(nullable = false)
+    private String subCategory;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "place_id", nullable = false)
     private Place place;

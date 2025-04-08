@@ -1,0 +1,29 @@
+package com.a601.moba.mydata.Service;
+
+import java.time.Duration;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Service;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class MypageRedisService {
+
+    private final StringRedisTemplate redisTemplate;
+
+    public void saveCode(String email, String code) {
+        redisTemplate.opsForValue().set("smsCode : " + email, code, Duration.ofMinutes(5));
+
+        log.info("🟢 레디스에 코드 저장");
+    }
+
+    public String getCode(String email) {
+        return redisTemplate.opsForValue().get("smsCode : " + email);
+    }
+
+    public void deleteCode(String email) {
+        redisTemplate.delete("smsCode : " + email);
+    }
+}

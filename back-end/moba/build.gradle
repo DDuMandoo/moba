@@ -67,6 +67,9 @@ dependencies {
     //MongoDB
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 
+    //SMS
+    implementation 'net.nurigo:sdk:4.3.0'
+
 }
 
 

@@ -68,6 +68,11 @@ public enum SuccessCode {
     READ_DEMAND_DUTCHPAY_SUCCESS(2702, OK, "사용자가 생성한 더치페이 조회에 성공했습니다"),
     READ_RECEIPT_DUTCHPAY_SUCCESS(2702, OK, "사용자가 요청받은 더치페이 조회에 성공했습니다"),
 
+    // ================= 마이데이터 관련 성공 (2800번대) ==================
+    READ_MYDATA_SUCCESS(2800, OK, "사용자 마이데이터 조회에 성공했습니다"),
+    SEND_CODE_SUCCESS(2801, OK, "메세지 인증 코드 전송을 성공했습니다"),
+    AUTH_CODE_SUCCESS(2802, OK, "메세지 인증에 성공했습니다"),
+
     ;
 
 

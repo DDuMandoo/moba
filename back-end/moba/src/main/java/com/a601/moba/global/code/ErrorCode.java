@@ -101,6 +101,11 @@ public enum ErrorCode {
     FCM_TOKEN_DELETE_FAILED(4805, INTERNAL_SERVER_ERROR, "FCM 토큰 삭제에 실패했습니다"),
     FCM_TOKEN_SEND_APPOINTMENT(4806, INTERNAL_SERVER_ERROR, "FCM에서 약속 리마인더 알림 전송에 실패했습니다."),
     FCM_TOKEN_SEND_APPOINTMENT_MYSERVER(4807, INTERNAL_SERVER_ERROR, "앱 서버에서 약속 리마인더 알림 전송에 실패했습니다."),
+
+    // ================= 마이데이터 관련 에러 (4900번대) ==================
+    MYDATA_ACCESS_FAILED(4900, UNAUTHORIZED, "마이데이터 토큰이 없거나 만료되었습니다. 인증 절차를 진행해 주세요"),
+    INVALID_SMS_CODE(4901, BAD_REQUEST, "SMS 인증 코드가 일치하지 않습니다"),
+
     ;
     private final int code;
     private final HttpStatus httpStatus;

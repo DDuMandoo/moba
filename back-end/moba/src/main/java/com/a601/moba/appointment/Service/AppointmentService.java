@@ -30,6 +30,7 @@ import com.a601.moba.global.code.ErrorCode;
 import com.a601.moba.global.service.S3Service;
 import com.a601.moba.member.Entity.Member;
 import com.a601.moba.member.Repository.MemberRepository;
+import com.a601.moba.notification.Service.NotificationService;
 import com.a601.moba.wallet.Entity.Wallet;
 import com.a601.moba.wallet.Repository.TransactionRepository;
 import com.a601.moba.wallet.Repository.WalletRepository;
@@ -40,10 +41,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AppointmentService {
@@ -58,6 +61,7 @@ public class AppointmentService {
     private final TransactionRepository transactionRepository;
     private final LocationRedisService locationRedisService;
     private final PlaceRepository placeRepository;
+    private final NotificationService notificationService;
 
     public Appointment getAppointment(Integer appointmentId) {
         return appointmentRepository.findById(appointmentId)
@@ -99,6 +103,11 @@ public class AppointmentService {
                 continue;
             }
             participants.add(createAppointmentParticipant(appointment, m, Role.PARTICIPANT, State.WAIT));
+            try {
+                notificationService.sendInvite(host, m, appointment.getId());
+            } catch (Exception e) {
+                log.error("알림 전송 실패");
+            }
         }
 
         appointmentParticipantRepository.saveAll(participants);
@@ -401,6 +410,7 @@ public class AppointmentService {
 
     @Transactional
     public void inviteParticipants(Integer appointmentId, List<Integer> memberIds) {
+        Member host = authUtil.getCurrentMember();
         Appointment appointment = validateHostAccess(appointmentId);
 
         List<Member> members = memberRepository.findAllByIdIn(memberIds);
@@ -425,6 +435,11 @@ public class AppointmentService {
                 continue;
             }
             participants.add(createAppointmentParticipant(appointment, m, Role.PARTICIPANT, State.WAIT));
+            try {
+                notificationService.sendInvite(host, m, appointment.getId());
+            } catch (Exception e) {
+                log.error("알림 전송 실패");
+            }
         }
 
         appointmentParticipantRepository.saveAll(participants);

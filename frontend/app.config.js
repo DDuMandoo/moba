@@ -8,6 +8,7 @@ export default {
     orientation: 'portrait',
     icon: './assets/Icon.png',
     scheme: 'moyo',
+    deeplink: true,
     userInterfaceStyle: 'automatic',
     newArchEnabled: true,
     owner: 'keon211',

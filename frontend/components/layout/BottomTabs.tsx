@@ -24,7 +24,7 @@ export default function BottomTabs() {
         >
           <Feather
             name={tab.icon}
-            size={24}
+            size={28}
             color={pathname === tab.route ? Colors.primary : Colors.secondary}
           />
         </TouchableOpacity>

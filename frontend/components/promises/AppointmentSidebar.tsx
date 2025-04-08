@@ -100,16 +100,37 @@ export default function AppointmentSidebar({
             <Text style={[styles.sectionTitle, { marginTop: 24 }]}>놀거리</Text>
             <View style={styles.iconGrid}>
             <View style={styles.iconRowCenter}>
-                <GameIcon label="룰렛" source={require('@/assets/images/game/rouletteGame.png')} />
-                <GameIcon label="핀볼" source={require('@/assets/images/game/pinballGame.png')} />
+              <GameIcon
+                label="룰렛"
+                source={require('@/assets/images/game/rouletteGame.png')}
+                onPress={() => router.push(`/games/roulette`)}
+              />
+              <GameIcon
+                label="핀볼"
+                source={require('@/assets/images/game/pinballGame.png')}
+                onPress={() => router.push(`/games/pinball`)}
+              />
             </View>
             <View style={styles.iconRowCenter}>
-                <GameIcon label="복불복" source={require('@/assets/images/game/randomGame.png')} />
-                <GameIcon label="주사위 굴리기" source={require('@/assets/images/game/diceGame.png')} />
+              <GameIcon
+                label="복불복"
+                source={require('@/assets/images/game/randomGame.png')}
+                onPress={() => router.push(`/games/random`)}
+              />
+              <GameIcon
+                label="주사위 굴리기"
+                source={require('@/assets/images/game/diceGame.png')}
+                onPress={() => router.push(`/games/dice`)}
+              />
             </View>
             <View style={styles.iconRowCenter}>
-                <GameIcon label="사다리 타기" source={require('@/assets/images/game/ladderGame.png')} />
+              <GameIcon
+                label="사다리 타기"
+                source={require('@/assets/images/game/ladderGame.png')}
+                onPress={() => router.push(`/promises/${appointmentId}/games/ladder`)}
+              />
             </View>
+
             </View>
         </Animated.View>
         </View>
@@ -117,18 +138,28 @@ export default function AppointmentSidebar({
   ) : null;
 }
 
-function GameIcon({ label, source, size = 48 }: { label: string; source: any; size?: number }) {
-    return (
-      <TouchableOpacity style={[styles.iconButton, { width: size*2 }]}>
-        <Image
-          source={source}
-          style={[styles.gameImage, { width: size, height: size }]}
-          resizeMode="contain"
-        />
-        <Text style={styles.iconLabel}>{label}</Text>
-      </TouchableOpacity>
-    );
-  }  
+function GameIcon({
+  label,
+  source,
+  size = 48,
+  onPress,
+}: {
+  label: string;
+  source: any;
+  size?: number;
+  onPress?: () => void;
+}) {
+  return (
+    <TouchableOpacity style={[styles.iconButton, { width: size * 2 }]} onPress={onPress}>
+      <Image
+        source={source}
+        style={[styles.gameImage, { width: size, height: size }]}
+        resizeMode="contain"
+      />
+      <Text style={styles.iconLabel}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
 
 const styles = StyleSheet.create({
   overlay: {

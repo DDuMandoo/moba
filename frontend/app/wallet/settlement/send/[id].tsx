@@ -64,7 +64,10 @@ export default function SettlementPinPage() {
               console.log('[✅ 정산 완료 처리 응답]', JSON.stringify(transferRes.data, null, 2));
   
               if (transferRes.data.isSuccess) {
-                router.replace('/wallet/settlement/success');
+                router.replace({
+                  pathname: '/wallet/settlement/success',
+                  params: { dutchpayId }, // 쿼리 파라미터 같이 넘기기
+                });
               } else {
                 Alert.alert('실패', '정산 완료 처리에 실패했습니다.');
               }

@@ -1,7 +1,10 @@
+import os
 import requests
 from typing import List, Dict
+from dotenv import load_dotenv
 
-BANK_SERVER_URL = "http://localhost:8080/api/banks"
+load_dotenv()
+BANK_SERVER_URL = os.getenv("BANK_SERVER_URL")
 
 def get_receipts_from_bank(user_id: int) -> List[Dict]:
     try:

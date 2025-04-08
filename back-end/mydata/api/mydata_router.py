@@ -32,7 +32,7 @@ def init_user(user_id: int):
 # 최초 인증 아닐 때
 @router.get("/info")
 def get_user_data(authorization: str = Header(...)):
-    # 엑세스 토큰 확인인
+    # 엑세스 토큰 확인
     if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=4010, detail="Bearer 헤더만 가능합니다.")
 

@@ -1,11 +1,20 @@
+import os
 from pymongo import MongoClient
+from dotenv import load_dotenv
 
-# Mongo 서버 주소 (테스트용 로컬 환경, TODO: 로컬 -> 배포 서버로 변경)
-client = MongoClient("mongodb://localhost:27017")
+load_dotenv()
 
-# 사용할 데이터베이스
-db = client["mydata_db"]
+# 환경 변수로부터 값 읽기
+mongo_host = os.getenv("MONGO_HOST", "localhost")
+mongo_port = int(os.getenv("MONGO_PORT"))
+mongo_db = os.getenv("MONGO_DB")
 
-# 컬렉션 설정
-user_collection = db["users"]                 # 사용자 인증/토큰 정보
-recommend_collection = db["recommendations"]  # 추천 결과 저장
+# 클라이언트 생성
+client = MongoClient(host=mongo_host, port=mongo_port)
+
+# 사용할 DB
+db = client[mongo_db]
+
+# 컬렉션
+user_collection = db["users"]
+recommend_collection = db["recommendations"]

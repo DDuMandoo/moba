@@ -1,0 +1,35 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# virtualenv
+venv/
+env/
+
+# 환경파일
+.env
+*.env
+
+# 로그파일
+*.log
+
+# 테스트 관련
+tests/
+*.test.py
+
+# 데이터셋 / 모델 결과
+*.csv
+*.tsv
+*.xlsx
+*.parquet
+*.pkl
+place_dataset/
+transaction_dataset/
+
+# IDE 설정
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace

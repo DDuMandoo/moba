@@ -1,0 +1,33 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# virtual environments
+venv/
+env/
+.venv/
+
+# 환경 변수 파일
+.env
+*.env
+
+# IDE 설정
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Jupyter
+.ipynb_checkpoints
+
+# 데이터, 모델
+*.joblib
+*.csv
+*.tsv
+*.xlsx
+*.parquet
+*.pkl
+place_dataset/
+transaction_dataset/

@@ -1,7 +1,5 @@
 from fastapi import FastAPI
+from mydata.api.mydata_router import router as recommend_router
 
 app = FastAPI()
-
-@app.get("/")
-def read_root():
-    return {"message": "마이데이터용 서버입니다."}
+app.include_router(recommend_router, prefix="/api/mydata")

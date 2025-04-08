@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -27,8 +26,8 @@ public class MydataService {
     private final SmsUtil smsUtil;
     private final MypageRedisService mypageRedisService;
 
-    @Value("${moba.mydata.base.url}")
-    private String MYDATA_URL;
+    //    @Value("${moba.mydata.base.url}")
+    private String MYDATA_URL = "";
 
     public ReadMydataResponse read() {
         Member member = authUtil.getCurrentMember();

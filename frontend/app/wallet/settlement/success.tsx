@@ -56,7 +56,7 @@ export default function SettlementSuccessPage() {
       />
 
       <View style={styles.footer}>
-        <Button.Large title="확인" onPress={() => router.replace('/wallet/settlement/success')} />
+        <Button.Large title="확인" onPress={() => router.replace('/(bottom-navigation)')} />
       </View>
     </View>
   );

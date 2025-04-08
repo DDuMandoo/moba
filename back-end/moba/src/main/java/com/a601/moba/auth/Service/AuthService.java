@@ -156,9 +156,11 @@ public class AuthService {
 
     @Transactional
     public AuthResponse refreshAccessToken(String refreshToken) {
-        if (refreshToken == null || !jwtProvider.isTokenValid(refreshToken)) {
+        if (refreshToken == null) {
             throw new AuthException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
+
+        jwtProvider.isTokenValid(refreshToken);
 
         String email = jwtProvider.getEmailFromToken(refreshToken);
         String storedRefreshToken = redisService.getRefreshToken(email);
@@ -242,9 +244,11 @@ public class AuthService {
 
     @Transactional
     public void signout(String accessToken) {
-        if (accessToken == null || !jwtProvider.isTokenValid(accessToken)) {
+        if (accessToken == null) {
             throw new AuthException(ErrorCode.INVALID_TOKEN);
         }
+
+        jwtProvider.isTokenValid(accessToken);
 
         String email = jwtProvider.getEmailFromToken(accessToken);
 

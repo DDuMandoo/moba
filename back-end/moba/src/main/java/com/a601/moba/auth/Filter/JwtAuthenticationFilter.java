@@ -37,37 +37,69 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     @NonNull FilterChain chain)
             throws ServletException, IOException {
 
+        String uri = request.getRequestURI();
+
+        // ✅ 인증 필요 없는 경로는 필터 건너뛰기
+        if (uri.startsWith("/swagger-ui") ||
+                uri.startsWith("/v3/api-docs") ||
+                uri.startsWith("/swagger-resources") ||
+                uri.startsWith("/webjars") ||
+                uri.equals("/swagger-ui.html") ||
+                uri.equals("/swagger-ui/index.html") ||
+
+                uri.startsWith("/api/auth/signin") ||
+                uri.startsWith("/api/auth/signup") ||
+                uri.matches("/api/auth/.+/profile-image") ||   // 와일드카드 대응
+                uri.startsWith("/api/auth/email") ||
+                uri.startsWith("/api/auth/kakao/callback") ||
+
+                uri.startsWith("/api/emails/send") ||
+                uri.startsWith("/api/emails/verify") ||
+                uri.startsWith("/api/members/password/reset") ||
+
+                uri.startsWith("/api/ws") ||
+                uri.startsWith("/api/chat.send") ||
+                uri.startsWith("/api/chat") ||
+
+                request.getMethod().equalsIgnoreCase("OPTIONS")
+        ) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         String token = request.getHeader("Authorization");
 
         if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7);
 
             try {
+                // 블랙리스트 확인
                 if (redisService.isTokenBlacklisted(token)) {
                     sendJsonErrorResponse(response, ErrorCode.INVALID_TOKEN);
                     return;
                 }
 
-                if (jwtProvider.isTokenValid(token)) {
-                    String email = jwtProvider.getEmailFromToken(token);
+                // 유효성 검사 (만료 시 여기서 예외 발생함)
+                jwtProvider.isTokenValid(token);
 
-                    Member member = memberRepository.findByEmail(email)
-                            .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+                // 토큰에서 이메일 추출
+                String email = jwtProvider.getEmailFromToken(token);
 
-                    // SecurityContext에 Member 자체를 Principal로 저장
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(
-                                    member,
-                                    null,
-                                    List.of(new SimpleGrantedAuthority("ROLE_MEMBER"))
-                            );
+                Member member = memberRepository.findByEmail(email)
+                        .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                }
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(
+                                member,
+                                null,
+                                List.of(new SimpleGrantedAuthority("ROLE_MEMBER"))
+                        );
+
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
 
             } catch (ExpiredJwtException e) {
-                sendJsonErrorResponse(response, ErrorCode.UNAUTHORIZED_ACCESS);
+                sendJsonErrorResponse(response, ErrorCode.EXPIRED_TOKEN_ERROR);
                 return;
             } catch (Exception e) {
                 sendJsonErrorResponse(response, ErrorCode.INVALID_TOKEN);

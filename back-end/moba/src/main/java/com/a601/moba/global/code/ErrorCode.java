@@ -35,6 +35,7 @@ public enum ErrorCode {
     INVALID_TOKEN(4200, UNAUTHORIZED, "유효하지 않은 토큰입니다"),
     TOKEN_NOT_FOUND(4201, UNAUTHORIZED, "토큰이 제공되지 않았습니다"),
     INVALID_REFRESH_TOKEN(4202, UNAUTHORIZED, "유효하지 않은 Refresh Token입니다"),
+    EXPIRED_TOKEN_ERROR(4203, UNAUTHORIZED, "만료된 토큰입니다."),
 
     // ================= 이메일 인증 관련 에러 (4300번대) =================
     EXPIRED_VERIFICATION_CODE(4300, BAD_REQUEST, "인증 코드가 만료되었습니다."),

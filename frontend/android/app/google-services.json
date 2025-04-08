@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "186449749876",
-    "project_id": "moba-62c96",
-    "storage_bucket": "moba-62c96.firebasestorage.app"
+    "project_number": "475116864227",
+    "project_id": "moyobara-1b7c1",
+    "storage_bucket": "moyobara-1b7c1.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:186449749876:android:7adb3a6d9e92739321ee21",
+        "mobilesdk_app_id": "1:475116864227:android:d08574d59a748c80bdbbd6",
         "android_client_info": {
-          "package_name": "com.keon21.frontend"
+          "package_name": "com.keon211.frontend"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCSCrFAsbQDjXZRHEEbVBXjl1xllg6jePU"
+          "current_key": "AIzaSyC3T85KxApIqxusWJsBGYPNNqYIUDcxmDY"
         }
       ],
       "services": {

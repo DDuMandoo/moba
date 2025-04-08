@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons, AntDesign } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
-import { PlaceItem } from '@/types/PlaceItem';
+import { PlaceItem } from '@/utils/PlaceItem';
 import axiosInstance, { getAccessToken } from '@/app/axiosInstance';
 import PlaceCardItem from './PlaceCardItem';
 import Animated, { FadeIn, FadeOut, Layout } from 'react-native-reanimated';
@@ -69,14 +69,12 @@ export default function EditPlaceListModal({
   const handleConfirm = async () => {
     try {
       const ordered = localPlaces.map((p, idx) => ({
-        placeId: p.placeId,
+        appointmentPlaceId: p.appointmentPlaceId,
         order: idx + 1,
       }));
-      const accessToken = await getAccessToken();
       await axiosInstance.put(
         `/appointments/${appointmentId}/places/order`,
         { places: ordered },
-        { headers: { Authorization: `Bearer ${accessToken}` } }
       );
       onSave(localPlaces);
       onClose();
@@ -194,7 +192,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 4,
+    paddingVertical: 6,
   },
   orderButtons: {
     justifyContent: 'center',

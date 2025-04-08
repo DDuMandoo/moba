@@ -165,29 +165,32 @@ public class AppointmentPlaceService {
 
 
     @Transactional
-    public AppointmentPlaceOrderUpdateResponse updatePlaceOrder(Integer appointmentId,
-                                                                AppointmentPlaceOrderUpdateRequest request) {
+    public AppointmentPlaceOrderUpdateResponse updatePlaceOrder(
+            Integer appointmentId,
+            AppointmentPlaceOrderUpdateRequest request
+    ) {
         Member member = authUtil.getCurrentMember();
         Appointment appointment = validateHostAccess(appointmentId, member.getId());
 
         List<AppointmentPlace> allPlaces = appointmentPlaceRepository.findAllByAppointment(appointment);
 
         if (allPlaces.size() != request.places().size()) {
-            throw new AppointmentException(ErrorCode.INVALID_REQUEST);
+            throw new AppointmentException(ErrorCode.APPOINTMENT_LENGTH_NOT_MATCH);
         }
 
+        // appointmentPlaceId 기준으로 매핑
         Map<Integer, AppointmentPlace> placeMap = allPlaces.stream()
                 .collect(Collectors.toMap(AppointmentPlace::getId, p -> p));
 
         List<AppointmentPlaceOrderUpdateResponse.PlaceOrderResult> updatedPlaces = request.places().stream()
                 .map(item -> {
-                    AppointmentPlace place = placeMap.get(item.placeId());
+                    AppointmentPlace place = placeMap.get(item.appointmentPlaceId());
                     if (place == null) {
                         throw new AppointmentException(ErrorCode.APPOINTMENT_PLACE_NOT_FOUND);
                     }
                     place.updateOrder(item.order());
                     return AppointmentPlaceOrderUpdateResponse.PlaceOrderResult.builder()
-                            .placeId(item.placeId())
+                            .appointmentPlaceId(item.appointmentPlaceId())
                             .order(item.order())
                             .build();
                 })

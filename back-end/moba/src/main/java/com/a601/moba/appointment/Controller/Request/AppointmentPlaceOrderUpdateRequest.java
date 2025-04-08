@@ -7,7 +7,7 @@ public record AppointmentPlaceOrderUpdateRequest(
         @NotNull List<PlaceOrderItem> places
 ) {
     public record PlaceOrderItem(
-            @NotNull Integer placeId,
+            @NotNull Integer appointmentPlaceId,
             @NotNull Integer order
     ) {
     }

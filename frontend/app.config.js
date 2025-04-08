@@ -8,6 +8,7 @@ export default {
     orientation: 'portrait',
     icon: './assets/icons/header/Logo.png',
     scheme: 'myapp',
+    deeplink: true,
     userInterfaceStyle: 'automatic',
     newArchEnabled: true,
     owner: 'keon21',

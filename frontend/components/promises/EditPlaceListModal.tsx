@@ -44,18 +44,22 @@ export default function EditPlaceListModal({
     }
   }, [visible, places]);
 
-  const handleRemove = async (placeId: number) => {
+  const handleRemove = async (appointmentPlaceId: number) => {
     try {
       const accessToken = await getAccessToken();
-      await axiosInstance.delete(`/appointments/${appointmentId}/places/${placeId}`, {
+      await axiosInstance.delete(`/appointments/${appointmentId}/places/${appointmentPlaceId}`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
-      setLocalPlaces((prev) => prev.filter((p) => p.placeId !== placeId));
+  
+      // local state에서 제거
+      setLocalPlaces((prev) =>
+        prev.filter((p) => p.appointmentPlaceId !== appointmentPlaceId)
+      );
     } catch (err) {
       console.error('❌ 장소 삭제 실패:', err);
       Alert.alert('삭제 실패', '장소를 삭제하는 중 오류가 발생했습니다.');
     }
-  };
+  };  
 
   const handleConfirm = async () => {
     try {
@@ -128,7 +132,7 @@ export default function EditPlaceListModal({
                         </View>
 
                         <TouchableOpacity
-                          onPress={() => handleRemove(item.placeId)}
+                          onPress={() => handleRemove(item.appointmentPlaceId)}
                           style={styles.trashButton}
                         >
                           <Ionicons name="trash-outline" size={20} color={Colors.primary} />

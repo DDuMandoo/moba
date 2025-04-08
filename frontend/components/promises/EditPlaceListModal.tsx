@@ -1,3 +1,4 @@
+// ✨ 스르륵 애니메이션으로 순서 변경되는 장소 리스트 (Reanimated)
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -7,17 +8,14 @@ import {
   TouchableOpacity,
   Dimensions,
   Alert,
-  Pressable,
+  ScrollView,
 } from 'react-native';
 import { Ionicons, AntDesign } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
-import DraggableFlatList, {
-  ScaleDecorator,
-  RenderItemParams,
-} from 'react-native-draggable-flatlist';
 import { PlaceItem } from '@/types/PlaceItem';
 import axiosInstance, { getAccessToken } from '@/app/axiosInstance';
 import PlaceCardItem from './PlaceCardItem';
+import Animated, { FadeIn, FadeOut, Layout } from 'react-native-reanimated';
 
 interface Props {
   visible: boolean;
@@ -44,14 +42,21 @@ export default function EditPlaceListModal({
     }
   }, [visible, places]);
 
+  const moveItem = (fromIndex: number, toIndex: number) => {
+    if (toIndex < 0 || toIndex >= localPlaces.length) return;
+    const updated = [...localPlaces];
+    const temp = updated[fromIndex];
+    updated[fromIndex] = updated[toIndex];
+    updated[toIndex] = temp;
+    setLocalPlaces(updated);
+  };
+
   const handleRemove = async (appointmentPlaceId: number) => {
     try {
       const accessToken = await getAccessToken();
       await axiosInstance.delete(`/appointments/${appointmentId}/places/${appointmentPlaceId}`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
-  
-      // local state에서 제거
       setLocalPlaces((prev) =>
         prev.filter((p) => p.appointmentPlaceId !== appointmentPlaceId)
       );
@@ -59,7 +64,7 @@ export default function EditPlaceListModal({
       console.error('❌ 장소 삭제 실패:', err);
       Alert.alert('삭제 실패', '장소를 삭제하는 중 오류가 발생했습니다.');
     }
-  };  
+  };
 
   const handleConfirm = async () => {
     try {
@@ -67,14 +72,12 @@ export default function EditPlaceListModal({
         placeId: p.placeId,
         order: idx + 1,
       }));
-
       const accessToken = await getAccessToken();
       await axiosInstance.put(
         `/appointments/${appointmentId}/places/order`,
         { places: ordered },
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
-
       onSave(localPlaces);
       onClose();
     } catch (err) {
@@ -86,66 +89,56 @@ export default function EditPlaceListModal({
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.overlay}>
-        <View style={styles.modalBox}>
-          {/* Header */}
+        <View style={[styles.modalBox, { maxHeight: '80%' }]}>
           <View style={styles.headerRow}>
             <Text style={styles.header}>약속 장소 목록 수정</Text>
             <TouchableOpacity onPress={onClose}>
               <Ionicons name="close" size={28} color={Colors.text} />
             </TouchableOpacity>
           </View>
-          <Text style={styles.subText}>약속 장소를 추가/삭제하거나 순서를 바꿔보세요.</Text>
+          <Text style={styles.subText}>장소를 추가/삭제하거나 순서를 바꿔보세요.</Text>
 
-          {/* Add Button */}
           <TouchableOpacity onPress={onAddPlace} style={styles.addButton}>
             <AntDesign name="plus" size={20} color={Colors.primary} />
           </TouchableOpacity>
 
-          {/* List */}
-          <View style={styles.listSection}>
+          <ScrollView style={styles.listSection}>
             <View style={styles.listBox}>
-              <DraggableFlatList
-                data={localPlaces}
-                keyExtractor={(item) => item.placeId.toString()}
-                onDragEnd={({ data }) => setLocalPlaces(data)}
-                activationDistance={8}
-                scrollEnabled
-                keyboardShouldPersistTaps="handled"
-                containerStyle={{ flex: 1 }}
-                contentContainerStyle={{ paddingBottom: 10 }}
-                renderItem={({ item, drag, isActive }: RenderItemParams<PlaceItem>) => {
-                  const index = localPlaces.findIndex((p) => p.placeId === item.placeId);
-                  return (
-                    <ScaleDecorator>
-                      <View style={[styles.itemRow, isActive && styles.activeItem]}>
-                        <Pressable onLongPress={drag} style={styles.dragHandle}>
-                          <Ionicons name="reorder-three" size={22} color={Colors.primary} />
-                        </Pressable>
-
-                        <View style={{ flex: 1 }}>
-                          <PlaceCardItem
-                            index={index + 1}
-                            name={item.name}
-                            category={item.category}
-                            address={item.address}
-                          />
-                        </View>
-
-                        <TouchableOpacity
-                          onPress={() => handleRemove(item.appointmentPlaceId)}
-                          style={styles.trashButton}
-                        >
-                          <Ionicons name="trash-outline" size={20} color={Colors.primary} />
-                        </TouchableOpacity>
-                      </View>
-                    </ScaleDecorator>
-                  );
-                }}
-              />
+              {localPlaces.map((item, index) => (
+                <Animated.View
+                  key={item.placeId}
+                  entering={FadeIn}
+                  exiting={FadeOut}
+                  layout={Layout.springify()}
+                  style={styles.itemRow}
+                >
+                  <View style={styles.orderButtons}>
+                    <TouchableOpacity onPress={() => moveItem(index, index - 1)}>
+                      <AntDesign name="up" size={18} color={Colors.primary} />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => moveItem(index, index + 1)}>
+                      <AntDesign name="down" size={18} color={Colors.primary} />
+                    </TouchableOpacity>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <PlaceCardItem
+                      index={index + 1}
+                      name={item.name}
+                      category={item.category}
+                      address={item.address}
+                    />
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => handleRemove(item.appointmentPlaceId)}
+                    style={styles.trashButton}
+                  >
+                    <Ionicons name="trash-outline" size={20} color={Colors.primary} />
+                  </TouchableOpacity>
+                </Animated.View>
+              ))}
             </View>
-          </View>
+          </ScrollView>
 
-          {/* Footer */}
           <View style={styles.bottomRow}>
             <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
               <Text style={styles.cancelText}>취소</Text>
@@ -174,8 +167,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     width: width * 0.9,
-    maxHeight: '90%',
-    minHeight: 800,
   },
   headerRow: {
     flexDirection: 'row',
@@ -193,7 +184,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   listSection: {
-    flex: 1,
+    flexGrow: 0,
     marginBottom: 10,
   },
   listBox: {
@@ -203,21 +194,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingVertical: 6,
+    paddingHorizontal: 4,
   },
-  dragHandle: {
-    padding: 6,
+  orderButtons: {
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 4,
   },
   trashButton: {
     padding: 6,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  activeItem: {
-    backgroundColor: Colors.background,
-    borderRadius: 10,
   },
   addButton: {
     alignSelf: 'flex-end',

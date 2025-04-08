@@ -11,6 +11,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -24,7 +25,7 @@ public class AppointmentScheduler {
     private final AppointmentParticipantRepository appointmentParticipantRepository;
 
     @Transactional
-//    @Scheduled(fixedRate = 60000) // 1분마다 실행
+    @Scheduled(fixedRate = 60000) // 1분마다 실행
     public void checkUpcomingAppointments() {
         log.info("10분 이내 약속 위치 요청");
         LocalDateTime now = LocalDateTime.now();

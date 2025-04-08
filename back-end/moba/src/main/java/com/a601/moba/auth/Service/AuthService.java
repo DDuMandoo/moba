@@ -12,6 +12,8 @@ import com.a601.moba.global.service.S3Service;
 import com.a601.moba.member.Entity.Member;
 import com.a601.moba.member.Repository.MemberRepository;
 import com.a601.moba.wallet.Service.WalletService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import java.util.Optional;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
@@ -156,8 +158,16 @@ public class AuthService {
 
     @Transactional
     public AuthResponse refreshAccessToken(String refreshToken) {
-        if (refreshToken == null || !jwtProvider.isTokenValid(refreshToken)) {
+        if (refreshToken == null) {
             throw new AuthException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        try {
+            jwtProvider.isTokenValid(refreshToken);
+        } catch (ExpiredJwtException e) {
+            throw new AuthException(ErrorCode.EXPIRED_TOKEN_ERROR);
+        } catch (JwtException e) {
+            throw new AuthException(ErrorCode.INVALID_TOKEN);
         }
 
         String email = jwtProvider.getEmailFromToken(refreshToken);
@@ -242,7 +252,15 @@ public class AuthService {
 
     @Transactional
     public void signout(String accessToken) {
-        if (accessToken == null || !jwtProvider.isTokenValid(accessToken)) {
+        if (accessToken == null) {
+            throw new AuthException(ErrorCode.INVALID_TOKEN);
+        }
+
+        try {
+            jwtProvider.isTokenValid(accessToken);
+        } catch (ExpiredJwtException e) {
+            throw new AuthException(ErrorCode.EXPIRED_TOKEN_ERROR);
+        } catch (JwtException e) {
             throw new AuthException(ErrorCode.INVALID_TOKEN);
         }
 

@@ -155,7 +155,7 @@ export default function EndedAppointmentPage() {
               </Text>
             )}
           </View>
-
+        </View>
             <ScrollView showsVerticalScrollIndicator={false}>
 
               <View style={styles.galleryWrapper}>
@@ -199,7 +199,6 @@ export default function EndedAppointmentPage() {
                 />
               </View>
             </ScrollView>
-          </View>
       </View>
 
       {toastData && (

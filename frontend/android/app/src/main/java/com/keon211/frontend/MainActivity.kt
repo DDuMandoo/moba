@@ -1,4 +1,4 @@
-package com.keon21.frontend
+package com.keon211.frontend
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

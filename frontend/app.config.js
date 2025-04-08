@@ -6,19 +6,19 @@ export default {
     slug: 'frontend',
     version: '1.0.0',
     orientation: 'portrait',
-    icon: './assets/icons/header/Logo.png',
-    scheme: 'myapp',
+    icon: './assets/Icon.png',
+    scheme: 'moyo',
     deeplink: true,
     userInterfaceStyle: 'automatic',
     newArchEnabled: true,
-    owner: 'keon21',
+    owner: 'keon211',
     ios: {
       supportsTablet: true
     },
     android: {
-      package: 'com.keon21.frontend',
+      package: 'com.keon211.frontend',
       adaptiveIcon: {
-        foregroundImage: './assets/icons/header/Logo.png',
+        foregroundImage: './assets/Icon.png',
         backgroundColor: '#F2F0EF'
       }
     },
@@ -53,7 +53,7 @@ export default {
     },
     extra: {
       eas: {
-        "projectId": "8a4e1f1c-4b39-4b1b-8a62-ad91849b85bb"
+        projectId: "2bad2fad-f4ca-48e9-b77b-539b2125bbc1"
       },
       API_URL: process.env.EXPO_PUBLIC_API_URL || 'http://j12a601.p.ssafy.io/api'
     }

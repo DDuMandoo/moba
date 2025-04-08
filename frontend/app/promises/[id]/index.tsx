@@ -31,6 +31,8 @@ import DelegateModal from '@/components/promises/DelegateModal';
 import QuitAppointmentModal from '@/components/promises/QuitAppointmentModal';
 import CustomAlert from '@/components/CustomAlert';
 import AppointmentSidebar from '@/components/promises/AppointmentSidebar';
+import * as Clipboard from 'expo-clipboard';
+import * as Linking from 'expo-linking';
 
 const TOP_IMAGE_HEIGHT = 280;
 const { width } = Dimensions.get('window');
@@ -53,7 +55,13 @@ export default function AppointmentDetailPage() {
   const [leaveAlertVisible, setLeaveAlertVisible] = useState(false);
   const [showPostDelegateLeave, setShowPostDelegateLeave] = useState(false);
   const [sidebarVisible, setSidebarVisible] = useState(false);
+  const [copyAlertVisible, setCopyAlertVisible] = useState(false);
 
+  const handleShareLink = async () => {
+    const deepLink = Linking.createURL(`appointment/${appointment.appointmentId}`);
+    await Clipboard.setStringAsync(deepLink);
+    setCopyAlertVisible(true);
+  };
 
   const getAppointment = async () => {
     if (!id) return;
@@ -133,9 +141,9 @@ export default function AppointmentDetailPage() {
           <Ionicons name="menu" size={24} color={Colors.primary} />
         </TouchableOpacity>
           <View style={styles.headerRightButtons}>
-            <TouchableOpacity style={styles.iconButton}>
-              <Entypo name="share" size={24} color={Colors.primary} />
-            </TouchableOpacity>
+          <TouchableOpacity style={styles.iconButton} onPress={handleShareLink}>
+            <Entypo name="share" size={24} color={Colors.primary} />
+          </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton} onPress={() => setLeaveAlertVisible(true)}>
               <Ionicons name="log-out-outline" size={24} color={Colors.primary} />
             </TouchableOpacity>
@@ -324,6 +332,13 @@ export default function AppointmentDetailPage() {
         visible={sidebarVisible}
         onClose={() => setSidebarVisible(false)}
         appointmentId={Number(id)}
+      />
+
+      <CustomAlert
+        visible={copyAlertVisible}
+        title="✅ URL이 복사되었습니다!"
+        message="초대하고 싶은 사람에게 링크를 보내보세요."
+        onClose={() => setCopyAlertVisible(false)}
       />
 
     </View>

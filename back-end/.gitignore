@@ -23,7 +23,6 @@ env/
 .ipynb_checkpoints
 
 # 데이터, 모델
-*.joblib
 *.csv
 *.tsv
 *.xlsx

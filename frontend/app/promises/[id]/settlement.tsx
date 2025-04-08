@@ -263,7 +263,6 @@ export default function SettlementPage() {
       console.log('[서버 응답]', response.data); // ✅ 응답 내용 확인
   
       if (response.data.isSuccess) {
-        Alert.alert('정산 완료', '정산 요청이 성공적으로 완료되었습니다.');
         setIsConfirmModalVisible(false);
         router.replace(`/promises/${appointmentId}/completed/${response.data.result.dutchpayId}`);
       } else {

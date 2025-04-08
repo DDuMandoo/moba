@@ -40,7 +40,7 @@ const axiosInstance = axios.create({
 // ✅ 요청 시 Access Token 자동 첨부
 axiosInstance.interceptors.request.use(
   async (config) => {
-    const token = await getRefreshToken();
+    const token = await getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

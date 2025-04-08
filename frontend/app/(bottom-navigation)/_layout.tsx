@@ -1,18 +1,22 @@
 // 📂app/(bottom-navigation)/_layout.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { Tabs, useRouter } from 'expo-router';
 import { View, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { useNavigationState } from '@react-navigation/native';
+import NotificationDrawer from '@/components/notification/NotificationDrawer';
 
 export default function BottomTabLayout() {
   const router = useRouter();
    // 현재 네비게이션 스택에서 뒤로 갈 수 있는지 확인
    const canGoBack = useNavigationState((state) => state?.routes?.length > 1);
+   const [open, setOpen] = useState(false); // 알림바 상태
 
   return (
     <>
+      <NotificationDrawer visible={open} onClose={() => setOpen(false)} />
+
       {/* 헤더 */}
       <View style={styles.header}>
         {canGoBack ? (
@@ -28,7 +32,7 @@ export default function BottomTabLayout() {
           style={styles.logo}
         />
 
-        <TouchableOpacity onPress={() => console.log('알림')}>
+        <TouchableOpacity onPress={() => setOpen(true)}>
           <Feather name="bell" size={24} color={Colors.secondary} />
         </TouchableOpacity>
       </View>

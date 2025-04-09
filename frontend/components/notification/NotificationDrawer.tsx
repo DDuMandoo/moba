@@ -6,6 +6,7 @@ import axiosInstance from '@/app/axiosInstance';
 import { router } from 'expo-router';
 import Colors from '@/constants/Colors';
 import { Feather } from '@expo/vector-icons';
+import { getAccessToken } from '@/app/axiosInstance';
 
 
 interface Notification {
@@ -46,15 +47,23 @@ const NotificationDrawer = ({ visible, onClose }: Props) => {
 
   const handleNotificationPress = async (item: Notification) => {
     try {
-      await axiosInstance.patch(`/notifications/${item.id}/read`);
       onClose();
-      router.push(item.deepLink as never);
+  
+      const accessToken = await getAccessToken();
+  
+      if (accessToken) {
+        router.push(item.deepLink as any);
+      } else {
+        // 로그인으로 이동하고, redirect param 전달
+        router.replace({
+          pathname: '/auth/login',
+          params: { redirect: item.deepLink },
+        });
+      }
     } catch (err) {
-      console.error('🔴 알림 읽음 처리 실패:', err);
+      console.error('🔴 알림 이동 실패:', err);
     }
   };
-
-  if (!visible) return null;
 
   return (
     <Pressable style={styles.backdrop} onPress={onClose}>

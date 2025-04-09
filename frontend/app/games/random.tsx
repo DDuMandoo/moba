@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
-import Colors from "@/constants/Colors";
 import PlayerSelector from "@/components/game/random/PlayerSelector";
 import RandomBoard from "@/components/game/random/RandomBoard";
+import Colors from "@/constants/Colors";
 
 export interface Player {
   id: string;
@@ -14,7 +14,6 @@ export default function RandomGame() {
   const [winner, setWinner] = useState<Player | null>(null);
 
   const reset = () => {
-    setPlayers([]);
     setWinner(null);
   };
 
@@ -32,7 +31,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    paddingVertical: 24,
-    paddingHorizontal: 16,
+    padding: 20,
   },
 });

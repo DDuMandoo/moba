@@ -49,7 +49,7 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ✅ 응답에서 401이면 Refresh 시도
+// ✅ 응답에서 4203이면 Refresh 시도
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -57,6 +57,7 @@ axiosInstance.interceptors.response.use(
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
+
       try {
         const refreshToken = await getRefreshToken();
         if (!refreshToken) throw new Error('No refresh token');
@@ -71,13 +72,20 @@ axiosInstance.interceptors.response.use(
         const { accessToken, refreshToken: newRefreshToken } = res.data.result;
         await saveTokens(accessToken, newRefreshToken);
 
-        // ✅ 재시도 시에는 새 accessToken으로 설정
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return axiosInstance(originalRequest);
-      } catch (err) {
-        console.error('🔴 토큰 갱신 실패', err);
-        await clearTokens();
-        router.replace('/'); // 로그인 페이지 등으로 이동
+      } catch (err: any) {
+        const code = err?.response?.data?.code;
+        const message = err?.response?.data?.message;
+
+        if (code === 4203 ) {
+          console.error('🔴 리프레시 토큰 만료됨 → 로그인 이동');
+          await clearTokens();
+          router.replace('/');
+        } else {
+          console.error('🔴 토큰 갱신 중 에러', err);
+        }
+
         return Promise.reject(err);
       }
     }

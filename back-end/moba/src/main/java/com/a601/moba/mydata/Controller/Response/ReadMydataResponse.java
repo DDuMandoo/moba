@@ -4,6 +4,8 @@ import lombok.Builder;
 
 @Builder
 public record ReadMydataResponse(
+        String accessToken,
+        MydataBase mydataBase
 
 ) {
 }

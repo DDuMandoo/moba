@@ -13,9 +13,11 @@ import com.a601.moba.appointment.Controller.Response.AppointmentDetailResponse.P
 import com.a601.moba.appointment.Controller.Response.AppointmentJoinResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentListItemResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentParticipantResponse;
+import com.a601.moba.appointment.Controller.Response.AppointmentRecommendResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentSummaryResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentUpdateResponse;
 import com.a601.moba.appointment.Controller.Response.GetLocationAppointmentResponse;
+import com.a601.moba.appointment.Controller.Response.SubcategoryScore;
 import com.a601.moba.appointment.Entity.Appointment;
 import com.a601.moba.appointment.Entity.AppointmentParticipant;
 import com.a601.moba.appointment.Entity.Place;
@@ -30,20 +32,26 @@ import com.a601.moba.global.code.ErrorCode;
 import com.a601.moba.global.service.S3Service;
 import com.a601.moba.member.Entity.Member;
 import com.a601.moba.member.Repository.MemberRepository;
+import com.a601.moba.mydata.Exception.MydataException;
 import com.a601.moba.notification.Service.NotificationService;
 import com.a601.moba.wallet.Entity.Wallet;
 import com.a601.moba.wallet.Repository.TransactionRepository;
 import com.a601.moba.wallet.Repository.WalletRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
@@ -62,6 +70,8 @@ public class AppointmentService {
     private final LocationRedisService locationRedisService;
     private final PlaceRepository placeRepository;
     private final NotificationService notificationService;
+    //    @Value("${moba.mydata.base.url}")
+    private String MYDATA_URL = "https://j12a601.p.ssafy.io/api/mydata";
 
     public Appointment getAppointment(Integer appointmentId) {
         return appointmentRepository.findById(appointmentId)
@@ -542,4 +552,54 @@ public class AppointmentService {
                 .participants(responseParticipants)
                 .build();
     }
+
+    public AppointmentRecommendResponse getRecommendations(Integer appointmentId) {
+        Appointment appointment = getAppointment(appointmentId);
+
+        List<AppointmentParticipant> participants = appointmentParticipantRepository
+                .findAllByAppointment(appointment).stream()
+                .filter(p -> p.getState() == State.JOINED && !p.getMember().isDeleted())
+                .toList();
+
+        List<String> tokens = participants.stream()
+                .map(p -> p.getMember().getMydataToken())
+                .filter(Objects::nonNull)
+                .toList();
+
+        // 요청 객체
+        Map<String, Object> requestBody = Map.of("tokens", tokens);
+        RestTemplate restTemplate = new RestTemplate();
+        String url = MYDATA_URL + "/api/meeting/group/analyze";
+        ResponseEntity<Map> response = restTemplate.postForEntity(url, requestBody, Map.class);
+
+        Map<String, Object> body = response.getBody();
+        if (body == null || !body.containsKey("recommendedSubcategories")) {
+            throw new MydataException(ErrorCode.MYDATA_RECOMMEND_EMPTY);
+        }
+
+        List<Integer> validUserIds = (List<Integer>) body.getOrDefault("validUserIds", List.of());
+        List<Integer> invalidUserIds = (List<Integer>) body.getOrDefault("invalidUserIds", List.of());
+
+        Map<String, List<SubcategoryScore>> parsedRecommended = new HashMap<>();
+        Map<String, List<Map<String, Object>>> rawRecommended =
+                (Map<String, List<Map<String, Object>>>) body.get("recommendedSubcategories");
+
+        for (Map.Entry<String, List<Map<String, Object>>> entry : rawRecommended.entrySet()) {
+            String category = entry.getKey();
+            List<SubcategoryScore> list = entry.getValue().stream()
+                    .map(m -> SubcategoryScore.builder()
+                            .subcategory((String) m.get("subcategory"))
+                            .score(Double.parseDouble(m.get("score").toString()))
+                            .build()
+                    ).toList();
+            parsedRecommended.put(category, list);
+        }
+
+        return AppointmentRecommendResponse.builder()
+                .validUserIds(validUserIds)
+                .invalidUserIds(invalidUserIds)
+                .recommendedSubcategories(parsedRecommended)
+                .build();
+    }
+
 }

@@ -106,7 +106,7 @@ public class BankController {
         return ResponseEntity.ok(JSONResponse.onSuccess(response));
     }
 
-    @GetMapping("/{uniqueId}/receipt")
+    @PostMapping("/{uniqueId}/receipt")
     public ResponseEntity<JSONResponse<List<GetReceiptResponse>>> getReceipt(
             @PathVariable Integer uniqueId
     ){

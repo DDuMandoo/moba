@@ -1,6 +1,6 @@
 // components/CustomAlert.tsx
 import React from 'react';
-import { Modal, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Modal, View, Text, StyleSheet, TouchableOpacity, TextStyle } from 'react-native';
 import Colors from '@/constants/Colors';
 
 interface Props {
@@ -11,6 +11,8 @@ interface Props {
   onConfirm?: () => void;
   confirmText?: string;
   cancelText?: string;
+  titleStyle?: TextStyle;
+  messageStyle?: TextStyle;
 }
 
 export default function CustomAlert({
@@ -20,14 +22,16 @@ export default function CustomAlert({
   onClose,
   onConfirm,
   confirmText = '확인',
-  cancelText = '취소'
+  cancelText = '취소',
+  titleStyle,
+  messageStyle,
 }: Props) {
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.box}>
-          <Text style={styles.title}>{title}</Text>
-          {message && <Text style={styles.message}>{message}</Text>}
+          <Text style={[styles.title, titleStyle]}>{title}</Text>
+          {message && <Text style={[styles.message, messageStyle]}>{message}</Text>}
           {onConfirm ? (
             <View style={styles.buttonRow}>
               <TouchableOpacity onPress={onClose} style={[styles.button, styles.cancelButton]}>
@@ -63,16 +67,16 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     color: Colors.text,
-    marginBottom: 30
+    marginBottom: 24
   },
   message: {
-    fontSize: 20,
+    fontSize: 18,
     color: Colors.grayDarkText,
     textAlign: 'center',
-    marginBottom: 30
+    marginBottom: 24
   },
   buttonRow: {
     flexDirection: 'row',
@@ -86,7 +90,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: Colors.white,
-    fontSize: 16
+    fontSize: 14
   },
   cancelButton: {
     backgroundColor: Colors.grayBackground

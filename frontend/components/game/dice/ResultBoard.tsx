@@ -1,53 +1,135 @@
-import React from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
-import Colors from '@/constants/Colors';
+// components/game/dice/ResultBoard.tsx
+import React from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  Pressable,
+  ViewStyle,
+  TextStyle,
+} from "react-native";
+import { Player } from "@/app/games/dice";
+import Colors from "@/constants/Colors";
 
-export default function ResultBoard({
-    scores,
-    playerNames,
-    onRestart,
+interface Props {
+  players: Player[];
+  onRestart?: () => void;
+}
+
+export default function ResultBoard({ players, onRestart }: Props) {
+  const sorted = [...players].sort((a, b) => b.score - a.score);
+
+  const renderItem = ({
+    item,
+    index,
   }: {
-    scores: number[][];
-    playerNames: string[];   // ✅ 추가
-    onRestart: () => void;
-  }) {
-    const results = scores.map((playerScores, idx) => ({
-      player: playerNames[idx], // ✅ 이름 표시
-      total: playerScores.reduce((a, b) => a + b, 0),
-    })).sort((a, b) => b.total - a.total);
+    item: Player;
+    index: number;
+  }) => {
+    let rankDisplay = `${index + 1}위`;
+  
+    if (index === 0) rankDisplay = "🥇";
+    else if (index === 1) rankDisplay = "🥈";
+    else if (index === 2) rankDisplay = "🥉";
+  
+    return (
+      <View style={[styles.row, index === 0 && styles.firstRow]}>
+        <Text style={[styles.rank, index === 0 && styles.firstText]}>
+          {rankDisplay}
+        </Text>
+        <Text style={[styles.name, index === 0 && styles.firstText]}>
+          {item.name}
+        </Text>
+        <Text style={[styles.score, index === 0 && styles.firstText]}>
+          {item.score}점
+        </Text>
+      </View>
+    );
+  };  
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🏆 최종 순위</Text>
-      {results.map((r, idx) => (
-        <View key={r.player} style={styles.card}>
-          <Text style={styles.rank}>{idx + 1}위</Text>
-          <Text style={{ color: Colors.text }}>{r.player}번 참가자 - {r.total}점</Text>
-        </View>
-      ))}
-      <Button title="다시 시작하기" onPress={onRestart} color={Colors.secondary} />
+      <Text style={styles.title}>🏁 게임 종료!</Text>
+      <FlatList
+        data={sorted}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+      />
+      {onRestart && (
+        <Pressable style={styles.restartButton} onPress={onRestart}>
+          <Text style={styles.restartText}>다시 하기</Text>
+        </Pressable>
+      )}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 20 },
-  title: { fontSize: 24, fontWeight: 'bold', color: Colors.primary },
-  card: {
+interface Style {
+  container: ViewStyle;
+  title: TextStyle;
+  row: ViewStyle;
+  firstRow: ViewStyle;
+  firstText: TextStyle;
+  rank: TextStyle;
+  name: TextStyle;
+  score: TextStyle;
+  restartButton: ViewStyle;
+  restartText: TextStyle;
+}
+
+const styles = StyleSheet.create<Style>({
+  container: {
+    flex: 1,
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingTop: 40,
+  },
+  title: {
+    fontSize: 30,
+    fontWeight: "700",
+    marginBottom: 30,
+  },
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     backgroundColor: Colors.white,
-    padding: 16,
-    borderRadius: 12,
-    width: 220,
-    alignItems: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    marginBottom: 10,
+    width: "100%",
+  },
+  firstRow: {
+    backgroundColor: Colors.logo, // 골드 느낌
+  },
+  firstText: {
+    color: Colors.white,
+    fontWeight: "bold",
   },
   rank: {
     fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 4,
-    color: Colors.secondary,
+    width: 68,
+  },
+  name: {
+    flex: 1,
+    fontSize: 18,
+  },
+  score: {
+    fontSize: 18,
+    width: 80,
+    textAlign: "right",
+  },
+  restartButton: {
+    marginTop: 24,
+    backgroundColor: Colors.primary,
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+  },
+  restartText: {
+    color: Colors.white,
+    fontSize: 18,
+    fontWeight: "500",
   },
 });

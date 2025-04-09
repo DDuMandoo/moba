@@ -1,56 +1,77 @@
-import React, { useState } from 'react';
-import { View } from 'react-native';
-import PlayerSelector from '@/components/game/dice/PlayerSelector';
-import DiceBoard from '@/components/game/dice/DiceBoard';
-import ResultBoard from '@/components/game/dice/ResultBoard';
+// app/games/dice.tsx
+import React, { useState } from "react";
+import { View, StyleSheet } from "react-native";
+import PlayerSelector from "@/components/game/dice/PlayerSelector";
+import DiceBoard from "@/components/game/dice/DiceBoard";
+import ResultBoard from "@/components/game/dice/ResultBoard";
+import Colors from "@/constants/Colors";
 
-export default function DiceGameScreen() {
-  const [numPlayers, setNumPlayers] = useState(2);
-  const [rounds, setRounds] = useState(1);
-  const [playerNames, setPlayerNames] = useState<string[]>([]);
-  const [gameStarted, setGameStarted] = useState(false);
-  const [gameEnded, setGameEnded] = useState(false);
-  const [scores, setScores] = useState<number[][]>([]);
+export interface Player {
+  id: string;
+  name: string;
+  score: number;
+}
 
-  const handleStart = (names: string[]) => {
-    setScores(Array.from({ length: names.length }, () => []));
-    setPlayerNames(names);
-    setGameStarted(true);
-  };
+export interface Player {
+  id: string;
+  name: string;
+  score: number;
+}
 
-  const handleEndGame = (finalScores: number[][]) => {
-    setScores(finalScores);
-    setGameEnded(true);
-  };
+export default function DiceGame() {
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [round, setRound] = useState(3);
+  const [currentTurn, setCurrentTurn] = useState(0);
+  const [currentRound, setCurrentRound] = useState(1);
+  const [isFinished, setIsFinished] = useState(false);
+  const [isStarted, setIsStarted] = useState(false);
 
-  const handleReset = () => {
-    setNumPlayers(2);
-    setRounds(1);
-    setGameStarted(false);
-    setGameEnded(false);
-    setScores([]);
-    setPlayerNames([]);
+  const handleRestart = () => {
+    setPlayers([]);
+    setRound(3);
+    setCurrentTurn(0);
+    setCurrentRound(1);
+    setIsFinished(false);
+    setIsStarted(false);
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F2F0EF' }}>
-      {!gameStarted ? (
+    <View style={styles.container}>
+      {!isStarted && (
         <PlayerSelector
-          numPlayers={numPlayers}
-          setNumPlayers={setNumPlayers}
-          rounds={rounds}
-          setRounds={setRounds}
-          onStart={handleStart}
+          players={players}
+          setPlayers={setPlayers}
+          round={round}
+          setRound={setRound}
+          isStarted={isStarted}
         />
-      ) : !gameEnded ? (
-        <DiceBoard
-          playerNames={playerNames}
-          rounds={rounds}
-          onFinish={handleEndGame}
-        />
+      )}
+
+      {isFinished ? (
+        <ResultBoard players={players} onRestart={handleRestart} />
       ) : (
-        <ResultBoard scores={scores} playerNames={playerNames} onRestart={handleReset} />
+        <DiceBoard
+          players={players}
+          setPlayers={setPlayers}
+          round={round}
+          currentRound={currentRound}
+          setCurrentRound={setCurrentRound}
+          currentTurn={currentTurn}
+          setCurrentTurn={setCurrentTurn}
+          setIsFinished={setIsFinished}
+          isStarted={isStarted}
+          setIsStarted={setIsStarted}
+        />
       )}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    paddingVertical: 24,
+    justifyContent: "space-between",
+  },
+});

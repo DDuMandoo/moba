@@ -64,7 +64,7 @@ axiosInstance.interceptors.response.use(
 
         const res = await axios.post(`${API_URL}/auth/reissuance`, {}, {
           headers: {
-            Authorization: refreshToken,
+            Authorization: `Bearer ${refreshToken}`,
             'Content-Type': 'application/json'
           }
         });

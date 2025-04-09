@@ -66,6 +66,6 @@ public class Notification {
     }
 
     public enum Type {
-        PAY, INVITE, REMINDER;
+        PAY, INVITE, REMINDER, SETTLEMENT;
     }
 }

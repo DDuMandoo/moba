@@ -53,7 +53,11 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
+    const originalRequest = error.config as any; // 또는 CustomAxiosRequestConfig
+
+    if (!originalRequest || typeof originalRequest !== 'object') {
+      return Promise.reject(error);
+    }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
@@ -65,27 +69,26 @@ axiosInstance.interceptors.response.use(
         const res = await axios.post(`${API_URL}/auth/reissuance`, {}, {
           headers: {
             Authorization: `Bearer ${refreshToken}`,
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         });
 
         const { accessToken, refreshToken: newRefreshToken } = res.data.result;
         await saveTokens(accessToken, newRefreshToken);
 
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        return axiosInstance(originalRequest);
+        return axios(originalRequest); // 중요: interceptor 타면 다시 꼬일 수 있음
       } catch (err: any) {
         const code = err?.response?.data?.code;
-        const message = err?.response?.data?.message;
 
-        if (code === 4203 ) {
+        if (code === 4203) {
           console.error('🔴 리프레시 토큰 만료됨 → 로그인 이동');
-          await clearTokens();
-          router.replace('/');
         } else {
-          console.error('🔴 토큰 갱신 중 에러', err);
+          console.error('🔴 토큰 갱신 실패', err);
         }
 
+        await clearTokens();
+        router.replace('/');
         return Promise.reject(err);
       }
     }

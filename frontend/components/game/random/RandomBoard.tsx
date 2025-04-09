@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
+// ✅ 카드에 로고 이미지 적용 + 원 회전 + 버튼/입력 비활성화 + 모달 시 초기화
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -7,54 +8,51 @@ import {
   StyleSheet,
   Animated,
   Dimensions,
-} from "react-native";
-import { Player } from "@/app/games/random";
-import Colors from "@/constants/Colors";
+  Image,
+} from 'react-native';
+import { Player } from '@/app/games/random';
+import Colors from '@/constants/Colors';
+import { Easing } from 'react-native';
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get('window');
+const CARD_SIZE = 80;
+const RADIUS = 150;
+const centerX = 0;
+const centerY = 50;
+
+const Icon = require('@/assets/Icon.png');
 
 interface Props {
   players: Player[];
   winner: Player | null;
   setWinner: (winner: Player | null) => void;
   reset: () => void;
+  setPlayers: React.Dispatch<React.SetStateAction<Player[]>>;
+  setStarted: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function RandomBoard({ players, winner, setWinner }: Props) {
+export default function RandomBoard({ players, winner, setWinner, reset, setPlayers }: Props) {
   const [visible, setVisible] = useState(false);
-  const positions = useRef<Animated.ValueXY[]>([]);
   const [started, setStarted] = useState(false);
+  const rotateAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (players.length > 0) {
-      positions.current = players.map(
-        () =>
-          new Animated.ValueXY({
-            x: Math.random() * (width - 100),
-            y: Math.random() * (height - 300),
-          })
-      );
-    }
-  }, [players]);
-
-  const animateNames = () => {
-    const animations = positions.current.map((pos) =>
+    if (started) {
       Animated.loop(
-        Animated.sequence([
-          Animated.timing(pos, {
-            toValue: {
-              x: Math.random() * (width - 100),
-              y: Math.random() * (height - 300),
-            },
-            duration: 400,
-            useNativeDriver: false,
-          }),
-        ])
-      )
-    );
+        Animated.timing(rotateAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+          easing: Easing.linear,
+        })
+      ).start();
+    } else {
+      rotateAnim.stopAnimation();
+      rotateAnim.setValue(0);
+    }
+  }, [started]);
 
-    Animated.stagger(100, animations).start();
-
+  const animateDraw = () => {
     setStarted(true);
 
     setTimeout(() => {
@@ -68,41 +66,79 @@ export default function RandomBoard({ players, winner, setWinner }: Props) {
   const handleReset = () => {
     setWinner(null);
     setVisible(false);
+    setPlayers([]);
+    reset();
   };
+
+  const spin = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
+  const renderRotatingCards = () => {
+    return players.map((_, index) => {
+      const angle = (index / players.length) * 2 * Math.PI;
+      const x = RADIUS * Math.cos(angle) - CARD_SIZE / 2;
+      const y = RADIUS * Math.sin(angle) - CARD_SIZE / 2;
+  
+      const baseAngle = (angle * 180) / Math.PI; // 라디안 → 도 단위 변환
+  
+      return (
+        <Animated.View
+          key={index}
+          style={[
+            styles.card,
+            {
+              position: 'absolute',
+              left: x,
+              top: y,
+              transform: [{ rotate: `${baseAngle}deg` }],
+            },
+          ]}
+        >
+          <Animated.Image
+            source={Icon}
+            style={[
+              styles.logo,
+              {
+                transform: [{ rotate: `${-baseAngle}deg` }],
+              },
+            ]}
+          />
+        </Animated.View>
+
+      );
+    });
+  };
+  
 
   return (
     <View style={styles.wrapper}>
-      {!started && (
-        <Pressable
-          style={[
-            styles.pickButton,
-            players.length < 2 && { opacity: 0.5 },
-          ]}
-          onPress={animateNames}
-          disabled={players.length < 2}
+      <View style={styles.zoneContainer}>
+        <Image
+          source={require('@/assets/images/login_image.png')}
+          style={styles.centerImage}
+        />
+        <Animated.View
+          style={[styles.circle, {
+            transform: [
+              { translateX: centerX },
+              { translateY: centerY },
+              { rotate: spin },
+            ],
+          }]}
         >
-          <Text style={styles.pickText}>랜덤 뽑기 시작!</Text>
-        </Pressable>
-      )}
+          {renderRotatingCards()}
+        </Animated.View>
+      </View>
 
-      {players.map((player, index) => {
-        const pos = positions.current[index];
-        return (
-          <Animated.View
-            key={player.id}
-            style={[
-              styles.nameBox,
-              pos?.getTranslateTransform
-                ? {
-                    transform: pos.getTranslateTransform(),
-                  }
-                : {},
-            ]}
-          >
-            <Text style={styles.nameText}>{player.name}</Text>
-          </Animated.View>
-        );
-      })}
+      <Pressable
+        style={[styles.pickButton, players.length < 2 && { opacity: 0.5 }]}
+        onPress={animateDraw}
+        disabled={players.length < 2 || started}
+      >
+        <Text style={styles.pickText}>✨ 랜덤 추첨 시작!</Text>
+      </Pressable>
 
       <Modal visible={visible} transparent animationType="fade">
         <View style={styles.modalOverlay}>
@@ -121,63 +157,91 @@ export default function RandomBoard({ players, winner, setWinner }: Props) {
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: Colors.background,
+  },
+  zoneContainer: {
+    height: 360,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+  },
+  centerImage: {
+    position: 'absolute',
+    width: 140,
+    height: 140,
+    resizeMode: 'contain',
+    zIndex: 5,
+    transform: [
+      { translateX: 0 },
+      { translateY: +40 },
+    ],
+  },  
+  circle: {
+    position: 'absolute',
+    width: 0,
+    height: 0,
+  },
+  card: {
+    width: CARD_SIZE,
+    height: CARD_SIZE,
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 2, height: 4 },
+    shadowRadius: 6,
+  },
+  logo: {
+    width: 50,
+    height: 50,
+    resizeMode: 'contain',
   },
   pickButton: {
+    position: 'absolute',
+    bottom: 40,
+    left: 100,
+    right: 100,
     backgroundColor: Colors.primary,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
+    paddingVertical: 14,
     borderRadius: 12,
-    marginBottom: 24,
-    zIndex: 10,
-  },
+    alignItems: 'center',
+  },  
   pickText: {
     color: Colors.white,
     fontSize: 18,
-    fontWeight: "bold",
-  },
-  nameBox: {
-    position: "absolute",
-    backgroundColor: Colors.grayBackground,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-  },
-  nameText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: Colors.text,
+    fontWeight: 'bold',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "#000000aa",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: '#00000088',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalBox: {
     backgroundColor: Colors.white,
-    padding: 24,
-    borderRadius: 12,
-    alignItems: "center",
-    gap: 16,
+    padding: 28,
+    borderRadius: 16,
+    alignItems: 'center',
+    gap: 20,
   },
   winnerText: {
     fontSize: 24,
-    fontWeight: "700",
+    fontWeight: '700',
     color: Colors.secondary,
+    textAlign: 'center',
   },
   closeButton: {
     backgroundColor: Colors.logo,
     paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     borderRadius: 8,
   },
   closeText: {
     color: Colors.white,
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: 'bold',
   },
 });

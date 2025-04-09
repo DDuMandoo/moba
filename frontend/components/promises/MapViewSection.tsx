@@ -352,8 +352,10 @@ export default function MapViewSection({
         <WebView
           originWhitelist={['*']}
           source={{ html: routeMapHtml }}
-          javaScriptEnabled
-          domStorageEnabled
+          javaScriptEnabled={true}
+          domStorageEnabled={true}
+          allowFileAccess={true}
+          mixedContentMode="always"
           scrollEnabled={false}
           style={{ flex: 1, borderRadius: 10 }}
         />

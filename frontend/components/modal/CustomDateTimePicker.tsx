@@ -58,7 +58,7 @@ export default function CustomDateTimePicker({ visible, onClose, onConfirm, init
   const renderClockFace = (mode: 'hour' | 'minute') => {
     const items =
       mode === 'hour'
-        ? Array.from({ length: 12 }, (_, i) => i + 1)
+        ? [12, ...Array.from({ length: 11 }, (_, i) => i + 1)]
         : Array.from({ length: 12 }, (_, i) => i * 5);
 
     const selected = mode === 'hour' ? rawHour : minute;

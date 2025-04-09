@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -16,7 +16,7 @@ import SettingsOverlay from '@/components/modal/SettingOverlay';
 import ConfirmPasswordModal from '@/components/modal/ConfilmPasswordModal';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { fetchUserProfile } from '@/redux/slices/userSlice';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import axiosInstance from '@/app/axiosInstance';
 
 const tabs = ['전체', '진행중/예정', '종료'] as const;
@@ -35,6 +35,22 @@ export default function MyPageScreen() {
   const underlineX = useRef(new Animated.Value(0)).current;
   const underlineWidth = useRef(new Animated.Value(0)).current;
 
+  const fetchSummaryAndAppointments = async () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    try {
+      const [appointmentsRes, summaryRes] = await Promise.all([
+        axiosInstance.get('/appointments'),
+        axiosInstance.get(`/appointments/summary?year=${year}&month=${month}`)
+      ]);
+      setAppointments(appointmentsRes.data.result || []);
+      setSummary(summaryRes.data.result || { totalAttendanceCount: 0, totalSpent: 0 });
+    } catch (err) {
+      console.error('❌ 데이터 불러오기 실패', err);
+    }
+  };
+
   useEffect(() => {
     if (!user) {
       dispatch(fetchUserProfile());
@@ -42,25 +58,14 @@ export default function MyPageScreen() {
   }, [dispatch, user]);
 
   useEffect(() => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1;
-
-    const fetchSummaryAndAppointments = async () => {
-      try {
-        const [appointmentsRes, summaryRes] = await Promise.all([
-          axiosInstance.get('/appointments'),
-          axiosInstance.get(`/appointments/summary?year=${year}&month=${month}`)
-        ]);
-        setAppointments(appointmentsRes.data.result || []);
-        setSummary(summaryRes.data.result || { totalAttendanceCount: 0, totalSpent: 0 });
-      } catch (err) {
-        console.error('❌ 데이터 불러오기 실패', err);
-      }
-    };
-
     fetchSummaryAndAppointments();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchSummaryAndAppointments();
+    }, [])
+  );
 
   const filteredPromises = appointments.filter((p) => {
     if (selectedTab === '전체') return true;
@@ -147,19 +152,6 @@ export default function MyPageScreen() {
               </TouchableOpacity>
             ))}
           </View>
-
-          {/* {tabLayouts.length === tabs.length && (
-            <Animated.View
-              style={{
-                position: 'absolute',
-                bottom: -2,
-                left: underlineX,
-                width: underlineWidth,
-                height: 2,
-                backgroundColor: Colors.logo
-              }}
-            />
-          )} */}
         </View>
 
         {/* 약속 카드 리스트 */}
@@ -174,11 +166,11 @@ export default function MyPageScreen() {
               location={promise.placeName}
               onPress={() =>
                 router.push({
-                  pathname: '/promises/[id]',
+                  pathname: promise.isEnded ? '/promises/[id]/ended' : '/promises/[id]',
                   params: { id: String(promise.appointmentId) }
                 })
-              }              
-            />          
+              }
+            />
           ))}
         </View>
       </ScrollView>

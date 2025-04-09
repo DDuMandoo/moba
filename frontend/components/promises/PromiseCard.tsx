@@ -15,7 +15,7 @@ interface Props {
   title: string;
   time: string;
   location?: string | null;
-  amount?: string;
+  amount?: number;
   appointmentId: number;
   onPress?: () => void;
 }
@@ -87,11 +87,11 @@ export default function PromiseCard({
               <Text style={styles.metaText}>{location}</Text>
             </View>
           )}
-
+          
           {amount && (
             <View style={styles.metaRow}>
               <Feather name="credit-card" size={16} color={Colors.black} />
-              <Text style={styles.metaText}>{`${Number(amount).toLocaleString()}원`}</Text>
+              <Text style={styles.metaText}>{amount.toLocaleString()}원</Text>
             </View>
           )}
 
@@ -138,8 +138,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    justifyContent: 'space-between',
-    height: 88,
+    justifyContent: 'center',
   },
   title: {
     fontSize: 18,
@@ -156,7 +155,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.black,
     marginLeft: 6,
-    lineHeight: 18,
+    lineHeight: 20,
   },
   participantsRow: {
     flexDirection: 'row',

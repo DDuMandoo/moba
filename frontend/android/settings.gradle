@@ -21,7 +21,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   }
 }
 
-rootProject.name = 'frontend'
+rootProject.name = '모여바라'
 
 dependencyResolutionManagement {
   versionCatalogs {

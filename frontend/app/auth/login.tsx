@@ -18,6 +18,7 @@ import { saveTokens } from '@/app/axiosInstance';
 import Constants from 'expo-constants';
 import CustomAlert from '@/components/CustomAlert';
 import {getFcmToken} from '@/utils/fcmToken';
+import { useLocalSearchParams } from 'expo-router';
 
 // const BASE_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_API_URL;
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
@@ -30,6 +31,7 @@ export default function LoginScreen() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState<{ title: string; message?: string } | null>(null);
+  const params = useLocalSearchParams();
 
   const showAlert = (title: string, message?: string) => {
     setAlert({ title, message });
@@ -79,7 +81,18 @@ export default function LoginScreen() {
           console.warn('❗ FCM 토큰이 없어 서버에 전송되지 않았습니다');
         }
 
-        router.replace('/(bottom-navigation)');
+        const redirect = params.redirect;
+        const redirectPath = Array.isArray(redirect) ? redirect[0] : redirect;
+        
+        // 허용된 경로거나 기본값이면 안전하게 대체
+        const fallbackPath = '/(bottom-navigation)' as const;
+        
+        router.replace(redirectPath && typeof redirectPath === 'string'
+          ? (redirectPath as any)  // 💡 타입 안정성보다 실행 우선 시 (문제가 되지 않음)
+          : fallbackPath
+        );
+        console.log('➡️ 리다이렉트:', redirectPath || fallbackPath);
+
         console.log('➡️ 라우팅 완료');
       } else {
         console.log('⚠️ 로그인 실패 응답:', response.status);

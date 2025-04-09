@@ -95,7 +95,7 @@ export default function WalletDetailPage() {
         />
         <FeatureButton
           iconName="credit-card"
-          label="계좌 관리"
+          label="계좌 보기"
           onPress={() => router.push('/wallet/account')}
         />
       </View>
@@ -105,11 +105,25 @@ export default function WalletDetailPage() {
         backgroundColor: Colors.white,
         borderRadius: 16,
         padding: 20,
-        marginTop: 24,
+        marginTop: 16,
       }}>
         <Text style={{ fontSize: 16, fontWeight: 'bold', color: Colors.text }}>
           약속 소비 패턴 분석
         </Text>
+        <TouchableOpacity
+          style={{
+            marginTop: 12,
+            backgroundColor: Colors.primary,
+            paddingVertical: 12,
+            borderRadius: 12,
+            alignItems: 'center',
+          }}
+          onPress={() => router.push('/wallet/analysis/consent')}
+        >
+          <Text style={{ color: 'white', fontWeight: 'bold' }}>
+            소비 분석 시작하기
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <View style={{

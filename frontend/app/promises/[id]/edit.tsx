@@ -15,19 +15,33 @@ import CustomAlert from '@/components/CustomAlert';
 import dayjs from 'dayjs';
 import Colors from '@/constants/Colors';
 import CustomDateTimePicker from '@/components/modal/CustomDateTimePicker';
-import FriendSearchModal from '@/components/modal/FriendSearchModal';
-import AppointmentConfirmModal from '@/components/modal/AppointmentConfirmModal';
+import FriendSearchModal from '@/components/promises/FriendSearchModal';
+import AppointmentConfirmModal from '@/components/promises/AppointmentConfirmModal';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import axiosInstance, { getAccessToken } from '@/app/axiosInstance';
 import * as FileSystem from 'expo-file-system';
 import SelectedProfileItem from '@/components/profile/SelectedProfileItem';
+import { useAppSelector, useAppDispatch } from '@/redux/hooks';
+import {
+  setDraftAppointmentForEdit,
+  clearDraftAppointmentForEdit,
+} from '@/redux/slices/appointmentSlice';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || Constants.expoConfig?.extra?.API_URL;
 
 export default function AppointmentEditPage() {
-  const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const params = useLocalSearchParams<{
+    id: string;
+    selectedPlaceId?: string;
+    selectedPlaceName?: string;
+    selectedPlaceMemo?: string;
+  }>();
+  const { id, selectedPlaceId, selectedPlaceName, selectedPlaceMemo } = params;
+
+  const dispatch = useAppDispatch();
+  const { draftAppointmentForEdit } = useAppSelector((state) => state.appointment);
 
   const [name, setName] = useState('');
   const [image, setImage] = useState<string | null>(null);
@@ -35,12 +49,37 @@ export default function AppointmentEditPage() {
   const [dateTime, setDateTime] = useState<Date | null>(null);
   const [location, setLocation] = useState<{ placeId: number; placeName?: string; memo?: string } | null>(null);
   const [friends, setFriends] = useState<{ id: number; name: string; image: string }[]>([]);
+  const [originalFriends, setOriginalFriends] = useState<{ id: number }[]>([]);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [showFriendModal, setShowFriendModal] = useState(false);
   const [confirmVisible, setConfirmVisible] = useState(false);
 
+  // 1. 초기 진입 시: redux에 저장된 임시 정보 세팅
+  useEffect(() => {
+    if (draftAppointmentForEdit) {
+      setName(draftAppointmentForEdit.name);
+      setDateTime(draftAppointmentForEdit.time ? new Date(draftAppointmentForEdit.time) : null);
+      setImage(draftAppointmentForEdit.image || null);
+      setLocation(draftAppointmentForEdit.location || null);
+      setFriends(draftAppointmentForEdit.friends || []);
+      dispatch(clearDraftAppointmentForEdit());
+    }
+  }, [draftAppointmentForEdit]);
+
+  // 2. 장소 검색 페이지에서 돌아왔을 때: URL에 담긴 장소 정보 세팅
+  useEffect(() => {
+    if (selectedPlaceId && selectedPlaceName) {
+      setLocation({
+        placeId: Number(selectedPlaceId),
+        placeName: selectedPlaceName,
+        memo: selectedPlaceMemo || '',
+      });
+    }
+  }, [selectedPlaceId, selectedPlaceName, selectedPlaceMemo]);
+
+  // 3. 약속 상세 fetch
   useEffect(() => {
     const fetchData = async () => {
       if (!id) return;
@@ -51,12 +90,23 @@ export default function AppointmentEditPage() {
         setOriginalImage(a.imageUrl);
         setImage(a.imageUrl);
         setDateTime(new Date(a.time));
-        setLocation(a.placeId ? { placeId: a.placeId, placeName: a.placeName, memo: a.memo } : null);
-        setFriends((a.participants || []).map((m: any) => ({ id: m.memberId, name: m.name, image: m.profileImage || '' })));
+
+        if (!selectedPlaceId) {
+          setLocation(a.placeId ? { placeId: a.placeId, placeName: a.placeName, memo: a.memo } : null);
+        }
+
+        const original = (a.participants || []).map((m: any) => ({ id: m.memberId }));
+        setOriginalFriends(original);
+        setFriends((a.participants || []).map((m: any) => ({
+          id: m.memberId,
+          name: m.name,
+          image: m.profileImage || '',
+        })));
       } catch (err) {
         console.error('❌ 약속 불러오기 실패:', err);
       }
     };
+
     fetchData();
   }, [id]);
 
@@ -64,7 +114,7 @@ export default function AppointmentEditPage() {
     const result = await launchImageLibraryAsync({
       mediaTypes: MediaTypeOptions.Images,
       allowsEditing: true,
-      quality: 1
+      quality: 1,
     });
     if (!result.canceled && result.assets.length > 0) {
       const uri = result.assets[0].uri;
@@ -86,6 +136,10 @@ export default function AppointmentEditPage() {
     setConfirmVisible(true);
   };
 
+  const handleCancel = () => {
+    if (id) router.replace(`/promises/${id}`);
+  };
+
   const handleConfirmSubmit = async () => {
     if (!id) return;
     try {
@@ -93,7 +147,7 @@ export default function AppointmentEditPage() {
         name,
         time: dateTime?.toISOString(),
         placeId: location?.placeId ?? null,
-        memo: location?.memo ?? ''
+        memo: location?.memo ?? '',
       };
 
       const fileUri = FileSystem.documentDirectory + 'data.json';
@@ -103,14 +157,14 @@ export default function AppointmentEditPage() {
       formData.append('data', {
         uri: fileUri,
         type: 'application/json',
-        name: 'data.json'
+        name: 'data.json',
       } as any);
 
       if (image && image !== originalImage) {
         formData.append('image', {
           uri: image,
           type: 'image/jpeg',
-          name: 'appointment.jpg'
+          name: 'appointment.jpg',
         } as any);
       } else if (!image && originalImage) {
         await axiosInstance.delete(`/appointments/${id}/image`);
@@ -120,9 +174,23 @@ export default function AppointmentEditPage() {
       await axiosInstance.patch(`${API_URL}/appointments/${id}`, formData, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'multipart/form-data'
-        }
+          'Content-Type': 'multipart/form-data',
+        },
       });
+
+      const originalIds = originalFriends.map((f) => f.id);
+      const currentIds = friends.map((f) => f.id);
+
+      const toKick = originalIds.filter((id) => !currentIds.includes(id));
+      const toInvite = currentIds.filter((id) => !originalIds.includes(id));
+
+      if (toKick.length > 0) {
+        await axiosInstance.patch(`/appointments/${id}/kick`, { memberIds: toKick });
+      }
+      if (toInvite.length > 0) {
+        await axiosInstance.patch(`/appointments/${id}/invite`, { memberIds: toInvite });
+      }
+
       router.replace(`/promises/${id}`);
     } catch (err: any) {
       console.error('❌ 수정 실패:', err);
@@ -213,11 +281,26 @@ export default function AppointmentEditPage() {
           {location?.placeName && (
             <View style={styles.selectedRow}>
               <Ionicons name="location-outline" size={18} color={Colors.primary} />
-              <Text style={styles.selectedText}>{location.placeName}</Text>
+              <View>
+                <Text style={styles.selectedText}>{location.placeName}</Text>
+                {!!location.memo && <Text style={styles.selectedText}>{location.memo}</Text>}
+              </View>
             </View>
           )}
           <TouchableOpacity
-            onPress={() => router.push('/promises/locationSearch')}
+            onPress={() => {
+              dispatch(setDraftAppointmentForEdit({
+                name,
+                time: dateTime?.toISOString() || '',
+                image,
+                friends,
+                location,
+              }));
+              router.push({
+                pathname: '/promises/locationSearch',
+                params: { mode: 'edit', appointmentId: id },
+              });
+            }}
             style={styles.selectBox}
           >
             <Ionicons name="location-outline" size={20} color={Colors.grayDarkText} />
@@ -226,7 +309,22 @@ export default function AppointmentEditPage() {
         </View>
 
         <View style={styles.buttonBox}>
-          <Button.Large title="수정 완료" onPress={handleSubmit} />
+          <View style={styles.rowButtons}>
+            <Button.MidSmall
+              title="취소"
+              onPress={handleCancel}
+              textColor={Colors.primary}
+              style={{
+                backgroundColor: 'transparent',
+                borderWidth: 1,
+                borderColor: Colors.primary,
+              }}
+            />
+            <Button.MidSmall
+              title="수정"
+              onPress={handleSubmit}
+            />
+          </View>
         </View>
       </ScrollView>
 
@@ -276,4 +374,10 @@ const styles = StyleSheet.create({
   participantRow: { flexDirection: 'row', gap: 4, flexWrap: 'wrap', marginBottom: 2, marginTop: 6 },
   selectedRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6, marginLeft: 2, padding: 5 },
   selectedText: { color: Colors.primary, fontSize: 15 },
+  rowButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  
 });

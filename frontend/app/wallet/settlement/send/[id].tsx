@@ -7,32 +7,93 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import Colors from '@/constants/Colors';
 import axiosInstance from '@/app/axiosInstance';
 
 export default function SettlementPinPage() {
-  const [pin, setPin] = useState<string[]>([]);
   const router = useRouter();
+  const { dutchpayId } = useLocalSearchParams<{ dutchpayId: string }>();
+
+  const [pin, setPin] = useState<string[]>([]);
+  const [hostName, setHostName] = useState('');
+  const [hostImage, setHostImage] = useState<string | null>(null);
+  const [price, setPrice] = useState<number>(0);
+  
+
+  // ✅ 정산 정보 불러오기
+  useEffect(() => {
+    console.log('[🧪 쿼리 파라미터]', dutchpayId);
+    
+    const fetchInfo = async () => {
+      try {
+        const { data } = await axiosInstance.get(`/dutchpays/${dutchpayId}/receipt`);
+        console.log('[📦 정산 데이터 응답]', JSON.stringify(data, null, 2)); // 👈 꼭 찍기
+        const info = data.result;
+  
+        // 임시 fallback 처리
+        setHostName(info.hostName ?? '(이름 없음)');
+        setHostImage(info.hostImage ?? null);
+        setPrice(info.price ?? 0);
+      } catch (err) {
+        console.log('[❌ 정산 정보 에러]', err);
+        Alert.alert('오류', '정산 정보를 불러오지 못했어요.');
+        router.back();
+      }
+    };
+    if (dutchpayId) fetchInfo();
+  }, [dutchpayId]);
 
   useEffect(() => {
     if (pin.length === 6) {
       const password = pin.join('');
+  
       setTimeout(async () => {
         try {
-          const res = await axiosInstance.post('/wallets/auth', { password });
-          if (res.data.isSuccess) {
-            router.replace('/wallet/settlement/success');
+          console.log('[🔐 입력된 비밀번호]', password);
+          
+          const authRes = await axiosInstance.post('/wallets/auth', { password });
+          console.log('[✅ 비밀번호 인증 응답]', JSON.stringify(authRes.data, null, 2));
+  
+          if (authRes.data.isSuccess) {
+            // ✅ 정산 PATCH 요청
+            console.log('[📦 PATCH 요청 시작]', `/dutchpays/${dutchpayId}/transfer`);
+  
+            try {
+              const transferRes = await axiosInstance.patch(`/dutchpays/${dutchpayId}/transfer`);
+              console.log('[✅ 정산 완료 처리 응답]', JSON.stringify(transferRes.data, null, 2));
+  
+              if (transferRes.data.isSuccess) {
+                router.replace({
+                  pathname: '/wallet/settlement/success',
+                  params: { dutchpayId }, // 쿼리 파라미터 같이 넘기기
+                });
+              } else {
+                Alert.alert('실패', '정산 완료 처리에 실패했습니다.');
+              }
+            } catch (err: any) {
+              console.error('[❌ 정산 완료 처리 에러]', err);
+  
+              if (err.response) {
+                console.log('[📛 에러 응답]', JSON.stringify(err.response.data, null, 2));
+                Alert.alert('에러', err.response.data.message ?? '정산 완료 중 오류가 발생했어요.');
+              } else {
+                Alert.alert('에러', '정산 완료 중 알 수 없는 오류가 발생했어요.');
+              }
+            }
+  
           } else {
-            throw new Error();
+            throw new Error('비밀번호 인증 실패');
           }
         } catch (err) {
+          console.log('[❌ 비밀번호 인증 실패]', err);
           Alert.alert('비밀번호가 틀렸습니다.');
           setPin([]);
         }
       }, 200);
     }
   }, [pin]);
+  
 
   const handlePress = (digit: string) => {
     if (pin.length < 6) {
@@ -48,16 +109,21 @@ export default function SettlementPinPage() {
     <View style={styles.container}>
       <View style={styles.profileBox}>
         <Image
-          source={{ uri: 'https://avatars.githubusercontent.com/u/1?v=4' }}
+          source={
+            hostImage
+              ? { uri: hostImage }
+              : require('@/assets/images/defaultprofile.png')
+          }
           style={styles.profileImage}
         />
-        <Text style={styles.nameText}>김지호 님에게</Text>
-        <Text style={styles.amountText}>50,000원</Text>
+        <Text style={styles.nameText}>{hostName} 님에게</Text>
+        <Text style={styles.amountText}>{price.toLocaleString()}원</Text>
         <Text style={styles.instructionText}>
           이체하시려면 비밀번호를 입력해주세요.
         </Text>
       </View>
 
+      {/* 🔢 핀 입력 UI */}
       <View style={styles.pinContainer}>
         <View style={styles.pinRow}>
           {Array.from({ length: 6 }).map((_, i) => (
@@ -69,55 +135,27 @@ export default function SettlementPinPage() {
         </View>
       </View>
 
+      {/* 🔘 숫자 키패드 */}
       <View style={styles.keypadWrapper}>
-        <View style={styles.keypadRow}>
-          {['1', '2', '3'].map((digit) => (
-            <TouchableOpacity
-              key={digit}
-              style={styles.keypadButton}
-              onPress={() => handlePress(digit)}
-            >
-              <Text style={styles.keypadText}>{digit}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        <View style={styles.keypadRow}>
-          {['4', '5', '6'].map((digit) => (
-            <TouchableOpacity
-              key={digit}
-              style={styles.keypadButton}
-              onPress={() => handlePress(digit)}
-            >
-              <Text style={styles.keypadText}>{digit}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        <View style={styles.keypadRow}>
-          {['7', '8', '9'].map((digit) => (
-            <TouchableOpacity
-              key={digit}
-              style={styles.keypadButton}
-              onPress={() => handlePress(digit)}
-            >
-              <Text style={styles.keypadText}>{digit}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        <View style={styles.keypadRow}>
-          <View style={{ width: 72 }} />
-          <TouchableOpacity
-            style={styles.keypadButton}
-            onPress={() => handlePress('0')}
-          >
-            <Text style={styles.keypadText}>0</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.keypadButton}
-            onPress={handleDelete}
-          >
-            <Text style={styles.keypadText}>⌫</Text>
-          </TouchableOpacity>
-        </View>
+        {[['1','2','3'], ['4','5','6'], ['7','8','9'], ['','0','⌫']].map((row, rIdx) => (
+          <View key={rIdx} style={styles.keypadRow}>
+            {row.map((val, cIdx) => {
+              if (val === '') return <View key={cIdx} style={{ width: 72 }} />;
+              if (val === '⌫') {
+                return (
+                  <TouchableOpacity key={cIdx} style={styles.keypadButton} onPress={handleDelete}>
+                    <Text style={styles.keypadText}>⌫</Text>
+                  </TouchableOpacity>
+                );
+              }
+              return (
+                <TouchableOpacity key={cIdx} style={styles.keypadButton} onPress={() => handlePress(val)}>
+                  <Text style={styles.keypadText}>{val}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        ))}
       </View>
     </View>
   );

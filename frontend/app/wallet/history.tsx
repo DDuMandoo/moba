@@ -1,14 +1,12 @@
-// app/wallet/history.tsx
 import React, { useState } from 'react';
 import {
   View,
   Text,
-  FlatList,
-  TouchableOpacity,
+  ScrollView,
   Image,
   StyleSheet,
-  ScrollView,
   Dimensions,
+  TouchableOpacity,
 } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
@@ -16,34 +14,53 @@ import Colors from '@/constants/Colors';
 
 interface Transaction {
   name: string;
-  transactionAt: string;
+  image: string | null;
+  payAt: string;
   amount: number;
-  type: 'DEPOSIT' | 'WITHDRAW' | 'TRANSFER';
+  type: 'D' | 'W';
 }
 
-const fetchTransactions = async (): Promise<Transaction[]> => {
-  const res = await axios.get('/banks/transaction', {
+interface ApiResponse {
+  result: {
+    transactions: Transaction[];
+    cursorId: number;
+    cursorPayAt: string;
+  };
+}
+
+const getTransactionEndpoint = (filter: 'ALL' | 'WITHDRAW' | 'DEPOSIT') => {
+  switch (filter) {
+    case 'WITHDRAW':
+      return '/api/wallets/transaction/withdraw';
+    case 'DEPOSIT':
+      return '/api/wallets/transaction/deposit';
+    default:
+      return '/api/wallets/transaction';
+  }
+};
+
+const fetchTransactions = async (filter: 'ALL' | 'WITHDRAW' | 'DEPOSIT'): Promise<Transaction[]> => {
+  const endpoint = getTransactionEndpoint(filter);
+  const res = await axios.get<ApiResponse>(endpoint, {
     headers: {
       Authorization: 'Bearer YOUR_ACCESS_TOKEN',
       'Content-Type': 'application/json',
     },
+    params: {
+      size: 50,
+    },
   });
-  return res.data.transactions;
+
+  return res.data.result.transactions || [];
 };
 
 export default function TransactionHistory() {
   const [filter, setFilter] = useState<'ALL' | 'DEPOSIT' | 'WITHDRAW'>('ALL');
-  const { data, isLoading, isError } = useQuery<Transaction[]>({
-    queryKey: ['transactions'],
-    queryFn: fetchTransactions,
-  });
 
-  const filtered =
-    filter === 'ALL'
-      ? data ?? []
-      : data?.filter((t) =>
-          filter === 'DEPOSIT' ? t.type === 'DEPOSIT' : t.type === 'WITHDRAW'
-        ) ?? [];
+  const { data: transactions = [], isLoading, isError, refetch } = useQuery({
+    queryKey: ['transactions', filter],
+    queryFn: () => fetchTransactions(filter),
+  });
 
   const formatDate = (datetime: string) => {
     const d = new Date(datetime);
@@ -52,28 +69,23 @@ export default function TransactionHistory() {
     ).padStart(2, '0')}분`;
   };
 
-  const formatAmount = (amt: number, type: string) => {
-    const sign = type === 'DEPOSIT' ? '+' : '-';
+  const formatAmount = (amt: number, type: 'D' | 'W') => {
+    const sign = type === 'D' ? '+' : '-';
     return `${sign} ${amt.toLocaleString()}원`;
   };
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.background }}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
-        {/* 상단 설명 영역 */}
-        <View style={{ paddingHorizontal: 20, paddingTop: 20, backgroundColor: Colors.background }}>
+        {/* 상단 설명 및 필터 */}
+        <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
           <Text style={styles.title}>내 지갑 세부 내역</Text>
-          <Text style={styles.subtitle}>
-            내가 보낸 돈과 받은 돈 내역을 확인할 수 있어요.
-          </Text>
-
+          <Text style={styles.subtitle}>내가 보낸 돈과 받은 돈 내역을 확인할 수 있어요.</Text>
           <View style={styles.filterRow}>
             {['ALL', 'WITHDRAW', 'DEPOSIT'].map((key) => {
               const isActive = filter === key;
-              const label =
-                key === 'ALL' ? '전체' : key === 'WITHDRAW' ? '보낸 돈' : '받은 돈';
+              const label = key === 'ALL' ? '전체' : key === 'WITHDRAW' ? '보낸 돈' : '받은 돈';
               const color = isActive ? Colors.black : Colors.grayDarkText;
-
               return (
                 <TouchableOpacity key={key} onPress={() => setFilter(key as any)}>
                   <View style={styles.filterItem}>
@@ -86,29 +98,34 @@ export default function TransactionHistory() {
           </View>
         </View>
 
-        {/* 리스트 배경 박스 */}
+        {/* 리스트 */}
         <View style={{ paddingHorizontal: 20 }}>
           <View style={styles.whiteWrapper}>
             <View style={styles.whiteBox}>
-              {filtered.length === 0 ? (
+              {transactions.length === 0 ? (
                 <View style={styles.emptyBox}>
                   <Text style={styles.emptyText}>거래 내역이 없습니다.</Text>
                 </View>
               ) : (
-                filtered.map((item, idx) => (
+                transactions.map((item, idx) => (
                   <View style={styles.itemBox} key={idx}>
                     <View style={styles.itemLeft}>
                       <Image
-                        source={{ uri: 'https://placekitten.com/60/60' }}
+                        source={{
+                          uri: item.image ?? 'https://placekitten.com/60/60',
+                        }}
                         style={styles.avatar}
                       />
                       <View>
                         <Text style={styles.name}>{item.name}</Text>
-                        <Text style={styles.date}>{formatDate(item.transactionAt)}</Text>
+                        <Text style={styles.date}>{formatDate(item.payAt)}</Text>
                       </View>
                     </View>
                     <Text
-                      style={[styles.amount, item.type === 'DEPOSIT' ? styles.deposit : styles.withdraw]}
+                      style={[
+                        styles.amount,
+                        item.type === 'D' ? styles.deposit : styles.withdraw,
+                      ]}
                     >
                       {formatAmount(item.amount, item.type)}
                     </Text>
@@ -124,21 +141,22 @@ export default function TransactionHistory() {
 }
 
 const styles = StyleSheet.create({
+  // ... 기존과 동일
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: Colors.text,
-    marginBottom: 16, // 간격 더 넓힘
+    marginBottom: 16,
   },
   subtitle: {
     fontSize: 14,
     color: Colors.grayDarkText,
-    marginBottom: 28, // 간격 더 넓힘
+    marginBottom: 28,
   },
   filterRow: {
     flexDirection: 'row',
     gap: 20,
-    marginBottom: 24, // 간격 더 넓힘
+    marginBottom: 24,
   },
   filterItem: {
     flexDirection: 'row',
@@ -156,10 +174,7 @@ const styles = StyleSheet.create({
   },
   whiteWrapper: {
     backgroundColor: Colors.white,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    borderBottomLeftRadius: 10, // 추가
-    borderBottomRightRadius: 10, // 추가
+    borderRadius: 10,
     paddingTop: 12,
     paddingBottom: 32,
     minHeight: Dimensions.get('window').height * 0.7,

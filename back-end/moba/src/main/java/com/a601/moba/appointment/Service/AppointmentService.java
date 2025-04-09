@@ -14,6 +14,7 @@ import com.a601.moba.appointment.Controller.Response.AppointmentJoinResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentListItemResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentParticipantResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentRecommendResponse;
+import com.a601.moba.appointment.Controller.Response.AppointmentRecommendResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentSummaryResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentUpdateResponse;
 import com.a601.moba.appointment.Controller.Response.GetLocationAppointmentResponse;
@@ -49,6 +50,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -70,8 +72,10 @@ public class AppointmentService {
     private final LocationRedisService locationRedisService;
     private final PlaceRepository placeRepository;
     private final NotificationService notificationService;
-    //    @Value("${moba.mydata.base.url}")
-    private String MYDATA_URL = "https://j12a601.p.ssafy.io/api/mydata";
+    private final PlaceRecommendationService placeRecommendationService;
+
+    @Value("${moba.mydata.base.url}")
+    private String MYDATA_URL;
 
     public Appointment getAppointment(Integer appointmentId) {
         return appointmentRepository.findById(appointmentId)
@@ -102,6 +106,9 @@ public class AppointmentService {
                 .inviteUrl(inviteCode)
                 .isEnded(false)
                 .build());
+
+        // 비동기 근처 장소 저장 호출
+        placeRecommendationService.processNearbyRecommendations(appointment);
 
         List<AppointmentParticipant> participants = new ArrayList<>();
         Member host = authUtil.getCurrentMember();

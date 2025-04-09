@@ -105,8 +105,8 @@ public enum ErrorCode {
     FCM_TOKEN_SEND_APPOINTMENT_MYSERVER(4807, INTERNAL_SERVER_ERROR, "앱 서버에서 약속 리마인더 알림 전송에 실패했습니다."),
 
     // ================= 마이데이터 관련 에러 (4900번대) ==================
-    MYDATA_ACCESS_FAILED(4900, UNAUTHORIZED, "마이데이터 토큰이 없거나 만료되었습니다. 인증 절차를 진행해 주세요"),
-    MYDATA_INIT_FAILED(4901, UNAUTHORIZED, "마이데이터 초기화에 실패했습니다."),
+    MYDATA_ACCESS_FAILED(4900, BAD_REQUEST, "마이데이터 토큰이 없거나 만료되었습니다. 인증 절차를 진행해 주세요"),
+    MYDATA_INIT_FAILED(4901, BAD_REQUEST, "마이데이터 초기화에 실패했습니다."),
     MYDATA_RESULT_EMPTY(4902, INTERNAL_SERVER_ERROR, "마이데이터를 불러오지 못했습니다."),
     MYDATA_RECOMMEND_EMPTY(4903, INTERNAL_SERVER_ERROR, "약속 추천 데이터를 받아오지 못했습니다."),
     INVALID_SMS_CODE(4901, BAD_REQUEST, "SMS 인증 코드가 일치하지 않습니다"),

@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from 'react';
 import Colors from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import axiosInstance from '@/app/axiosInstance';
+import { useRouter } from 'expo-router';
 
 const banks = [
   { name: '마이뱅크', logo: require('@/assets/icons/banks/mybank.png') },
@@ -26,6 +27,7 @@ const banks = [
 ];
 
 export default function SelectBankScreen() {
+  const router = useRouter();
   const [selectedBanks, setSelectedBanks] = useState<string[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
@@ -106,8 +108,11 @@ export default function SelectBankScreen() {
       });
 
       console.log('✅ 인증 성공:', res.data);
-      setShowModal(false);
       Alert.alert('인증 완료', 'SMS 인증이 완료되었습니다!');
+      setShowModal(false);
+
+      // ✅ 인증 완료 후 지갑 페이지로 이동
+      router.replace('/wallet/detail');
     } catch (error: any) {
       console.error('❌ 인증 실패:', error?.response?.data || error);
       Alert.alert('인증 실패', error?.response?.data?.message ?? '인증에 실패했습니다.');

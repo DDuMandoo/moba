@@ -163,7 +163,7 @@ public class DutchpayService {
                 notificationService.sendSettlementStarted(host, member, appointment.getName(), sumPrice,
                         sumParticipants.size(), participant.getValue(), dutchpay.getId());
             } catch (FirebaseMessagingException e) {
-                log.error("🔴 FCM 알림 정송 실패");
+                log.error("🔴 FCM 알림 전송 실패");
             }
 
             participantResponse.add(createParticipantResponse(member, false, participant.getValue()));
@@ -277,8 +277,8 @@ public class DutchpayService {
         if (isCompleted) {
             try {
                 notificationService.sendSettlementCompleted(appointment.getName(), member, host, dutchpayId);
-            } catch (Exception e) {
-                throw new DutchpayException(ErrorCode.FCM_SEND_FAILED);
+            } catch (FirebaseMessagingException e) {
+                log.error("🔴 FCM 알림 전송 실패");
             }
         }
 

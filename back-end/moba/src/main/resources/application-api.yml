@@ -1,7 +1,10 @@
-# 은행 accesstoken
 Moba:
   bank:
     accesstoken: ${MOBA_BANK_ACCESSTOKEN}
     account: ${MOBA_BANK_ACCOUNT}
     base:
       url: ${MOBA_BANK_URL}
+#  mydata:
+#    base:
+#      url: ${MOBA_MYDATA_URL}
+

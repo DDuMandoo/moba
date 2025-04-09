@@ -30,6 +30,7 @@ import com.a601.moba.global.code.ErrorCode;
 import com.a601.moba.global.service.S3Service;
 import com.a601.moba.member.Entity.Member;
 import com.a601.moba.member.Repository.MemberRepository;
+import com.a601.moba.notification.Service.NotificationService;
 import com.a601.moba.wallet.Entity.Wallet;
 import com.a601.moba.wallet.Repository.TransactionRepository;
 import com.a601.moba.wallet.Repository.WalletRepository;
@@ -40,10 +41,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AppointmentService {
@@ -58,6 +61,7 @@ public class AppointmentService {
     private final TransactionRepository transactionRepository;
     private final LocationRedisService locationRedisService;
     private final PlaceRepository placeRepository;
+    private final NotificationService notificationService;
 
     public Appointment getAppointment(Integer appointmentId) {
         return appointmentRepository.findById(appointmentId)
@@ -95,7 +99,15 @@ public class AppointmentService {
 
         List<Member> members = memberRepository.findAllByIdIn(request.friends());
         for (Member m : members) {
+            if (m.isDeleted()) {
+                continue;
+            }
             participants.add(createAppointmentParticipant(appointment, m, Role.PARTICIPANT, State.WAIT));
+            try {
+                notificationService.sendInvite(host, m, appointment.getId());
+            } catch (Exception e) {
+                log.error("알림 전송 실패");
+            }
         }
 
         appointmentParticipantRepository.saveAll(participants);
@@ -193,7 +205,7 @@ public class AppointmentService {
         // JOINED 상태의 참여자만 필터링
         List<AppointmentParticipant> participantList = appointmentParticipantRepository
                 .findAllByAppointment(appointment).stream()
-                .filter(p -> p.getState() == State.JOINED || p.getState() == State.WAIT)
+                .filter(p -> (p.getState() == State.JOINED || p.getState() == State.WAIT) && !p.getMember().isDeleted())
                 .toList();
 
         Integer hostId = participantList.stream()
@@ -324,7 +336,7 @@ public class AppointmentService {
 
         List<AppointmentParticipant> joinedParticipants = appointmentParticipantRepository
                 .findAllByAppointment(appointment).stream()
-                .filter(p -> p.getState() == State.JOINED)
+                .filter(p -> p.getState() == State.JOINED && !p.getMember().isDeleted())
                 .toList();
 
         List<AppointmentParticipantResponse.ParticipantInfo> participants = joinedParticipants.stream()
@@ -359,8 +371,12 @@ public class AppointmentService {
                 .findByAppointmentAndMember(appointment, host)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_PARTICIPANT_NOT_FOUND));
 
+        if (newHost.getMember().isDeleted()) {
+            throw new AuthException(ErrorCode.ALREADY_DELETED_MEMBER);
+        }
+
         if (newHost.getState() != State.JOINED) {
-            throw new AppointmentException(ErrorCode.INVALID_REQUEST);
+            throw new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED);
         }
 
         // 권한 위임
@@ -394,6 +410,7 @@ public class AppointmentService {
 
     @Transactional
     public void inviteParticipants(Integer appointmentId, List<Integer> memberIds) {
+        Member host = authUtil.getCurrentMember();
         Appointment appointment = validateHostAccess(appointmentId);
 
         List<Member> members = memberRepository.findAllByIdIn(memberIds);
@@ -402,7 +419,7 @@ public class AppointmentService {
                 appointment, members);
         Set<Integer> alreaySaved = new HashSet<>();
         for (AppointmentParticipant ap : alreadyParticipants) {
-            if (ap.getState() == State.JOINED) {
+            if (ap.getState() == State.JOINED || ap.getMember().isDeleted()) {
                 continue;
             }
             ap.updateState(State.WAIT);
@@ -411,10 +428,18 @@ public class AppointmentService {
 
         List<AppointmentParticipant> participants = new ArrayList<>();
         for (Member m : members) {
+            if (m.isDeleted()) {
+                continue;
+            }
             if (alreaySaved.contains(m.getId())) {
                 continue;
             }
             participants.add(createAppointmentParticipant(appointment, m, Role.PARTICIPANT, State.WAIT));
+            try {
+                notificationService.sendInvite(host, m, appointment.getId());
+            } catch (Exception e) {
+                log.error("알림 전송 실패");
+            }
         }
 
         appointmentParticipantRepository.saveAll(participants);

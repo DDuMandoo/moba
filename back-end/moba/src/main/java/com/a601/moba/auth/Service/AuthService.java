@@ -12,6 +12,8 @@ import com.a601.moba.global.service.S3Service;
 import com.a601.moba.member.Entity.Member;
 import com.a601.moba.member.Repository.MemberRepository;
 import com.a601.moba.wallet.Service.WalletService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import java.util.Optional;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
@@ -156,8 +158,16 @@ public class AuthService {
 
     @Transactional
     public AuthResponse refreshAccessToken(String refreshToken) {
-        if (refreshToken == null || !jwtProvider.isTokenValid(refreshToken)) {
+        if (refreshToken == null) {
             throw new AuthException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        try {
+            jwtProvider.isTokenValid(refreshToken);
+        } catch (ExpiredJwtException e) {
+            throw new AuthException(ErrorCode.EXPIRED_TOKEN_ERROR);
+        } catch (JwtException e) {
+            throw new AuthException(ErrorCode.INVALID_TOKEN);
         }
 
         String email = jwtProvider.getEmailFromToken(refreshToken);
@@ -173,10 +183,34 @@ public class AuthService {
     @Transactional
     public SignupResponse signup(String email, String password, String name) {
         Optional<Member> existingMember = memberRepository.findByEmail(email);
+
         if (existingMember.isPresent()) {
-            throw new AuthException(ErrorCode.EMAIL_ALREADY_EXISTS);
+            Member member = existingMember.get();
+            if (!member.isDeleted()) {
+                // 삭제되지 않은 계정이면 중복 에러
+                throw new AuthException(ErrorCode.EMAIL_ALREADY_EXISTS);
+            } else {
+                // 삭제된 계정이면 복구
+                if (!emailService.isEmailVerified(email)) {
+                    throw new AuthException(ErrorCode.EMAIL_NOT_VERIFIED);
+                }
+
+                String encodedPassword = passwordEncoder.encode(password);
+
+                member.changePassword(encodedPassword);
+                member.updateName(name);
+                member.setDeleted(false);
+                emailService.deleteEmailVerified(email);
+
+                return SignupResponse.builder()
+                        .memberId(member.getId())
+                        .email(member.getEmail())
+                        .name(member.getName())
+                        .build();
+            }
         }
 
+        // 신규 회원 가입
         if (!emailService.isEmailVerified(email)) {
             throw new AuthException(ErrorCode.EMAIL_NOT_VERIFIED);
         }
@@ -192,7 +226,6 @@ public class AuthService {
 
         memberRepository.save(newMember);
         emailService.deleteEmailVerified(email);
-
         walletService.create(newMember);
 
         return SignupResponse.builder()
@@ -201,6 +234,7 @@ public class AuthService {
                 .name(newMember.getName())
                 .build();
     }
+
 
     @Transactional
     public void uploadProfileImage(Integer memberId, MultipartFile image) {
@@ -218,7 +252,15 @@ public class AuthService {
 
     @Transactional
     public void signout(String accessToken) {
-        if (accessToken == null || !jwtProvider.isTokenValid(accessToken)) {
+        if (accessToken == null) {
+            throw new AuthException(ErrorCode.INVALID_TOKEN);
+        }
+
+        try {
+            jwtProvider.isTokenValid(accessToken);
+        } catch (ExpiredJwtException e) {
+            throw new AuthException(ErrorCode.EXPIRED_TOKEN_ERROR);
+        } catch (JwtException e) {
             throw new AuthException(ErrorCode.INVALID_TOKEN);
         }
 

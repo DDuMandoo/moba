@@ -13,11 +13,14 @@ import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 import jakarta.transaction.Transactional;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
@@ -65,7 +68,7 @@ public class FcmTokenService {
     public void send(NotificationRequest dto, Member receiver) throws FirebaseMessagingException {
         FcmToken token = fcmTokenRepository.findByMember(receiver)
                 .orElseThrow(() -> new RuntimeException("FCM 토큰이 존재하지 않습니다."));
-        
+
         Message message = Message.builder()
                 .setToken(token.getToken())
                 .setNotification(Notification.builder()

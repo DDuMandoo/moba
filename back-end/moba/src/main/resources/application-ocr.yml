@@ -1,0 +1,8 @@
+clova:
+  ocr:
+    url: ${CLOVA_OCR_URL}
+    secret: ${CLOVA_OCR_SECRET}
+
+gpt:
+  api:
+    key: ${GPT_API_KEY}

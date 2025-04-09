@@ -3,8 +3,10 @@ package com.a601.moba.global.config;
 import com.a601.moba.appointment.Util.LocationWebSocketHandler;
 import com.a601.moba.global.interceptor.AuthHandshakeInterceptor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
@@ -36,7 +38,18 @@ public class WebSocketConfig implements WebSocketConfigurer, WebSocketMessageBro
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/topic"); // 메시지 구독 prefix
+        registry.enableSimpleBroker("/topic")  // 메시지 구독 prefix
+                .setHeartbeatValue(new long[]{10000, 10000})  // 클라이언트 ↔ 서버 10초 간격 heartbeat
+                .setTaskScheduler(heartbeatScheduler());
         registry.setApplicationDestinationPrefixes("/app"); // 메시지 발송 prefix
+    }
+
+    @Bean
+    public ThreadPoolTaskScheduler heartbeatScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setThreadNamePrefix("ws-heartbeat-");
+        scheduler.setPoolSize(1);
+        scheduler.initialize();
+        return scheduler;
     }
 }

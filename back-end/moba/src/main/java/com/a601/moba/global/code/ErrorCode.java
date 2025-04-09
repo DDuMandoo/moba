@@ -35,6 +35,7 @@ public enum ErrorCode {
     INVALID_TOKEN(4200, UNAUTHORIZED, "유효하지 않은 토큰입니다"),
     TOKEN_NOT_FOUND(4201, UNAUTHORIZED, "토큰이 제공되지 않았습니다"),
     INVALID_REFRESH_TOKEN(4202, UNAUTHORIZED, "유효하지 않은 Refresh Token입니다"),
+    EXPIRED_TOKEN_ERROR(4203, UNAUTHORIZED, "만료된 토큰입니다."),
 
     // ================= 이메일 인증 관련 에러 (4300번대) =================
     EXPIRED_VERIFICATION_CODE(4300, BAD_REQUEST, "인증 코드가 만료되었습니다."),
@@ -61,6 +62,7 @@ public enum ErrorCode {
     APPOINTMENT_LOCATION_FAIL(4412, INTERNAL_SERVER_ERROR, "사용자의 위치를 가져오는데 실패햐였습니다"),
     INVALID_APPOINTMENT_TIME(4413, BAD_REQUEST, "아직 약속 시간 10분 전이 아닙니다"),
     APPOINTMENT_NOT_HOST(4414, BAD_REQUEST, "약속방 방장만 가능한 기능입니다"),
+    APPOINTMENT_LENGTH_NOT_MATCH(4415, BAD_REQUEST, "수정할 장소의 개수가 기존의 장소들의 개수와 같아야 합니다"),
 
     // ================= 장소 관련 에러 (4450번대) ==================
     PLACE_NOT_FOUND(4450, NOT_FOUND, "해당 장소를 찾을 수 없습니다"),
@@ -90,6 +92,8 @@ public enum ErrorCode {
     NOT_MATCH_PRICE(4703, BAD_REQUEST, "합산 금액이 일치하지 않습니다"),
     INVALID_HOST(4704, BAD_REQUEST, "더치페이 호스트의 권한이 없습니다"),
     ALREADY_COMPLETE_DUTCHPAY(4705, BAD_REQUEST, "이미 더치페이 완료한 참가자 입니다"),
+    FAILED_OCR_IMAGE(4706, INTERNAL_SERVER_ERROR, "영수증 ocr에 실패하였습니다"),
+    FAILED_CREATE_DUTCHPAY(4706, INTERNAL_SERVER_ERROR, "더치페이를 생성할 수 없습니다."),
 
     // ================= FCM 관련 에러 (4800번대) ==================
     FCM_TOKEN_NOT_FOUND(4801, BAD_REQUEST, "FCM 토큰이 존재하지 않습니다"),
@@ -99,6 +103,11 @@ public enum ErrorCode {
     FCM_TOKEN_DELETE_FAILED(4805, INTERNAL_SERVER_ERROR, "FCM 토큰 삭제에 실패했습니다"),
     FCM_TOKEN_SEND_APPOINTMENT(4806, INTERNAL_SERVER_ERROR, "FCM에서 약속 리마인더 알림 전송에 실패했습니다."),
     FCM_TOKEN_SEND_APPOINTMENT_MYSERVER(4807, INTERNAL_SERVER_ERROR, "앱 서버에서 약속 리마인더 알림 전송에 실패했습니다."),
+
+    // ================= 마이데이터 관련 에러 (4900번대) ==================
+    MYDATA_ACCESS_FAILED(4900, UNAUTHORIZED, "마이데이터 토큰이 없거나 만료되었습니다. 인증 절차를 진행해 주세요"),
+    INVALID_SMS_CODE(4901, BAD_REQUEST, "SMS 인증 코드가 일치하지 않습니다"),
+
     ;
     private final int code;
     private final HttpStatus httpStatus;

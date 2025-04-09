@@ -34,29 +34,12 @@ public class AppointmentPlace {
     @JoinColumn(name = "appointment_id", nullable = false)
     private Appointment appointment;
 
-    @Column(name = "company_code", nullable = false)
-    private Integer companyCode;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "place_id", nullable = false)
+    private Place place;
 
     @Column(name = "`ORDER`", nullable = false)
     private Integer order;
-
-    @Column(nullable = false)
-    private String name;
-
-    @Column(nullable = false)
-    private String category;
-
-    @Column(nullable = false)
-    private Double latitude;
-
-    @Column(nullable = false)
-    private Double longitude;
-
-    @Column(nullable = false)
-    private String address;
-
-    @Column(name = "kakao_url")
-    private String kakaoUrl;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)

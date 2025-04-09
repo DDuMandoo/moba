@@ -73,6 +73,7 @@ public class SecurityConfig {
                                 .requestMatchers("/api/auth/kakao/callback").permitAll()
                                 .requestMatchers("/api/ws/**").permitAll()
                                 .requestMatchers("/api/chat.send").permitAll()
+                                .requestMatchers("/api/chat/**").permitAll()
 //                              .requestMatchers("/api/auth/social/kakao").permitAll()
                                 .requestMatchers("/api/emails/send").permitAll()
                                 .requestMatchers("/api/emails/verify").permitAll()

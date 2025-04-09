@@ -10,6 +10,7 @@ import com.a601.moba.dutch.Controller.Response.CompleteDutchpayResponse;
 import com.a601.moba.dutch.Controller.Response.CreateDutchpayResponse;
 import com.a601.moba.dutch.Controller.Response.GetDemandDutchpayResponse;
 import com.a601.moba.dutch.Controller.Response.GetReceiptDutchpayResponse;
+import com.a601.moba.dutch.Controller.Response.OcrDutchpayResponse;
 import com.a601.moba.dutch.Controller.Response.TransferDutchpayResponse;
 import com.a601.moba.dutch.Entity.Dutchpay;
 import com.a601.moba.dutch.Entity.DutchpayParticipant;
@@ -17,11 +18,14 @@ import com.a601.moba.dutch.Entity.DutchpayParticipantId;
 import com.a601.moba.dutch.Exception.DutchpayException;
 import com.a601.moba.dutch.Repository.DutchpayParticipantRepository;
 import com.a601.moba.dutch.Repository.DutchpayRepository;
+import com.a601.moba.dutch.Service.Dto.ClovaOcrRequest;
 import com.a601.moba.dutch.Service.Dto.FindDutchpayWithParticipantsDto;
 import com.a601.moba.dutch.Service.Dto.FindReceiptsByWalletDto;
+import com.a601.moba.dutch.Service.Dto.MultipartInputStreamFileResource;
 import com.a601.moba.global.code.ErrorCode;
 import com.a601.moba.member.Entity.Member;
 import com.a601.moba.member.Repository.MemberRepository;
+import com.a601.moba.notification.Service.NotificationService;
 import com.a601.moba.wallet.Entity.Transaction;
 import com.a601.moba.wallet.Entity.TransactionStatus;
 import com.a601.moba.wallet.Entity.TransactionType;
@@ -30,7 +34,12 @@ import com.a601.moba.wallet.Exception.WalletAuthException;
 import com.a601.moba.wallet.Repository.TransactionRepository;
 import com.a601.moba.wallet.Repository.WalletRepository;
 import com.a601.moba.wallet.Service.WalletService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import jakarta.transaction.Transactional;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -41,7 +50,16 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
@@ -56,6 +74,17 @@ public class DutchpayService {
     private final DutchpayRepository dutchpayRepository;
     private final AuthUtil authUtil;
     private final WalletService walletService;
+    private final NotificationService notificationService;
+    private final ObjectMapper objectMapper;
+
+    @Value("${clova.ocr.url}")
+    private String apiUrl;
+
+    @Value("${clova.ocr.secret}")
+    private String secretKey;
+
+    @Value("${gpt.api.key}")
+    private String gptApiKey;
 
     public Member getMemberByEmail(String email) {
         return memberRepository.findByEmail(email)
@@ -88,6 +117,10 @@ public class DutchpayService {
         Member host = authUtil.getCurrentMember();
         Appointment appointment = getAppointmentById(appointmentId);
         Wallet hostWallet = getWalletByMemberId(host.getId());
+
+        if (participants.size() == 1 && Objects.equals(participants.get(0).memberId(), host.getId())) {
+            throw new DutchpayException(ErrorCode.FAILED_CREATE_DUTCHPAY);
+        }
 
         Dutchpay dutchpay = dutchpayRepository.save(Dutchpay.builder()
                 .appointment(appointment)
@@ -123,7 +156,15 @@ public class DutchpayService {
             Transaction withdrawTransaction = createTransaction(wallet, hostWallet, participant.getValue(),
                     TransactionType.W);
 
-            createParticipant(depositTransaction, withdrawTransaction, wallet, participant.getValue(), dutchpay, false);
+            DutchpayParticipant dutchpayParticipant = createParticipant(depositTransaction, withdrawTransaction, wallet,
+                    participant.getValue(), dutchpay, false);
+
+            try {
+                notificationService.sendSettlementStarted(host, member, appointment.getName(), sumPrice,
+                        sumParticipants.size(), participant.getValue(), dutchpay.getId());
+            } catch (FirebaseMessagingException e) {
+                log.error("🔴 FCM 알림 정송 실패");
+            }
 
             participantResponse.add(createParticipantResponse(member, false, participant.getValue()));
         }
@@ -153,9 +194,10 @@ public class DutchpayService {
                 .build());
     }
 
-    public void createParticipant(Transaction depositTransaction, Transaction withdrawTransaction, Wallet wallet,
-                                  Long price, Dutchpay dutchpay, boolean status) {
-        dutchpayParticipantRepository.save(DutchpayParticipant.builder()
+    public DutchpayParticipant createParticipant(Transaction depositTransaction, Transaction withdrawTransaction,
+                                                 Wallet wallet,
+                                                 Long price, Dutchpay dutchpay, boolean status) {
+        return dutchpayParticipantRepository.save(DutchpayParticipant.builder()
                 .dutchpay(dutchpay)
                 .wallet(wallet)
                 .price(price)
@@ -226,12 +268,19 @@ public class DutchpayService {
 
         walletService.dutchpayTransfer(wallet, hostWallet, dutchpayParticipant.getWithdrawTransaction(),
                 dutchpayParticipant.getDepositTransaction(),
-                dutchpay.getPrice());
+                dutchpayParticipant.getPrice());
         log.info("🟢 이체 완료");
+        dutchpayParticipant.updateStatus(true);
 
         boolean isCompleted = dutchpay.updateSettlement(dutchpayParticipant.getPrice());
-
         Appointment appointment = dutchpay.getAppointment();
+        if (isCompleted) {
+            try {
+                notificationService.sendSettlementCompleted(appointment.getName(), member, host, dutchpayId);
+            } catch (Exception e) {
+                throw new DutchpayException(ErrorCode.FCM_SEND_FAILED);
+            }
+        }
 
         return TransferDutchpayResponse.builder()
                 .appointmentId(appointment.getId())
@@ -337,5 +386,87 @@ public class DutchpayService {
                 .isCompleted(d.status())
                 .time(d.createdAt())
                 .build();
+    }
+
+    public List<OcrDutchpayResponse> ocrAndAnalyzeReceipt(MultipartFile image) throws IOException {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String fileName = image.getOriginalFilename();
+        String format = fileName.substring(fileName.lastIndexOf('.') + 1);
+
+        String message = objectMapper.writeValueAsString(new ClovaOcrRequest(format, fileName));
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("message", message);
+        body.add("file", new MultipartInputStreamFileResource(image.getInputStream(), fileName));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        headers.set("X-OCR-SECRET", secretKey);
+
+        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
+        ResponseEntity<String> response = restTemplate.postForEntity(apiUrl, request, String.class);
+
+        String receiptText = extractAllText(objectMapper.readTree(response.getBody()));
+
+        return analyzeReceiptWithGpt(receiptText);
+    }
+
+    public List<OcrDutchpayResponse> analyzeReceiptWithGpt(String receiptText) throws IOException {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String prompt = """
+                다음 영수증에서 품목 이름, 수량, 단가, 총액을 JSON 형식으로 뽑아줘.
+                결과는 [{"item": "제품명", "quantity": 수량, "price": 단가, "total": 총액}] 형태로 반환해.
+                단, 숫자에는 쉼표(,)를 사용하지 마.
+                """ + receiptText;
+
+        ObjectNode userMessage = objectMapper.createObjectNode();
+        userMessage.put("role", "user");
+        userMessage.put("content", prompt);
+
+        ObjectNode requestBody = objectMapper.createObjectNode();
+        requestBody.put("model", "gpt-3.5-turbo");
+        requestBody.set("messages", objectMapper.createArrayNode().add(userMessage));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(gptApiKey);
+
+        HttpEntity<String> request = new HttpEntity<>(objectMapper.writeValueAsString(requestBody), headers);
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                "https://api.openai.com/v1/chat/completions", request, String.class);
+
+        JsonNode root = objectMapper.readTree(response.getBody());
+        String content = root.path("choices").get(0).path("message").path("content").asText();
+
+        String cleanedContent = content.replaceAll("(?<=\\d),(?=\\d)", "");
+
+        List<OcrDutchpayResponse> result = new ArrayList<>();
+        try {
+            JsonNode itemsNode = objectMapper.readTree(cleanedContent);
+            for (JsonNode itemNode : itemsNode) {
+                result.add(OcrDutchpayResponse.builder()
+                        .item(itemNode.path("item").asText())
+                        .quantity(itemNode.path("quantity").asInt())
+                        .price(itemNode.path("price").asInt())
+                        .total(itemNode.path("total").asInt())
+                        .build());
+            }
+        } catch (Exception e) {
+            throw new IOException("GPT 응답을 JSON으로 파싱할 수 없습니다: " + content, e);
+        }
+
+        return result;
+    }
+
+    public String extractAllText(JsonNode response) {
+        StringBuilder result = new StringBuilder();
+        JsonNode fields = response.path("images").get(0).path("fields");
+
+        for (JsonNode field : fields) {
+            result.append(field.path("inferText").asText()).append(" ");
+        }
+
+        return result.toString().trim();
     }
 }

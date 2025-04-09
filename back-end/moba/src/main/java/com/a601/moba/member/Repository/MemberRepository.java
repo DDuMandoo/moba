@@ -18,6 +18,7 @@ public interface MemberRepository extends JpaRepository<Member, Integer> {
     @Query("""
                 SELECT m FROM Member m
                 WHERE (LOWER(m.name) LIKE %:keyword% OR LOWER(m.email) LIKE %:keyword%)
+                AND m.isDeleted = false
                 AND (:cursorId IS NULL OR m.id > :cursorId)
                 ORDER BY m.id ASC
             """)

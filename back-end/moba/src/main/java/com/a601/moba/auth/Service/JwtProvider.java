@@ -1,16 +1,14 @@
 package com.a601.moba.auth.Service;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import javax.crypto.SecretKey;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 @Service
 public class JwtProvider {
@@ -18,14 +16,13 @@ public class JwtProvider {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    private final long ACCESS_EXPIRATION_TIME = 1000 * 60 * 30;  // 30분
-    private final long REFRESH_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 21;  // 21일
-
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateAccessToken(String email) {
+        // 30분
+        long ACCESS_EXPIRATION_TIME = 1000 * 60 * 30;
         return Jwts.builder()
                 .setSubject(email)
                 .setExpiration(new Date(System.currentTimeMillis() + ACCESS_EXPIRATION_TIME))
@@ -34,6 +31,8 @@ public class JwtProvider {
     }
 
     public String generateRefreshToken(String email) {
+        // 21일
+        long REFRESH_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 21;
         return Jwts.builder()
                 .setSubject(email)
                 .setExpiration(new Date(System.currentTimeMillis() + REFRESH_EXPIRATION_TIME))
@@ -60,11 +59,8 @@ public class JwtProvider {
     }
 
     public boolean isTokenValid(String token) {
-        try {
-            Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+        Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token);
+        return true;
     }
+
 }

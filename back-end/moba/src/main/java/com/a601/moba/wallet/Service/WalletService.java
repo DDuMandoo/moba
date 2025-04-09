@@ -6,6 +6,7 @@ import com.a601.moba.global.code.ErrorCode;
 import com.a601.moba.global.response.JSONResponse;
 import com.a601.moba.member.Entity.Member;
 import com.a601.moba.member.Repository.MemberRepository;
+import com.a601.moba.notification.Service.NotificationService;
 import com.a601.moba.wallet.Controller.Response.ConnectAccountResponse;
 import com.a601.moba.wallet.Controller.Response.DepositWalletResponse;
 import com.a601.moba.wallet.Controller.Response.GetAccountResponse;
@@ -50,6 +51,7 @@ public class WalletService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthUtil authUtil;
+    private final NotificationService notificationService;
 
     @Value("${moba.bank.base.url}")
     private String BANK_URL;
@@ -384,6 +386,8 @@ public class WalletService {
 
             withdrawTransaction.updateStatus(TransactionStatus.COMPLETED);
             depositTransaction.updateStatus(TransactionStatus.COMPLETED);
+
+            notificationService.sendSettlementPaid(wallet.getMember(), targetWallet.getMember(), amount);
         } catch (Exception e) {
             log.error("🔴 이체 실패: {}", e.getMessage());
             throw new RuntimeException(e);
@@ -410,6 +414,8 @@ public class WalletService {
 
             withdrawTransaction.updateStatus(TransactionStatus.COMPLETED);
             depositTransaction.updateStatus(TransactionStatus.COMPLETED);
+
+            notificationService.sendSettlementPaid(wallet.getMember(), targetWallet.getMember(), amount);
         } catch (Exception e) {
             log.error("🔴 이체 실패: {}", e.getMessage());
             throw new RuntimeException(e);

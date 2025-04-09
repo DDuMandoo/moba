@@ -53,7 +53,7 @@ public class MydataService {
         // access token이 아예 없을 때
         String status = mydataRedisService.getSmsVerificationStatus(member.getId());
         // access token이 없고 sms 인증 안했을 때
-        if (!status.equals("VERIFIED")) {
+        if (status==null || !status.equals("VERIFIED")) {
             throw new MydataException(ErrorCode.MYDATA_ACCESS_FAILED);
         }
         // 문자 인증이 됐을 때

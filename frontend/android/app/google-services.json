@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "186449749876",
+    "project_id": "moba-62c96",
+    "storage_bucket": "moba-62c96.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:186449749876:android:1bf37939b4b3f26721ee21",
+        "android_client_info": {
+          "package_name": "com.keon211.frontend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCSCrFAsbQDjXZRHEEbVBXjl1xllg6jePU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

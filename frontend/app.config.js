@@ -6,7 +6,7 @@ export default {
     slug: 'frontend',
     version: '1.0.0',
     orientation: 'portrait',
-    icon: './assets/Icon.png',
+    icon: './assets/icons/header/Logo.png',
     scheme: 'moyo',
     deeplink: true,
     userInterfaceStyle: 'automatic',
@@ -17,11 +17,22 @@ export default {
     },
     android: {
       package: 'com.keon211.frontend',
+      googleServicesFile: './android/app/google-services.json',
       adaptiveIcon: {
         foregroundImage: './assets/Icon.png',
         backgroundColor: '#F2F0EF'
       }
     },
+    androidIntentFilters: [
+      {
+        action: 'VIEW',
+        data: {
+          scheme: 'moyo',
+          host: '*'
+        },
+        category: ['BROWSABLE', 'DEFAULT']
+      }
+    ],
     web: {
       bundler: 'metro',
       output: 'static',
@@ -53,7 +64,7 @@ export default {
     },
     extra: {
       eas: {
-        projectId: "2bad2fad-f4ca-48e9-b77b-539b2125bbc1"
+        "projectId": "2bad2fad-f4ca-48e9-b77b-539b2125bbc1"
       },
       API_URL: process.env.EXPO_PUBLIC_API_URL || 'http://j12a601.p.ssafy.io/api'
     }

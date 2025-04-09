@@ -65,7 +65,7 @@ public class NotificationService {
                 .title("약속 초대")
                 .body(sender.getName() + "님이 약속에 초대했어요!")
                 .type(Type.INVITE)
-                .deepLink("/invite/" + appointmentId)
+                .deepLink("/promises/" + appointmentId)
                 .build());
     }
 
@@ -76,7 +76,7 @@ public class NotificationService {
                 .title(appointmentName + "약속 10분 전!")
                 .body("곧 약속 시간이예요.")
                 .type(Type.REMINDER)
-                .deepLink("/appointments/" + appointmentId)
+                .deepLink("/promises/" + appointmentId)
                 .build());
     }
 
@@ -92,8 +92,8 @@ public class NotificationService {
                 .receiverId(receiver.getId())
                 .title(title)
                 .body(body)
-                .type(Type.PAY)
-                .deepLink("/settlements/" + settlementId)
+                .type(Type.SETTLEMENT)
+                .deepLink("wallet/settlement/send/" + settlementId)
                 .build();
 
         notify(sender, receiver, dto);
@@ -108,7 +108,7 @@ public class NotificationService {
                 .title(title)
                 .body(body)
                 .type(Type.PAY)
-                .deepLink("/wallet")
+                .deepLink("/wallet/detail")
                 .build();
         notify(sender, receiver, dto);
     }

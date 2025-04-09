@@ -113,5 +113,4 @@ public class BankController {
         List<GetReceiptResponse> responses = bankService.getReceipt(uniqueId);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.REQUEST_SUCCESS, responses));
     }
-
 }

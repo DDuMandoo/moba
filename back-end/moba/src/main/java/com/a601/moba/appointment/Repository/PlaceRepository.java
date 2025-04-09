@@ -20,4 +20,13 @@ public interface PlaceRepository extends JpaRepository<Place, Integer> {
             @Param("cursorId") Integer cursorId,
             Pageable pageable
     );
+
+    @Query(value = """
+                SELECT p FROM Place p
+                WHERE FUNCTION('ST_Distance_Sphere',
+                    point(:longitude, :latitude),
+                    point(p.longitude, p.latitude)
+                ) <= 1500
+            """)
+    List<Place> findNearbyPlaces(@Param("latitude") double latitude, @Param("longitude") double longitude);
 }

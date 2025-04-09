@@ -62,6 +62,7 @@ public class AppointmentService {
     private final LocationRedisService locationRedisService;
     private final PlaceRepository placeRepository;
     private final NotificationService notificationService;
+    private final PlaceRecommendationService placeRecommendationService;
 
     public Appointment getAppointment(Integer appointmentId) {
         return appointmentRepository.findById(appointmentId)
@@ -92,6 +93,9 @@ public class AppointmentService {
                 .inviteUrl(inviteCode)
                 .isEnded(false)
                 .build());
+
+        // 비동기 근처 장소 저장 호출
+        placeRecommendationService.processNearbyRecommendations(appointment);
 
         List<AppointmentParticipant> participants = new ArrayList<>();
         Member host = authUtil.getCurrentMember();

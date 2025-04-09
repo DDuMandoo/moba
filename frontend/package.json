@@ -65,7 +65,8 @@
     "sockjs-client": "^1.6.1",
     "expo-media-library": "~17.0.6",
     "react-native-webview": "13.12.5",
-    "expo-clipboard": "~7.0.1"
+    "expo-clipboard": "~7.0.1",
+    "react-native-svg": "15.8.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

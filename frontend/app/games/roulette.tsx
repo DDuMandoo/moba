@@ -1,274 +1,337 @@
-import React, { useRef, useState, useEffect } from 'react';
+// SvgRoulette.tsx
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
+  TextInput,
   StyleSheet,
   Animated,
   Easing,
-  TextInput,
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-  PanResponder,
+  Pressable,
+  Modal,
   Dimensions,
+  Alert,
+  FlatList,
+  Image,
+  GestureResponderEvent,
+  PanResponder,
+  PanResponderGestureState,
 } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
-import { Button } from '@/components/ui/Button';
+import Svg, { G, Path, Text as SvgText } from 'react-native-svg';
+import * as Haptics from 'expo-haptics';
 import Colors from '@/constants/Colors';
 
-const ROULETTE_SIZE = 300;
+const SIZE = Dimensions.get('window').width * 0.9;
+const CENTER = SIZE / 2;
 const SLICE_COLORS = [
-  '#FF6B6B', '#FFD93D', '#6BCB77', '#4D96FF', '#FF6BD6',
-  '#6A67CE', '#FF9F1C', '#00C9A7', '#FF5F5D', '#00B8D9',
+  '#FFB3BA', '#FFDFBA', '#FFFFBA', '#BAFFC9',
+  '#BAE1FF', '#E2BAFF', '#FFD6FF', '#C2F0FC',
 ];
 
-export default function CustomRouletteGame() {
-  const spinAnim = useRef(new Animated.Value(0)).current;
-  const lastAngle = useRef(0);
-  const currentAngle = useRef(0);
-
-  const [options, setOptions] = useState<string[]>(['치킨', '피자']);
-  const [input, setInput] = useState('');
+export default function SvgRoulette() {
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+  const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState<string | null>(null);
-  const [isSpinning, setIsSpinning] = useState(false);
+  const [items, setItems] = useState<string[]>([]);
+  const [input, setInput] = useState('');
+  const anglePerItem = 360 / (items.length || 1);
 
-  useEffect(() => {
-    const id = spinAnim.addListener(({ value }) => {
-      currentAngle.current = value;
-    });
-    return () => spinAnim.removeListener(id);
-  }, []);
+  const spin = (velocity = 1) => {
+    if (spinning || items.length < 2) return;
 
-  const addOption = () => {
-    if (!input.trim()) return;
-    if (options.length >= 10) {
-      Alert.alert('제한', '최대 10개까지 입력할 수 있어요.');
-      return;
-    }
-    setOptions((prev) => [...prev, input.trim()]);
-    setInput('');
-  };
+    const rand = Math.floor(Math.random() * items.length);
+    const baseDeg = 360 * 5;
+    const finalDeg = baseDeg + (360 - rand * anglePerItem - anglePerItem / 2 - 90);
 
-  const spinWheel = () => {
-    if (isSpinning || options.length < 2) {
-      Alert.alert('입력 필요', '최소 2개 이상의 항목을 입력해주세요.');
-      return;
-    }
-
-    setIsSpinning(true);
+    setSpinning(true);
     setResult(null);
 
-    const rounds = 5;
-    const selected = Math.floor(Math.random() * options.length);
-    const anglePerItem = 360 / options.length;
-    const finalAngle = 360 * rounds + selected * anglePerItem + anglePerItem / 2;
-
-    Animated.timing(spinAnim, {
-      toValue: lastAngle.current + finalAngle,
-      duration: 3000,
-      useNativeDriver: true,
-      easing: Easing.out(Easing.exp),
-    }).start(() => {
-      lastAngle.current += finalAngle;
-      const adjusted = lastAngle.current % 360;
-      const index = Math.floor(adjusted / anglePerItem) % options.length;
-      setResult(options[index]);
-      setIsSpinning(false);
+    Animated.sequence([
+      Animated.timing(rotateAnim, {
+        toValue: finalDeg - 20,
+        duration: Math.min(Math.max(velocity * 7000, 2000), 9000),
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.spring(rotateAnim, {
+        toValue: finalDeg,
+        friction: 5,
+        tension: 40,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setResult(items[rand]);
+      setSpinning(false);
+      rotateAnim.setValue(finalDeg % 360);
     });
   };
-
-  const interpolatedRotate = spinAnim.interpolate({
-    inputRange: [0, 360],
-    outputRange: ['0deg', '360deg'],
-  });
 
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => !isSpinning,
-      onMoveShouldSetPanResponder: () => !isSpinning,
-      onPanResponderMove: (_, gestureState) => {
-        const angleDelta = gestureState.dx * 0.5;
-        spinAnim.setValue(lastAngle.current + angleDelta);
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        return Math.abs(gestureState.dx) > 10 || Math.abs(gestureState.dy) > 10;
       },
-      onPanResponderRelease: (_, gestureState) => {
-        const velocity = gestureState.vx;
-        Animated.decay(spinAnim, {
-          velocity: velocity * 5,
-          deceleration: 0.995,
-          useNativeDriver: true,
-        }).start(() => {
-          lastAngle.current = currentAngle.current % 360;
-        });
+      onPanResponderRelease: (_evt: GestureResponderEvent, gestureState: PanResponderGestureState) => {
+        if (spinning || items.length < 2) return;
+        const velocity = Math.sqrt(gestureState.vx ** 2 + gestureState.vy ** 2);
+        if (velocity > 0.1) spin(velocity);
       },
     })
   ).current;
 
+  const interpolated = rotateAnim.interpolate({
+    inputRange: [0, 360],
+    outputRange: ['0deg', '360deg'],
+  });
+
   const renderSlices = () => {
-    const anglePerItem = 360 / options.length;
-    return options.map((label, index) => {
-      const backgroundColor = SLICE_COLORS[index % SLICE_COLORS.length];
-      const rotateDeg = anglePerItem * index;
+    if (items.length === 0) return null;
+    return items.map((label, i) => {
+      const startAngle = i * anglePerItem;
+      const endAngle = startAngle + anglePerItem;
+      const largeArc = anglePerItem > 180 ? 1 : 0;
+
+      const x1 = CENTER + CENTER * Math.cos((Math.PI * startAngle) / 180);
+      const y1 = CENTER + CENTER * Math.sin((Math.PI * startAngle) / 180);
+      const x2 = CENTER + CENTER * Math.cos((Math.PI * endAngle) / 180);
+      const y2 = CENTER + CENTER * Math.sin((Math.PI * endAngle) / 180);
+
+      const d = `M${CENTER},${CENTER} L${x1},${y1} A${CENTER},${CENTER} 0 ${largeArc} 1 ${x2},${y2} Z`;
+
+      const textAngle = startAngle + anglePerItem / 2;
+      const textRadius = CENTER * 0.7;
+      const textX = CENTER + textRadius * Math.cos((Math.PI * textAngle) / 180);
+      const textY = CENTER + textRadius * Math.sin((Math.PI * textAngle) / 180);
+
       return (
-        <View
-          key={index}
-          style={[
-            styles.slice,
-            {
-              backgroundColor,
-              transform: [
-                { rotate: `${rotateDeg}deg` },
-                { translateY: -ROULETTE_SIZE / 4 },
-              ],
-            },
-          ]}
-        >
-          <Text style={styles.sliceText}>{label}</Text>
-        </View>
+        <G key={i}>
+          <Path d={d} fill={SLICE_COLORS[i % SLICE_COLORS.length]} />
+          <SvgText
+            fill={Colors.black}
+            fontSize={16}
+            fontWeight="bold"
+            x={textX}
+            y={textY}
+            transform={`rotate(${textAngle + 90}, ${textX}, ${textY})`}
+            textAnchor="middle"
+          >
+            {label}
+          </SvgText>
+        </G>
       );
     });
   };
 
-  return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.select({ ios: 'padding' })}>
-      <Text style={styles.title}>🎯 커스텀 룰렛</Text>
+  const addItem = () => {
+    if (input.length > 6) {
+      Alert.alert('제한', '6글자 이하만 입력할 수 있어요.');
+      return;
+    }
 
-      <View style={styles.rouletteWrapper}>
-        <Animated.View
-          {...panResponder.panHandlers}
-          style={[styles.roulette, { transform: [{ rotate: interpolatedRotate }] }]}
-        >
-          {renderSlices()}
+    const trimmed = input.trim();
+    if (!trimmed) return;
+    if (items.length >= 8) {
+      Alert.alert('제한', '최대 8개까지만 입력할 수 있어요.');
+      return;
+    }
+    setItems([...items, trimmed]);
+    setInput('');
+  };
+
+  const removeItem = (index: number) => {
+    setItems((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  return (
+    <View style={styles.container} {...panResponder.panHandlers}>
+      <View style={styles.arrow} />
+
+      <View style={styles.wheelWrapper}>
+        <Animated.View style={[{ transform: [{ rotate: interpolated }] }]}> 
+          <Svg width={SIZE} height={SIZE}>{renderSlices()}</Svg>
         </Animated.View>
-        <View style={styles.pointer} />
+        <Pressable style={styles.spinButton} onPress={() => spin()}>
+          <Image
+            source={require('@/assets/images/wonderCapybara.png')}
+            style={{ width: 48, height: 48 }}
+            resizeMode="contain"
+          />
+        </Pressable>
       </View>
 
-      <View style={styles.inputBox}>
+      <View style={styles.inputRow}>
         <TextInput
           value={input}
           onChangeText={setInput}
-          placeholder="항목 입력 (예: 짜장면)"
+          placeholder="무엇이든 입력해 보세요"
           style={styles.input}
-          onSubmitEditing={addOption}
-          returnKeyType="done"
+          onSubmitEditing={addItem}
         />
-        <Button.Small title="추가" onPress={addOption} />
+        <Pressable onPress={addItem} style={styles.addButton}>
+          <Text style={styles.addText}>추가</Text>
+        </Pressable>
       </View>
 
       <FlatList
-        data={options}
-        keyExtractor={(item, idx) => `${item}-${idx}`}
-        horizontal
-        style={styles.optionList}
-        contentContainerStyle={styles.optionListContent}
-        renderItem={({ item }) => <Text style={styles.optionItem}>{item}</Text>}
-        showsHorizontalScrollIndicator={false}
+        data={items}
+        keyExtractor={(item, index) => item + index}
+        contentContainerStyle={styles.itemList}
+        renderItem={({ item, index }) => (
+          <View style={styles.itemTag}>
+            <Text style={styles.itemText}>{item}</Text>
+            <Pressable onPress={() => removeItem(index)}>
+              <Text style={styles.itemRemove}>×</Text>
+            </Pressable>
+          </View>
+        )}
+        numColumns={4}
+        columnWrapperStyle={{ justifyContent: 'flex-start' }}
+        showsVerticalScrollIndicator={false}
       />
 
-      <View style={styles.footer}>
-        <Button.Large title="돌리기" onPress={spinWheel} disabled={isSpinning} />
-        {result && <Text style={styles.resultText}>🎉 결과: {result}</Text>}
-      </View>
-    </KeyboardAvoidingView>
+      <Modal visible={!!result} transparent animationType="fade">
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>🎉 결과 🎉</Text>
+            <Text style={styles.modalResult}>{result}</Text>
+            <Pressable style={styles.modalClose} onPress={() => setResult(null)}>
+              <Text style={styles.modalCloseText}>확인</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: Colors.background,
     paddingTop: 60,
-    paddingHorizontal: 20,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.primary,
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  rouletteWrapper: {
-    width: ROULETTE_SIZE,
-    height: ROULETTE_SIZE,
-    justifyContent: 'center',
+  wheelWrapper: {
+    width: SIZE,
+    height: SIZE,
     alignItems: 'center',
-    alignSelf: 'center',
-  },
-  roulette: {
-    width: ROULETTE_SIZE,
-    height: ROULETTE_SIZE,
-    borderRadius: ROULETTE_SIZE / 2,
-    borderWidth: 2,
-    borderColor: Colors.primary,
     justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
   },
-  slice: {
+  arrow: {
     position: 'absolute',
-    width: '50%',
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 20,
-  },
-  sliceText: {
-    fontSize: 14,
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  pointer: {
-    position: 'absolute',
-    top: -10,
+    top: 20,
     width: 0,
     height: 0,
-    borderLeftWidth: 10,
-    borderRightWidth: 10,
-    borderBottomWidth: 20,
+    borderLeftWidth: 12,
+    borderRightWidth: 12,
+    borderTopWidth: 24,
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
-    borderBottomColor: 'red',
+    borderTopColor: Colors.primary,
+    zIndex: 10,
   },
-  inputBox: {
-    flexDirection: 'row',
+  spinButton: {
+    position: 'absolute',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: Colors.white,
     alignItems: 'center',
-    marginTop: 20,
-    gap: 8,
+    justifyContent: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    marginTop: 24,
+    paddingHorizontal: 20,
+    width: '100%',
+    gap: 12,
   },
   input: {
     flex: 1,
     height: 44,
-    borderWidth: 1,
-    borderColor: Colors.primary,
+    backgroundColor: Colors.white,
     borderRadius: 8,
     paddingHorizontal: 12,
     fontSize: 16,
-    backgroundColor: Colors.white,
   },
-  optionList: {
+  addButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+  },
+  addText: {
+    color: Colors.white,
+    fontWeight: 'bold',
+  },
+  itemList: {
+    paddingHorizontal: 20,
     marginTop: 16,
-    maxHeight: 32,
-  },
-  optionListContent: {
+    rowGap: 12,
+    flexGrow: 1,
+    flexShrink: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
-    paddingHorizontal: 4,
   },
-  optionItem: {
-    backgroundColor: Colors.grayLightText,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    fontSize: 14,
-    color: Colors.text,
-  },
-  footer: {
-    marginTop: 36,
+  itemTag: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    backgroundColor: Colors.background,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginRight: 8,
   },
-  resultText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text,
+  itemText: {
+    color: Colors.primary,
+    marginRight: 8,
+  },
+  itemRemove: {
+    color: Colors.logo,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalBox: {
+    backgroundColor: Colors.white,
+    borderRadius: 20,
+    padding: 24,
+    width: 260,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  modalResult: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: Colors.primary,
+    marginBottom: 16,
+  },
+  modalClose: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 16,
+  },
+  modalCloseText: {
+    color: Colors.white,
+    fontWeight: 'bold',
   },
 });

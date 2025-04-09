@@ -28,7 +28,7 @@ public class AppointmentReminderScheduler {
     private final AppointmentParticipantRepository appointmentParticipantRepository;
     private final NotificationService notificationService;
 
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul")
     public void sendReminders() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime targetTime = now.plusMinutes(10);

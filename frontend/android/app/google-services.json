@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:186449749876:android:7adb3a6d9e92739321ee21",
+        "mobilesdk_app_id": "1:186449749876:android:1bf37939b4b3f26721ee21",
         "android_client_info": {
-          "package_name": "com.keon21.frontend"
+          "package_name": "com.keon211.frontend"
         }
       },
       "oauth_client": [],

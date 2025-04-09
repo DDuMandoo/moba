@@ -7,20 +7,31 @@ export default {
     version: '1.0.0',
     orientation: 'portrait',
     icon: './assets/icons/header/Logo.png',
-    scheme: 'myapp',
+    scheme: 'moyo',
     userInterfaceStyle: 'automatic',
     newArchEnabled: true,
-    owner: 'keon21',
+    owner: 'keon211',
     ios: {
       supportsTablet: true
     },
     android: {
-      package: 'com.keon21.frontend',
+      package: 'com.keon211.frontend',
+      googleServicesFile: './android/app/google-services.json',
       adaptiveIcon: {
         foregroundImage: './assets/icons/header/Logo.png',
         backgroundColor: '#F2F0EF'
       }
     },
+    androidIntentFilters: [
+      {
+        action: 'VIEW',
+        data: {
+          scheme: 'moyo',
+          host: '*'
+        },
+        category: ['BROWSABLE', 'DEFAULT']
+      }
+    ],
     web: {
       bundler: 'metro',
       output: 'static',
@@ -52,7 +63,7 @@ export default {
     },
     extra: {
       eas: {
-        "projectId": "8a4e1f1c-4b39-4b1b-8a62-ad91849b85bb"
+        "projectId": "2bad2fad-f4ca-48e9-b77b-539b2125bbc1"
       },
       API_URL: process.env.EXPO_PUBLIC_API_URL || 'http://j12a601.p.ssafy.io/api'
     }

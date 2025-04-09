@@ -52,6 +52,8 @@ export default function SelectBankScreen() {
   };
 
   const isAllSelected = selectedBanks.length === banks.length;
+  const isDisabled = selectedBanks.length === 0;
+
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: '#f6f5f3' }}>
@@ -127,19 +129,31 @@ export default function SelectBankScreen() {
       </View>
 
       <TouchableOpacity
+        disabled={isDisabled}
         style={{
           margin: 20,
-          backgroundColor: Colors.primary,
+          backgroundColor: isDisabled ? Colors.gray200 : Colors.primary,
           padding: 16,
           borderRadius: 12,
           alignItems: 'center',
         }}
-        onPress={() => setShowModal(true)}
+        onPress={() => {
+          console.log('선택된 은행:', selectedBanks);
+          setShowModal(true)
+        }}
       >
-        <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>인증하기</Text>
+        <Text
+          style={{
+            color: isDisabled ? Colors.grayDarkText : '#fff',
+            fontWeight: 'bold',
+            fontSize: 16,
+          }}
+        >
+          인증하기
+        </Text>
       </TouchableOpacity>
 
-      {/* ✅ SMS 인증 모달 */}
+      {/* SMS 인증 모달 */}
       <Modal
         visible={showModal}
         animationType="none"
@@ -242,7 +256,7 @@ export default function SelectBankScreen() {
               }}
               onPress={() => {
                 setShowModal(false);
-                // 인증 완료 처리 등...
+                // 추가 로직 넣기! 후후후
               }}
             >
               <Text style={{ color: '#fff', fontWeight: 'bold' }}>인증하기</Text>

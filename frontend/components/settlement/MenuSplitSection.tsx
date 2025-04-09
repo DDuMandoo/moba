@@ -15,6 +15,7 @@ import Fonts from '@/constants/Fonts';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '@/app/axiosInstance';
+import { Alert } from 'react-native';
 
 interface Participant {
   memberId: number;
@@ -149,7 +150,27 @@ const MenuSplitSection = forwardRef<MenuSplitSectionRef, Props>(
         })
       );
 
-      setSelectedMenuId(null);
+      const toggleParticipantSelection = (participantId: string) => {
+        if (!selectedMenuId) return;
+      
+        setMenuItems((prev) =>
+          prev.map((item) => {
+            if (item.id === selectedMenuId) {
+              const isSelected = item.participants.includes(participantId);
+              const updated = isSelected
+                ? item.participants.filter((id) => id !== participantId)
+                : [...item.participants, participantId];
+      
+              return { ...item, participants: updated };
+            }
+            return item;
+          })
+        );
+      
+        // ❌ 드롭다운 닫지 말고 유지!
+        // setSelectedMenuId(null);
+      };
+      
     };
 
     const handleReceiptCapture = async () => {
@@ -158,44 +179,63 @@ const MenuSplitSection = forwardRef<MenuSplitSectionRef, Props>(
         allowsEditing: true,
         quality: 0.8,
       });
-
+    
       if (result.canceled || !result.assets || !result.assets[0].uri) return;
-
+    
       if (!dutchpayId) {
         console.error('❗ dutchpayId가 전달되지 않았습니다.');
         return;
       }
-
+    
       const imageUri = result.assets[0].uri;
       const fileName = imageUri.split('/').pop();
       const fileType = imageUri.split('.').pop();
-
+    
       const formData = new FormData();
       formData.append('image', {
         uri: imageUri,
         name: fileName,
         type: `image/${fileType}`,
       } as any);
-
+    
       try {
-        const { data } = await axios.post(`/dutchpays/${dutchpayId}/ocr`, formData, {
+        const { data } = await axios.post(`/dutchpays/ocr`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
         });
-
-        const newItems = data.items.map((item: any) => ({
+    
+        // ✅ 콘솔 로그로 서버 응답 확인
+        console.log('📦 OCR 서버 응답:', data);
+    
+        const results = data?.result;
+    
+        if (!Array.isArray(results) || results.length === 0) {
+          Alert.alert('영수증 인식 실패', '영수증을 다시 촬영해주세요.');
+          return;
+        }
+    
+        const newItems = results.map((item: any) => ({
           id: Date.now().toString() + Math.random(),
-          name: item.menu,
-          price: formatCurrency(item.price.toString()),
+          name: item.item, // ← 여기!! OCR 상품명
+          price: formatCurrency(item.price.toString()), // ← 단가 포맷팅
           participants: [],
         }));
-
+    
         setMenuItems((prev) => [...prev, ...newItems]);
-      } catch (err) {
+      } catch (err: any) {
         console.error('❌ OCR 업로드 실패:', err);
+    
+        // ✅ 실패 응답도 확인
+        console.log('❌ 서버 오류 응답:', err?.response?.data);
+    
+        const message =
+          err?.response?.data?.message || err?.message || '잠시 후 다시 시도해주세요.';
+        Alert.alert('영수증 인식 실패', message);
       }
     };
+    
+    
 
     useEffect(() => {
       const total = menuItems.reduce((sum, item) => {
@@ -278,32 +318,65 @@ const MenuSplitSection = forwardRef<MenuSplitSectionRef, Props>(
                         onPress={() => openParticipantSelection(item.id)}
                       >
                         <View style={styles.dropdownSummary}>
-                          {item.participants.length > 0 ? (
-                            <View style={styles.selectedUserContainer}>
-                              {item.participants.map((id) => {
-                                const user = getParticipantById(id);
-                                if (!user) return null;
-                                return (
-                                  <View key={id} style={styles.selectedUserItem}>
-                                    <Image
-                                      source={
-                                        user.profileImage
-                                          ? { uri: user.profileImage }
-                                          : require('@/assets/images/defaultprofile.png')
-                                      }
-                                      style={styles.profileImageSmall}
-                                    />
-                                    <Text numberOfLines={1} style={styles.selectedUserName}>
-                                      {user.name}
-                                    </Text>
-                                  </View>
-                                );
-                              })}
-                            </View>
-                          ) : (
-                            <Text style={styles.selectedUserName}>선택</Text>
-                          )}
-                          <View style={{ flex: 1 }} />
+                        {item.participants.length > 0 ? (
+                        <View style={styles.selectedUserContainer}>
+                          {(() => {
+                            const participantIds = item.participants;
+                            const firstUser = getParticipantById(participantIds[0]);
+                            const secondUser = getParticipantById(participantIds[1]);
+
+                            if (!firstUser) return null;
+
+                            if (participantIds.length === 1) {
+                              return (
+                                <View style={styles.selectedUserItem}>
+                                  <Image
+                                    source={
+                                      firstUser.profileImage
+                                        ? { uri: firstUser.profileImage }
+                                        : require('@/assets/images/defaultprofile.png')
+                                    }
+                                    style={styles.profileImageSmall}
+                                  />
+                                  <Text numberOfLines={1} style={styles.selectedUserName}>
+                                    {firstUser.name}
+                                  </Text>
+                                </View>
+                              );
+                            }
+
+                            return (
+                              <>
+                                <Image
+                                  source={
+                                    firstUser?.profileImage
+                                      ? { uri: firstUser.profileImage }
+                                      : require('@/assets/images/defaultprofile.png')
+                                  }
+                                  style={styles.profileImageSmall}
+                                />
+                                {secondUser && (
+                                  <Image
+                                    source={
+                                      secondUser.profileImage
+                                        ? { uri: secondUser.profileImage }
+                                        : require('@/assets/images/defaultprofile.png')
+                                    }
+                                    style={styles.profileImageSmall}
+                                  />
+                                )}
+                                {participantIds.length > 2 && (
+                                  <Text style={styles.selectedUserName}>+{participantIds.length - 2}</Text>
+                                )}
+                              </>
+                            );
+                          })()}
+                        </View>
+                      ) : (
+                        <Text style={styles.selectedUserName}>선택</Text>
+                      )}
+
+                                <View style={{ flex: 1 }} />
                           <MaterialIcons name="arrow-drop-down" size={20} color={Colors.text} />
                         </View>
                       </TouchableOpacity>

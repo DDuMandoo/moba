@@ -56,7 +56,6 @@ const FeatureButton = ({ iconName, label, onPress }: FeatureButtonProps) => {
 };
 
 export default function WalletDetailPage() {
-  console.log('🔥 WalletDetailPage 최소 진입 성공');
 
   const dispatch = useAppDispatch();
   const { profile, isLoading: profileLoading, isError } = useAppSelector((state) => state.user);
@@ -68,8 +67,6 @@ export default function WalletDetailPage() {
     dispatch(fetchUserProfile());
   }, []);
 
-  console.log('✅ WalletDetailPage 진입');
-  console.log('📊 useMydata() 실행됨');
   if (error) {
     console.error('❌ useMydata 에러:', error);
   }
@@ -126,29 +123,54 @@ export default function WalletDetailPage() {
         </TouchableOpacity>
       </View>
 
-      <View style={{
-        backgroundColor: Colors.white,
-        borderRadius: 16,
-        padding: 20,
-        marginTop: 16,
-      }}>
-        <Text style={{ fontSize: 16, fontWeight: 'bold', color: Colors.text }}>
-          내 소비 패턴 분석
-        </Text>
+      <View
+  style={{
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    padding: 20,
+    marginTop: 16,
+  }}
+>
+  <Text style={{ fontSize: 16, fontWeight: 'bold', color: Colors.text }}>
+    내 소비 패턴 분석
+  </Text>
 
-        {mydataLoading && <Text style={{ marginTop: 12 }}>불러오는 중...</Text>}
-        {mydataError && (
-          <Text style={{ marginTop: 12, color: 'red' }}>
-            데이터 불러오기 실패: {(error as any)?.message ?? '알 수 없는 에러'}
-          </Text>
-        )}
-        {data && (
-          <SpendingPatternAnalysis
-            hourlyStats={data.hourly_stats}
-            categoryRatio={data.category_ratio}
-          />
-        )}
-      </View>
+  {/* 로딩 중 */}
+  {mydataLoading && <Text style={{ marginTop: 12 }}>불러오는 중...</Text>}
+
+  {/* 인증 필요 (access_token 없음 or 만료) */}
+  {mydataError && (error as any)?.response?.data?.code === 4900 && (
+    <TouchableOpacity
+      onPress={() => router.push('/auth/sms')}
+      style={{
+        marginTop: 12,
+        paddingVertical: 12,
+        borderRadius: 8,
+        backgroundColor: Colors.primary,
+        alignItems: 'center',
+      }}
+    >
+      <Text style={{ color: Colors.white, fontWeight: 'bold' }}>
+        마이데이터 인증이 필요합니다. 인증하기 →
+      </Text>
+        </TouchableOpacity>
+      )}
+
+      {/* 일반 에러 */}
+      {mydataError && (error as any)?.response?.data?.code !== 4900 && (
+        <Text style={{ marginTop: 12, color: 'red' }}>
+          데이터 불러오기 실패: {(error as any)?.message ?? '알 수 없는 에러'}
+        </Text>
+      )}
+
+      {/* 데이터 정상 */}
+      {data && (
+        <SpendingPatternAnalysis
+          hourlyStats={data.hourly_stats}
+          categoryRatio={data.category_ratio}
+        />
+      )}
+    </View>
     </ScrollView>
   );
 }

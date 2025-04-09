@@ -24,7 +24,7 @@ export default function BottomTabs() {
         >
           <Feather
             name={tab.icon}
-            size={28}
+            size={24}
             color={pathname === tab.route ? Colors.primary : Colors.secondary}
           />
         </TouchableOpacity>
@@ -35,16 +35,16 @@ export default function BottomTabs() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    height: 70,
-    flexDirection: 'row',
+    height: 50,
     backgroundColor: Colors.white,
     borderTopWidth: 1,
     borderTopColor: Colors.grayBackground,
-    justifyContent: 'space-around',
+    flexDirection: 'row',
+    justifyContent: 'space-around', // ← 통일 포인트
     alignItems: 'center',
   },
   tabItem: {
-    alignItems: 'center',
     justifyContent: 'center',
-  },
+    alignItems: 'center',
+  },  
 });

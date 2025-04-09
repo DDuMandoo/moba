@@ -40,10 +40,12 @@ export default function BottomTabLayout() {
           headerShown: false,
           tabBarShowLabel: false,
           tabBarStyle: {
-            height: 70,
+            height: 50,
             backgroundColor: Colors.white,
             borderTopWidth: 1,
             borderTopColor: Colors.grayBackground,
+            justifyContent: 'space-around',
+            alignItems: 'center',
           },
           tabBarItemStyle: {
             justifyContent: 'center',
@@ -52,8 +54,8 @@ export default function BottomTabLayout() {
           tabBarIconStyle: {
             justifyContent: 'center',
             alignItems: 'center',
-            marginTop: 15,
-          },
+            marginTop: 4,
+          },          
         }}
       >
         <Tabs.Screen
@@ -63,7 +65,7 @@ export default function BottomTabLayout() {
             tabBarIcon: ({ focused }: { focused: boolean }) => (
               <Feather
                 name="home"
-                size={28}
+                size={24}
                 color={focused ? Colors.primary : Colors.secondary}
               />
             ),
@@ -76,7 +78,7 @@ export default function BottomTabLayout() {
             tabBarIcon: ({ focused }: { focused: boolean }) => (
               <Feather
                 name="plus-circle"
-                size={28}
+                size={24}
                 color={focused ? Colors.primary : Colors.secondary}
               />
             ),
@@ -89,7 +91,7 @@ export default function BottomTabLayout() {
             tabBarIcon: ({ focused }: { focused: boolean }) => (
               <Feather
                 name="user"
-                size={26}
+                size={24}
                 color={focused ? Colors.primary : Colors.secondary}
               />
             ),
@@ -114,9 +116,9 @@ export default function BottomTabLayout() {
 
 const styles = StyleSheet.create({
   header: {
-    height: 60,
+    height: 50,
     backgroundColor: Colors.white,
-    paddingHorizontal: 16,
+    paddingHorizontal: '5%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

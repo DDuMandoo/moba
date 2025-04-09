@@ -15,10 +15,10 @@ import Colors from '@/constants/Colors';
 import { Easing } from 'react-native';
 
 const { width } = Dimensions.get('window');
-const CARD_SIZE = 80;
-const RADIUS = 150;
+const CARD_SIZE = 70;
+const RADIUS = 140;
 const centerX = 0;
-const centerY = 50;
+const centerY = 0;
 
 const Icon = require('@/assets/Icon.png');
 
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     zIndex: 5,
     transform: [
       { translateX: 0 },
-      { translateY: +40 },
+      { translateY: 0 },
     ],
   },  
   circle: {
@@ -195,15 +195,15 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
   },
   logo: {
-    width: 50,
-    height: 50,
+    width: 40,
+    height: 40,
     resizeMode: 'contain',
   },
   pickButton: {
     position: 'absolute',
-    bottom: 40,
-    left: 100,
-    right: 100,
+    bottom: 0,
+    left: 80,
+    right: 80,
     backgroundColor: Colors.primary,
     paddingVertical: 14,
     borderRadius: 12,

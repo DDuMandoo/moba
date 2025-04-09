@@ -186,9 +186,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: Colors.secondary,
+    backgroundColor: Colors.logo,
     padding: '5%',
-    paddingTop: 100,
+    paddingTop: 50,
     height: '100%'
   },
   logo: {

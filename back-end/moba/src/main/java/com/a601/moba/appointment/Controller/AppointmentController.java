@@ -18,6 +18,7 @@ import com.a601.moba.appointment.Controller.Response.AppointmentListItemResponse
 import com.a601.moba.appointment.Controller.Response.AppointmentParticipantResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentPlaceListResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentPlaceOrderUpdateResponse;
+import com.a601.moba.appointment.Controller.Response.AppointmentRecommendResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentSearchWithMembersResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentSummaryResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentUpdateResponse;
@@ -399,4 +400,14 @@ public class AppointmentController {
         GetLocationAppointmentResponse response = appointmentService.getLocation(appointmentId);
         return ResponseEntity.ok(JSONResponse.of(SuccessCode.REQUEST_SUCCESS, response));
     }
+
+    @Operation(summary = "추천 장소 받기", description = "약속방 내 마이데이터 연동을 한 사람들의 정보로만 추천 장소를 받습니다.")
+    @GetMapping("/{appointmentId}/recommendations")
+    public ResponseEntity<JSONResponse<AppointmentRecommendResponse>> getRecommendations(
+            @PathVariable Integer appointmentId
+    ) {
+        AppointmentRecommendResponse response = appointmentService.getRecommendations(appointmentId);
+        return ResponseEntity.ok(JSONResponse.of(SuccessCode.REQUEST_SUCCESS, response));
+    }
+
 }

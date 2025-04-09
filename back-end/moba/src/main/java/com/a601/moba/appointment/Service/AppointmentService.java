@@ -34,6 +34,7 @@ import com.a601.moba.notification.Service.NotificationService;
 import com.a601.moba.wallet.Entity.Wallet;
 import com.a601.moba.wallet.Repository.TransactionRepository;
 import com.a601.moba.wallet.Repository.WalletRepository;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -105,7 +106,7 @@ public class AppointmentService {
             participants.add(createAppointmentParticipant(appointment, m, Role.PARTICIPANT, State.WAIT));
             try {
                 notificationService.sendInvite(host, m, appointment.getId());
-            } catch (Exception e) {
+            } catch (FirebaseMessagingException e) {
                 log.error("알림 전송 실패");
             }
         }
@@ -437,7 +438,7 @@ public class AppointmentService {
             participants.add(createAppointmentParticipant(appointment, m, Role.PARTICIPANT, State.WAIT));
             try {
                 notificationService.sendInvite(host, m, appointment.getId());
-            } catch (Exception e) {
+            } catch (FirebaseMessagingException e) {
                 log.error("알림 전송 실패");
             }
         }

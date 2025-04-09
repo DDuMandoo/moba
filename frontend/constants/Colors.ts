@@ -23,6 +23,9 @@ const Colors = {
   black: '#000000',             // 검은색
   modalBackground: '#000000',   // 모달 배경
   yellowAccent: '#E9D9C5',      // 강조 노랑 (로고 내부와 동일)
+  border: '#E0E0E0',         // border 색상
+  gray: '#999999',           // 중간 회색
+  gray200: '#D9D9D9',        // 연한 회색
 };
 
 export default Colors;

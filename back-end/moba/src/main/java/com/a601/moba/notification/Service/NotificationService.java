@@ -94,7 +94,7 @@ public class NotificationService {
                 .title(title)
                 .body(body)
                 .type(Type.SETTLEMENT)
-                .deepLink("wallet/settlement/send/" + settlementId)
+                .deepLink("wallet/settlement/history")
                 .build();
 
         notify(sender, receiver, dto);

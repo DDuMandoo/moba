@@ -100,10 +100,11 @@ public class AuthController {
     //프론트엔드에서 카카오 코드 받고 호출
     @PostMapping("/social/kakao")
     public ResponseEntity<JSONResponse<AuthResponse>> kakaoLogin(@RequestBody Map<String, String> body) {
-        String code = body.get("code");
-        AuthResponse tokens = authService.kakaoSignin2(code);
-        return ResponseEntity.ok(JSONResponse.of(SuccessCode.SIGNIN_SUCCESS, tokens));
+        String accessToken = body.get("accessToken");
+        AuthResponse tokens = authService.kakaoSigninWithAccessToken(accessToken);
+        return ResponseEntity.ok(JSONResponse.onSuccess(tokens));
     }
+
 
     @Operation(summary = "로그아웃", description = "현재 로그인한 사용자의 Access Token을 무효화하여 로그아웃 처리합니다.")
     @PostMapping("/signout")

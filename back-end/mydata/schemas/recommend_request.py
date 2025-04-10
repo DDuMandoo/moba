@@ -6,3 +6,4 @@ class RecommendRequest(BaseModel):
 
 class TokenListRequest(BaseModel):
     tokens: List[str]
+

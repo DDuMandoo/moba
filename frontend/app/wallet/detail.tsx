@@ -73,7 +73,7 @@ export default function WalletDetailPage() {
         image={profile?.image || ''}
         isLoading={isLoading}
         isError={isError}
-        titleFormat={(name) => `${name}의 지갑`} // <- 이렇게 원하는 대로 변경 가능
+        titleFormat={(name) => `${name}님의 지갑`}
       />
 
       {/* 지갑 상태 */}

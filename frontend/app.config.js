@@ -11,12 +11,12 @@ export default {
     deeplink: true,
     userInterfaceStyle: 'automatic',
     newArchEnabled: true,
-    owner: 'keon211',
+    owner: 'keon2111',
     ios: {
       supportsTablet: true
     },
     android: {
-      package: 'com.keon211.frontend',
+      package: 'com.keon2111.frontend',
       googleServicesFile: './android/app/google-services.json',
       adaptiveIcon: {
         foregroundImage: './assets/Icon.png',
@@ -64,7 +64,7 @@ export default {
     },
     extra: {
       eas: {
-        "projectId": "2bad2fad-f4ca-48e9-b77b-539b2125bbc1"
+        "projectId": "78c09bc7-5b10-4a96-b502-a5187311b61c"
       },
       API_URL: process.env.EXPO_PUBLIC_API_URL || 'http://j12a601.p.ssafy.io/api'
     }

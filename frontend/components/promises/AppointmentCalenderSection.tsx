@@ -143,7 +143,7 @@ export default function AppointmentCalendarSection() {
                     </Text>
                   </View>
                 </TouchableOpacity>
-                <View style={{ flexDirection: 'row', marginTop: 4 }}>
+                <View style={{ flexDirection: 'row', marginTop: 4, height: 7 }}>
                   {dots.map((dot) => (
                     <View
                       key={dot.key}

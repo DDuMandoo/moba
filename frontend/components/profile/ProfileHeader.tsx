@@ -37,6 +37,7 @@ export default function ProfileHeader({
   }
 
   const displayName = titleFormat ? titleFormat(name) : name;
+  const hasSuffix = displayName.includes('님');
 
   return (
     <View style={styles.row}>
@@ -53,7 +54,9 @@ export default function ProfileHeader({
       </View>
       <Text style={[styles.name, { fontSize: size * 0.36 }]}>
         {displayName}
-        <Text style={[styles.suffix, { fontSize: size * 0.28 }]}> 님</Text>
+        {!hasSuffix && (
+          <Text style={[styles.suffix, { fontSize: size * 0.28 }]}> 님</Text>
+        )}
       </Text>
     </View>
   );

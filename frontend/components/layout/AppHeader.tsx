@@ -39,9 +39,9 @@ export default function AppHeader() {
 
 const styles = StyleSheet.create({
   header: {
-    height: 60,
+    height: 50,
     backgroundColor: Colors.white,
-    paddingHorizontal: 16,
+    paddingHorizontal: '5%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

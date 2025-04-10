@@ -1,3 +1,8 @@
+// ✅ 변경사항 요약
+// - 각 지도는 WebView에서 html string이 아닌 Netlify에 배포한 URL로 접근
+// - default.html, route.html, participants.html 세 가지 URL 분리 적용
+// - route와 participants는 data를 쿼리스트링에 실어 보냄 (encodeURIComponent + JSON.stringify)
+
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View,
@@ -30,6 +35,8 @@ interface MapViewSectionProps {
   isEnded: boolean;
 }
 
+const NETLIFY_BASE_URL = 'https://illustrious-cactus-604d6c.netlify.app';
+
 export default function MapViewSection({
   appointmentId,
   placeId,
@@ -43,10 +50,9 @@ export default function MapViewSection({
   const [places, setPlaces] = useState<PlaceItem[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [routeMapHtml, setRouteMapHtml] = useState('');
+  const [mapUrl, setMapUrl] = useState(`${NETLIFY_BASE_URL}/default.html`);
   const ws = useRef<WebSocket | null>(null);
   const router = useRouter();
-  const KAKAO_REST_API_KEY = process.env.EXPO_PUBLIC_KAKAO_REST_API_KEY;
 
   const fetchPlaces = async () => {
     try {
@@ -66,277 +72,61 @@ export default function MapViewSection({
     }
     try {
       const res = await axiosInstance.get(`/appointments/${appointmentId}/locations`);
-      console.log(res.data.result);
       const participants = res.data.result.participants;
-      console.log('위치 공유 참여자:', participants);
       setParticipants(participants);
-      generateMapWithParticipants(participants);
+      const data = encodeURIComponent(JSON.stringify(participants.map((p: any) => ({
+        name: p.memberName,
+        latitude: p.latitude,
+        longitude: p.longitude,
+        image: p.memberImage,
+      }))));
+      setMapUrl(`${NETLIFY_BASE_URL}/participants.html?data=${data}`);
     } catch (err) {
       console.error('❌ 위치 조회 실패:', err);
     }
   };
-  
-  const generateMapWithParticipants = (participantList: any[]) => {
-    const defaultImage = "https://moba-image.s3.ap-northeast-2.amazonaws.com/profile/%EB%A7%88%EC%BB%A4.png";
-  
-    const participantMarkers = participantList
-      .map((p) => {
-        const imgUrl = p.memberImage ?? defaultImage;
-        const name = p.memberName ?? '이름 없음';
-        return `
-          const pos = new kakao.maps.LatLng(${p.latitude}, ${p.longitude});
-          bounds.extend(pos);
-          const content = \`
-            <div style="text-align:center;">
-              <img src="${imgUrl}" style="width:64px;height:64px;border-radius:50%;border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.3);" />
-              <div style="margin-top:4px;padding:4px 8px;background:#431905;color:white;border-radius:8px;font-size:13px;font-weight:bold;">
-                ${name}
-              </div>
-            </div>
-          \`;
-          new kakao.maps.CustomOverlay({
-            map,
-            position: pos,
-            content: content,
-            yAnchor: 1
-          });
-        `;
-      })
-      .join('\n');
-  
-      const mapHtml = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8" />
-          <style>
-            html, body, #map {
-              margin: 0;
-              padding: 0;
-              width: 100%;
-              height: 100%;
-            }
-          </style>
-          <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.EXPO_PUBLIC_KAKAO_JS_KEY}&autoload=false"></script>
-          <script>
-            window.onload = function () {
-              kakao.maps.load(function () {
-                const map = new kakao.maps.Map(document.getElementById('map'), {
-                  center: new kakao.maps.LatLng(37.5665, 126.9780),
-                  level: 5
-                });
-
-                const bounds = new kakao.maps.LatLngBounds();
-                let lastPos = null;
-
-                ${participantMarkers}
-
-                if (participantList.length === 1) {
-  const single = participantList[0];
-  const pos = new kakao.maps.LatLng(single.latitude, single.longitude);
-  map.setLevel(3);
-  map.setCenter(pos);
-} else {
-  const sw = bounds.getSouthWest();
-  const ne = bounds.getNorthEast();
-  const latDiff = Math.abs(ne.getLat() - sw.getLat());
-  const lngDiff = Math.abs(ne.getLng() - sw.getLng());
-
-  if (latDiff < 0.0001 && lngDiff < 0.0001) {
-    const center = bounds.getCenter();
-    map.setLevel(3);
-    map.setCenter(center);
-  } else {
-    map.setBounds(bounds);
-  }
-}
-              });
-            };
-          </script>
-        </head>
-        <body>
-          <div id="map"></div>
-        </body>
-        </html>
-        `;
-    setRouteMapHtml(mapHtml);
-  }; 
 
   const connectWebSocket = async () => {
-    const accessToken = await getAccessToken(); // ⬅️ accessToken 가져오기
-  
+    const accessToken = await getAccessToken();
     ws.current = new WebSocket(
-    `wss://j12a601.p.ssafy.io/api/ws/location?appointmentId=${appointmentId}&token=${accessToken}`
-  );
-
-  ws.current.onopen = () => {
-    console.log('✅ WebSocket 연결됨');
-  };
-  
+      `wss://j12a601.p.ssafy.io/api/ws/location?appointmentId=${appointmentId}&token=${accessToken}`
+    );
+    ws.current.onopen = () => console.log('✅ WebSocket 연결됨');
     ws.current.onmessage = async (e) => {
       const message = JSON.parse(e.data);
-      console.log('📩 WebSocket 메시지 수신:', message);
-  
       if (message.type === 'request_location') {
-        console.log('📡 위치 요청 수신 (from server)');
-  
         const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') {
-          console.warn('⛔ 위치 권한 거부됨');
-          return;
-        }
-  
+        if (status !== 'granted') return;
         const location = await Location.getCurrentPositionAsync({});
         const payload = {
           memberId: profile?.memberId,
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
         };
-  
-        console.log('📍 내 위치 전송:', payload);
         ws.current?.send(JSON.stringify(payload));
       }
     };
-  
-    ws.current.onerror = (e) => {
-      console.error('❌ WebSocket 에러:', e);
-    };
-  
-    ws.current.onclose = () => {
-      console.log('🛑 WebSocket 연결 종료');
-    };
-  };  
-
-  const generateDefaultMap = () => {
-    const mapHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8" />
-        <style>html, body, #map { margin: 0; padding: 0; width: 100%; height: 100%; }</style>
-        <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.EXPO_PUBLIC_KAKAO_JS_KEY}&autoload=false"></script>
-        <script>
-          window.onload = function () {
-            kakao.maps.load(function () {
-              const map = new kakao.maps.Map(document.getElementById('map'), {
-                center: new kakao.maps.LatLng(37.5665, 126.9780),
-                level: 7
-              });
-            });
-          };
-        </script>
-      </head>
-      <body><div id="map"></div></body>
-      </html>`;
-    setRouteMapHtml(mapHtml);
+    ws.current.onerror = (e) => console.error('❌ WebSocket 에러:', e);
+    ws.current.onclose = () => console.log('🛑 WebSocket 연결 종료');
   };
 
   const generateMapWithRoute = async () => {
     if (places.length < 2) return;
-
-    let polylineScripts = '';
-    for (let i = 0; i < places.length - 1; i++) {
-      const origin = `${places[i].longitude},${places[i].latitude}`;
-      const destination = `${places[i + 1].longitude},${places[i + 1].latitude}`;
-
-      const url = `https://apis-navi.kakaomobility.com/v1/directions?origin=${origin}&destination=${destination}`;
-
-      try {
-        const res = await fetch(url, {
-          method: 'GET',
-          headers: {
-            Authorization: `KakaoAK ${KAKAO_REST_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-        });
-        const data = await res.json();
-
-        const lineCoords: string[] = [];
-        data.routes[0].sections[0].roads.forEach((road: any) => {
-          for (let j = 0; j < road.vertexes.length; j += 2) {
-            const lat = road.vertexes[j + 1];
-            const lng = road.vertexes[j];
-            lineCoords.push(`new kakao.maps.LatLng(${lat}, ${lng})`);
-          }
-        });
-
-        polylineScripts += `
-          const linePath${i} = [${lineCoords.join(',')}];
-          new kakao.maps.Polyline({
-            map,
-            path: linePath${i},
-            strokeWeight: 6,
-            strokeColor: '	#FF0081	',
-            strokeOpacity: 0.8,
-            strokeStyle: 'solid'
-          });
-        `;
-      } catch (err) {
-        console.error('경로 가져오기 실패', err);
-      }
-    }
-
-    const mapHtml = `<!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8" />
-      <style>
-        html, body, #map { margin: 0; padding: 0; width: 100%; height: 100%; }
-      </style>
-      <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.EXPO_PUBLIC_KAKAO_JS_KEY}&autoload=false"></script>
-      <script>
-        const places = ${JSON.stringify(places)};
-        window.onload = function () {
-          kakao.maps.load(function () {
-            const map = new kakao.maps.Map(document.getElementById('map'), {
-              center: new kakao.maps.LatLng(37.5665, 126.9780),
-              level: 7
-            });
-    
-            const bounds = new kakao.maps.LatLngBounds();
-            places.forEach((place, idx) => {
-              const pos = new kakao.maps.LatLng(place.latitude, place.longitude);
-              bounds.extend(pos);
-              new kakao.maps.Marker({
-                position: pos,
-                map,
-                image: new kakao.maps.MarkerImage(
-                  "https://moba-image.s3.ap-northeast-2.amazonaws.com/profile/CustomMarker.png",
-                  new kakao.maps.Size(80, 80),
-                  { offset: new kakao.maps.Point(40, 80) }
-                )
-              });
-              new kakao.maps.CustomOverlay({
-                content: '<div style="background:#fff;padding:2px 6px;border-radius:4px;border:1px solid #666;font-size:16px;">' + (idx + 1) + '</div>',
-                position: pos,
-                yAnchor: 1
-              }).setMap(map);
-            });
-    
-            ${polylineScripts}
-    
-            map.setBounds(bounds);
-          });
-        };
-      </script>
-    </head>
-    <body>
-      <div id="map"></div>
-    </body>
-    </html>`;
-
-    setRouteMapHtml(mapHtml);
+    const encoded = encodeURIComponent(JSON.stringify(places.map((p: PlaceItem) => ({
+      latitude: p.latitude,
+      longitude: p.longitude
+    }))));
+    setMapUrl(`${NETLIFY_BASE_URL}/route.html?data=${encoded}`);
   };
 
   useEffect(() => {
-    generateDefaultMap();
-  }, []);  
+    setMapUrl(`${NETLIFY_BASE_URL}/default.html`);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
       fetchPlaces();
       const diffMinutes = dayjs(appointmentTime).diff(dayjs(), 'minute');
-      console.log(diffMinutes)
       if (diffMinutes <= 10 && diffMinutes >= -10) {
         connectWebSocket();
       }
@@ -350,10 +140,10 @@ export default function MapViewSection({
     <View style={styles.wrapper}>
       <View style={styles.mapBox}>
         <WebView
-          originWhitelist={['*']}
-          source={{ html: routeMapHtml }}
+          source={{ uri: mapUrl }}
           javaScriptEnabled
           domStorageEnabled
+          mixedContentMode="always"
           scrollEnabled={false}
           style={{ flex: 1, borderRadius: 10 }}
         />
@@ -377,10 +167,12 @@ export default function MapViewSection({
               <Text style={styles.sectionTitle}>약속 장소 목록</Text>
               <View style={styles.actionButtons}>
                 {isHost && (
-                  <TouchableOpacity style={styles.iconButtonSmall} onPress={async () => {
-                    await fetchPlaces();
-                    setShowEditModal(true);
-                  }}>
+                  <TouchableOpacity
+                    style={styles.iconButtonSmall}
+                    onPress={async () => {
+                      await fetchPlaces();
+                      setShowEditModal(true);
+                    }}>
                     <AntDesign name="edit" size={16} color={Colors.primary} />
                   </TouchableOpacity>
                 )}
@@ -408,9 +200,7 @@ export default function MapViewSection({
         visible={showEditModal}
         onClose={() => setShowEditModal(false)}
         places={places}
-        onSave={(updated) => {
-          fetchPlaces();
-        }}
+        onSave={() => fetchPlaces()}
         onAddPlace={() => {
           setShowEditModal(false);
           router.push({ pathname: '/promises/locationSearch', params: { mode: 'list', appointmentId: appointmentId.toString() } });
@@ -484,10 +274,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.grayLightText,
     marginBottom: 10,
-  },
-  listItem: {
-    fontSize: 15,
-    color: '#333',
   },
   placeListHeader: {
     flexDirection: 'row',

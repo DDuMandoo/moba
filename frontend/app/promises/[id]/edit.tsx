@@ -145,7 +145,7 @@ export default function AppointmentEditPage() {
     try {
       const payload = {
         name,
-        time: dateTime?.toISOString(),
+        time: dayjs(dateTime).format('YYYY-MM-DDTHH:mm:ss'),
         placeId: location?.placeId ?? null,
         memo: location?.memo ?? '',
       };
@@ -281,10 +281,14 @@ export default function AppointmentEditPage() {
           {location?.placeName && (
             <View style={styles.selectedRow}>
               <Ionicons name="location-outline" size={18} color={Colors.primary} />
-              <View>
-                <Text style={styles.selectedText}>{location.placeName}</Text>
-                {!!location.memo && <Text style={styles.selectedText}>{location.memo}</Text>}
-              </View>
+              <Text
+                style={styles.selectedText}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {location.placeName}
+                {location.memo ? ` - ${location.memo}` : ''}
+              </Text>
             </View>
           )}
           <TouchableOpacity

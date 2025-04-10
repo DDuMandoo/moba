@@ -56,6 +56,12 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
+    console.log('❌ Axios 응답 에러:', {
+      url: error?.config?.url,
+      status: error?.response?.status,
+      message: error?.response?.data?.message,
+      code: error?.response?.data?.code,
+    }); // 🔥 여기에 찍어라
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {

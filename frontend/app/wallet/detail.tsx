@@ -15,6 +15,8 @@ import WalletStatus from '@/components/WalletStatus';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import Colors from '@/constants/Colors';
 import SpendingPatternAnalysis from '@/components/wallet/SpendingPatternAnalysis';
+import HourlySpendingChart from '@/components/chart/HourlySpendingChart';
+import BubbleChart from '@/components/chart/BubbleChart';
 
 interface FeatureButtonProps {
   iconName: keyof typeof Feather.glyphMap;
@@ -26,6 +28,7 @@ const FeatureButton = ({ iconName, label, onPress }: FeatureButtonProps) => {
   const { width: screenWidth } = useWindowDimensions();
 
   return (
+    
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.8}
@@ -62,6 +65,21 @@ export default function WalletDetailPage() {
 
   const { data, isLoading: mydataLoading, isError: mydataError, error } = useMydata();
 
+  useEffect(() => {
+    
+    if (data?.isConnected) {
+      console.log('✅ MyData 연결 성공');
+      console.log('📊 personaSummary:', data?.personaSummary);
+      console.log('📈 hourlyStats:', data?.hourlyStats);
+      console.log('🫧 categoryPriceRatio:', data?.categoryPriceRatio);
+    }
+  }, [data]);
+  console.log('📡 MyData hook 결과:', {
+    isLoading: mydataLoading,
+    isError: mydataError,
+    data,
+    error,
+  }); // 🔥 여기에 찍어라
   // ✅ 마이데이터 인증 누락 or 만료 상태인지 체크
   const isMydataAuthError = (error as any)?.response?.data?.code === 4900;
 
@@ -167,12 +185,27 @@ export default function WalletDetailPage() {
           </Text>
         )}
 
-        {data?.isConnected && data?.hourly_stats && data?.category_ratio && (
-          <SpendingPatternAnalysis
-            hourlyStats={data.hourly_stats}
-            categoryRatio={data.category_ratio}
-          />
-        )}
+{data?.isConnected && data?.hourlyStats && data?.categoryPriceRatio && (
+  <>
+    <Text>{data.personaSummary}</Text>
+    <HourlySpendingChart
+      data={Object.entries(data.hourlyStats).map(([hour, amount]) => ({
+        hour: Number(hour),
+        amount: Number(amount),
+      }))}
+    />
+    <BubbleChart
+      data={Object.entries(data.categoryPriceRatio)
+        .filter(([category]) => category !== '행사')
+        .map(([category, subMap]) => {
+          const total = Object.values(subMap as Record<string, number>)
+            .reduce((sum, val) => sum + val, 0);
+          return { category, amount: total };
+        })}
+    />
+  </>
+)}
+
       </View>
     </ScrollView>
   );

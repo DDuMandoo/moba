@@ -6,6 +6,8 @@ import permissionReducer from './slices/permissionSlice';
 import chargeReducer from './slices/chargeSlice';
 import transferReducer from './slices/transferSlice';
 import appointmentReducer from './slices/appointmentSlice';
+import mydataReducer from './slices/mydataSlice';
+
 
 
 export const store = configureStore({
@@ -17,6 +19,8 @@ export const store = configureStore({
     charge:chargeReducer,
     transfer:transferReducer,
     appointment:  appointmentReducer,
+    mydata: mydataReducer,
+
   },
 });
 

@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   ScrollView,
   Image as RNImage,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
 import { launchImageLibraryAsync, MediaTypeOptions } from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -200,7 +202,10 @@ export default function AppointmentEditPage() {
   };
 
   return (
-    <>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={{ flex: 1 }}
+    >
       <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
         <View style={styles.card}>
           <TouchableOpacity onPress={handleSelectImage} style={styles.imageBox} activeOpacity={0.8}>
@@ -330,7 +335,6 @@ export default function AppointmentEditPage() {
             />
           </View>
         </View>
-      </ScrollView>
 
       <CustomAlert
         visible={alertVisible}
@@ -359,7 +363,8 @@ export default function AppointmentEditPage() {
           participants: friends
         }}
       />
-    </>
+    </ScrollView>
+  </KeyboardAvoidingView>
   );
 }
 

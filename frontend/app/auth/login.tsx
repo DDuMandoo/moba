@@ -8,6 +8,8 @@ import {
   Image,
   Keyboard,
   Platform,
+  ScrollView,
+  KeyboardAvoidingView
 } from 'react-native';
 import { Button } from '@/components/ui/Button';
 import Colors from '@/constants/Colors';
@@ -110,75 +112,83 @@ export default function LoginScreen() {
   
 
   return (
-    <View style={styles.container}>
-      <Image source={require('@/assets/images/login_image.png')} style={styles.logo} />
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={{ flex: 1 }}
+    >
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Image source={require('@/assets/images/login_image.png')} style={styles.logo} />
 
-      <Text style={styles.label}>이메일</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="이메일을 입력해주세요"
-        placeholderTextColor={Colors.grayLightText}
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        autoCorrect={false}
-        returnKeyType="next"
-        onSubmitEditing={() => Keyboard.dismiss()}
-      />
-
-      <Text style={styles.label}>비밀번호</Text>
-      <View style={styles.passwordContainer}>
+        <Text style={styles.label}>이메일</Text>
         <TextInput
-          style={styles.passwordInput}
-          placeholder="비밀번호를 입력해주세요"
+          style={styles.input}
+          placeholder="이메일을 입력해주세요"
           placeholderTextColor={Colors.grayLightText}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={!isPasswordVisible}
-          returnKeyType="done"
-          onSubmitEditing={handleLogin}
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoCorrect={false}
+          returnKeyType="next"
+          onSubmitEditing={() => Keyboard.dismiss()}
         />
-        <TouchableOpacity
-          style={styles.eyeIcon}
-          onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-        >
-          <Ionicons
-            name={isPasswordVisible ? 'eye' : 'eye-off'}
-            size={24}
-            color={Colors.grayDarkText}
+
+        <Text style={styles.label}>비밀번호</Text>
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={styles.passwordInput}
+            placeholder="비밀번호를 입력해주세요"
+            placeholderTextColor={Colors.grayLightText}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!isPasswordVisible}
+            returnKeyType="done"
+            onSubmitEditing={handleLogin}
           />
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity
+            style={styles.eyeIcon}
+            onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+          >
+            <Ionicons
+              name={isPasswordVisible ? 'eye' : 'eye-off'}
+              size={24}
+              color={Colors.grayDarkText}
+            />
+          </TouchableOpacity>
+        </View>
 
-      <Button.Large title="로그인" onPress={handleLogin} style={styles.loginButton} />
+        <Button.Large title="로그인" onPress={handleLogin} style={styles.loginButton} />
 
-      <Button.Large
-        title="카카오 로그인"
-        onPress={() => {
-          showAlert('알림', '카카오 로그인이 아직 준비 중입니다.');
-        }}
-        style={{ backgroundColor: '#FFDD00' }}
-        textColor={Colors.primary}
-      />
+        <Button.Large
+          title="카카오 로그인"
+          onPress={() => {
+            showAlert('알림', '카카오 로그인이 아직 준비 중입니다.');
+          }}
+          style={{ backgroundColor: '#FFDD00' }}
+          textColor={Colors.primary}
+        />
 
-      <View style={styles.footer}>
-        <TouchableOpacity onPress={() => router.push({ pathname: '/auth/forgot-password' })}>
-          <Text style={styles.footerText}>비밀번호 찾기</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push({ pathname: '/auth/signup' })}>
-          <Text style={styles.footerText}>회원가입</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.footer}>
+          <TouchableOpacity onPress={() => router.push({ pathname: '/auth/forgot-password' })}>
+            <Text style={styles.footerText}>비밀번호 찾기</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push({ pathname: '/auth/signup' })}>
+            <Text style={styles.footerText}>회원가입</Text>
+          </TouchableOpacity>
+        </View>
 
-      {/*알림 모달 */}
-      <CustomAlert
-        visible={!!alert}
-        title={alert?.title || ''}
-        message={alert?.message}
-        onClose={() => setAlert(null)}
-      />
-    </View>
+        {/*알림 모달 */}
+        <CustomAlert
+          visible={!!alert}
+          title={alert?.title || ''}
+          message={alert?.message}
+          onClose={() => setAlert(null)}
+        />
+    </ScrollView>
+  </KeyboardAvoidingView>
   );
 }
 

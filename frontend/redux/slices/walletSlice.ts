@@ -19,7 +19,6 @@ export const fetchWalletBalance = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get('/wallets');
-      console.log('💰 [walletSlice] 서버 응답:', response.data);
       return response.data.result.balance;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || '잔액 조회 실패');
@@ -42,7 +41,6 @@ const walletSlice = createSlice({
       .addCase(fetchWalletBalance.fulfilled, (state, action: PayloadAction<number>) => {
         state.balance = action.payload;
         state.isLoading = false;
-        console.log('✅ [walletSlice] 지갑 잔액 업데이트됨:', action.payload);
       })
       .addCase(fetchWalletBalance.rejected, (state, action) => {
         state.isLoading = false;

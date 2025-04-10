@@ -39,11 +39,6 @@ export default function WalletStatus() {
     }
   }, []);
 
-  // 💳 잔액 변경 시 콘솔 확인
-  useEffect(() => {
-    console.log('💰 [WalletStatus] 잔액 상태 변경됨:', balance);
-  }, [balance]);
-
   const formattedBalance = balance.toLocaleString('ko-KR');
 
   return (
@@ -187,7 +182,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: Colors.white,
-    padding: 24,
+    padding: '5%',
     borderRadius: 12,
     width: '80%',
   },
@@ -195,7 +190,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: Fonts.extraBold,
     color: Colors.text,
-    marginBottom: 12,
+    marginBottom: 15,
   },
   modalDescription: {
     fontSize: 16,

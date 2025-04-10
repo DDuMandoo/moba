@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   codeInput: {
-    width: 64,
+    width: '22%',
     height: 64,
     borderRadius: 10,
     borderWidth: 1,

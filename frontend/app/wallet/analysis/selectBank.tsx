@@ -222,7 +222,7 @@ export default function SelectBankScreen() {
           alignItems: 'center',
         }}
         onPress={() => {
-          setShowModal(true);
+          setShowModal(true)
         }}
       >
         <Text
@@ -289,7 +289,6 @@ export default function SelectBankScreen() {
                   borderRadius: 6,
                   backgroundColor: Colors.grayBackground,
                 }}
-                onPress={handleSendSms}
               >
                 <Text style={{ color: Colors.grayDarkText, fontWeight: 'bold' }}>확인</Text>
               </TouchableOpacity>
@@ -320,8 +319,13 @@ export default function SelectBankScreen() {
 
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
               <Text>남은 시간: {formatTime(timeLeft)}</Text>
-              <TouchableOpacity onPress={handleSendSms}>
-                <Text style={{ color: Colors.primary, fontWeight: 'bold' }}>인증번호 재전송</Text>
+              <TouchableOpacity onPress={() => {
+                // 재전송 처리
+                setTimeLeft(600); // 시간 초기화
+              }}>
+                <Text style={{ color: Colors.primary, fontWeight: 'bold' }}>
+                  인증번호 재전송
+                </Text>
               </TouchableOpacity>
             </View>
 

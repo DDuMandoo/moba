@@ -200,7 +200,7 @@ export default function AppointmentCalendarSection() {
 
 const styles = StyleSheet.create({
   containerBox: {
-    marginTop: 28,
+    marginTop: 10,
     padding: '5%',
     backgroundColor: Colors.white,
     borderRadius: 20,
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 5,
-    paddingTop: 8
+    paddingTop: 5
   },
   icon: {
     width: 12,

@@ -31,7 +31,6 @@ export const fetchUserProfile = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get('/members');
-      console.log('✅ /members 응답:', response.data);
       return response.data.result;
     } catch (err: any) {
       console.error('❌ /members 에러:', err.response?.status, err.response?.data);

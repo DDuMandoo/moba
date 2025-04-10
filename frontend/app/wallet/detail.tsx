@@ -103,19 +103,13 @@ export default function WalletDetailPage() {
         titleFormat={(name) => `${name}님의 지갑`}
       />
 
-      {/* ✅ 지갑 상태 */}
-      <View style={{ alignItems: 'center', width: '100%', marginTop: 24 }}>
+      {/* 지갑 상태 */}
+      <View style={{ alignItems: 'center', width: '100%', marginTop: 0 }}>
         <WalletStatus />
       </View>
 
-      {/* ✅ 기능 버튼 */}
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          marginTop: 24,
-        }}
-      >
+      {/* 기능 버튼 3개 */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
         <FeatureButton
           iconName="send"
           label="송금"

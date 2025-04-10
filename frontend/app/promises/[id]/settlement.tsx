@@ -242,7 +242,6 @@ export default function SettlementPage() {
 
   const submitFinalDutchpay = async () => {
     try {
-      console.log('[정산 요청 시작]'); // ✅ 요청 시작 로그
   
       const payload = {
         appointmentId: Number(appointmentId),
@@ -253,14 +252,8 @@ export default function SettlementPage() {
         })),
       };
   
-      console.log('[요청 보낼 데이터]', payload); // ✅ 실제 보낼 데이터 확인
   
       const response = await axios.post('/dutchpays', payload);
-      console.log('[정산 생성 hostId]', response.data.result.hostId);
-
-      
-  
-      console.log('[서버 응답]', response.data); // ✅ 응답 내용 확인
   
       if (response.data.isSuccess) {
         setIsConfirmModalVisible(false);
@@ -269,11 +262,9 @@ export default function SettlementPage() {
         Alert.alert('실패', response.data.message ?? '정산 요청에 실패했습니다.');
       }
     } catch (error: any) {
-      console.log('[정산 요청 에러]', error); // ✅ 에러 로그 출력
   
       // axios 에러라면 응답 안에 정보가 있을 수도 있음
       if (error.response) {
-        console.log('[에러 응답]', error.response.data);
         Alert.alert('에러', error.response.data.message || '요청에 실패했습니다.');
       } else {
         Alert.alert('에러', '서버와의 연결에 실패했어요.');
@@ -361,7 +352,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   headerWrapper: {
-    paddingTop: 28,
+    paddingTop: 20,
     paddingHorizontal: 20,
     backgroundColor: Colors.background,
     gap: 20,
@@ -372,7 +363,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '800',
     fontFamily: Fonts.bold,
     color: Colors.primary,
@@ -406,13 +397,13 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
   },
   tabActiveText: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '600',
     color: Colors.primary,
     fontFamily: Fonts.bold,
   },
   tabInactiveText: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '600',
     color: Colors.grayDarkText,
     fontFamily: Fonts.bold,

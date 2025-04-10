@@ -1,4 +1,3 @@
-// ✅ 카드에 로고 이미지 적용 + 원 회전 + 버튼/입력 비활성화 + 모달 시 초기화
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
@@ -9,16 +8,17 @@ import {
   Animated,
   Dimensions,
   Image,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Player } from '@/app/games/random';
 import Colors from '@/constants/Colors';
 import { Easing } from 'react-native';
 
 const { width } = Dimensions.get('window');
-const CARD_SIZE = 70;
-const RADIUS = 140;
-const centerX = 0;
-const centerY = 0;
+const CARD_SIZE = 60;
+const RADIUS = 125;
 
 const Icon = require('@/assets/Icon.png');
 
@@ -31,9 +31,16 @@ interface Props {
   setStarted: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function RandomBoard({ players, winner, setWinner, reset, setPlayers }: Props) {
+export default function RandomBoard({
+  players,
+  winner,
+  setWinner,
+  reset,
+  setPlayers,
+  setStarted,
+}: Props) {
   const [visible, setVisible] = useState(false);
-  const [started, setStarted] = useState(false);
+  const [started, setInternalStarted] = useState(false);
   const rotateAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -53,12 +60,14 @@ export default function RandomBoard({ players, winner, setWinner, reset, setPlay
   }, [started]);
 
   const animateDraw = () => {
+    setInternalStarted(true);
     setStarted(true);
 
     setTimeout(() => {
       const chosen = players[Math.floor(Math.random() * players.length)];
       setWinner(chosen);
       setVisible(true);
+      setInternalStarted(false);
       setStarted(false);
     }, 3000);
   };
@@ -80,9 +89,8 @@ export default function RandomBoard({ players, winner, setWinner, reset, setPlay
       const angle = (index / players.length) * 2 * Math.PI;
       const x = RADIUS * Math.cos(angle) - CARD_SIZE / 2;
       const y = RADIUS * Math.sin(angle) - CARD_SIZE / 2;
-  
-      const baseAngle = (angle * 180) / Math.PI; // 라디안 → 도 단위 변환
-  
+      const baseAngle = (angle * 180) / Math.PI;
+
       return (
         <Animated.View
           key={index}
@@ -106,39 +114,50 @@ export default function RandomBoard({ players, winner, setWinner, reset, setPlay
             ]}
           />
         </Animated.View>
-
       );
     });
   };
-  
 
   return (
-    <View style={styles.wrapper}>
-      <View style={styles.zoneContainer}>
-        <Image
-          source={require('@/assets/images/login_image.png')}
-          style={styles.centerImage}
-        />
-        <Animated.View
-          style={[styles.circle, {
-            transform: [
-              { translateX: centerX },
-              { translateY: centerY },
-              { rotate: spin },
-            ],
-          }]}
-        >
-          {renderRotatingCards()}
-        </Animated.View>
-      </View>
-
-      <Pressable
-        style={[styles.pickButton, players.length < 2 && { opacity: 0.5 }]}
-        onPress={animateDraw}
-        disabled={players.length < 2 || started}
+    <KeyboardAvoidingView
+      style={styles.wrapper}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.pickText}>✨ 랜덤 추첨 시작!</Text>
-      </Pressable>
+        <View style={styles.zoneContainer}>
+          <Image
+            source={require('@/assets/images/login_image.png')}
+            style={styles.centerImage}
+          />
+          <Animated.View
+            style={[
+              styles.circle,
+              {
+                transform: [{ rotate: spin }],
+              },
+            ]}
+          >
+            {renderRotatingCards()}
+          </Animated.View>
+        </View>
+
+        <View style={styles.buttonContainer}>
+          <Pressable
+            style={[
+              styles.pickButton,
+              (players.length < 2 || started) && { opacity: 0.5 },
+            ]}
+            onPress={animateDraw}
+            disabled={players.length < 2 || started}
+          >
+            <Text style={styles.pickText}>✨ 랜덤 추첨 시작!</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
 
       <Modal visible={visible} transparent animationType="fade">
         <View style={styles.modalOverlay}>
@@ -150,7 +169,7 @@ export default function RandomBoard({ players, winner, setWinner, reset, setPlay
           </View>
         </View>
       </Modal>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -159,8 +178,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'space-between',
+    padding: 0,
+  },
   zoneContainer: {
-    height: 360,
+    height: 340,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 12,
@@ -171,11 +195,7 @@ const styles = StyleSheet.create({
     height: 140,
     resizeMode: 'contain',
     zIndex: 5,
-    transform: [
-      { translateX: 0 },
-      { translateY: 0 },
-    ],
-  },  
+  },
   circle: {
     position: 'absolute',
     width: 0,
@@ -199,16 +219,16 @@ const styles = StyleSheet.create({
     height: 40,
     resizeMode: 'contain',
   },
+  buttonContainer: {
+    marginTop: 30,
+    marginBottom: 30,
+  },
   pickButton: {
-    position: 'absolute',
-    bottom: 0,
-    left: 80,
-    right: 80,
     backgroundColor: Colors.primary,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
-  },  
+  },
   pickText: {
     color: Colors.white,
     fontSize: 18,
@@ -234,7 +254,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   closeButton: {
-    backgroundColor: Colors.logo,
+    backgroundColor: Colors.primary,
     paddingVertical: 10,
     paddingHorizontal: 24,
     borderRadius: 8,

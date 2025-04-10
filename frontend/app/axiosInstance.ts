@@ -7,12 +7,10 @@ import { router } from 'expo-router';
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 
-console.log('🌐 API_URL from Constants:', API_URL);
-
 const ACCESS_KEY = 'accessToken';
 const REFRESH_KEY = 'refreshToken';
 
-export const saveTokens = async (accessToken: string, refreshToken: string) => {
+export const saveTokens = async (accessToken: string, refreshToken: string) => { 
   await SecureStore.setItemAsync(ACCESS_KEY, accessToken);
   await SecureStore.setItemAsync(REFRESH_KEY, refreshToken);
 };
@@ -80,7 +78,7 @@ axiosInstance.interceptors.response.use(
         await saveTokens(accessToken, newRefreshToken);
 
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        return axios(originalRequest); // 중요: interceptor 타면 다시 꼬일 수 있음
+        return axiosInstance(originalRequest); // 중요: interceptor 타면 다시 꼬일 수 있음
       } catch (err: any) {
         const code = err?.response?.data?.code;
 
@@ -91,7 +89,7 @@ axiosInstance.interceptors.response.use(
         }
 
         await clearTokens();
-        router.replace('/');
+        router.replace('/auth/login');
         return Promise.reject(err);
       }
     }

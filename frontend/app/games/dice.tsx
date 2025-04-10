@@ -1,16 +1,16 @@
-// app/games/dice.tsx
+// ✅ app/games/dice.tsx
 import React, { useState } from "react";
-import { View, StyleSheet } from "react-native";
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import PlayerSelector from "@/components/game/dice/PlayerSelector";
 import DiceBoard from "@/components/game/dice/DiceBoard";
 import ResultBoard from "@/components/game/dice/ResultBoard";
 import Colors from "@/constants/Colors";
-
-export interface Player {
-  id: string;
-  name: string;
-  score: number;
-}
 
 export interface Player {
   id: string;
@@ -36,42 +36,55 @@ export default function DiceGame() {
   };
 
   return (
-    <View style={styles.container}>
-      {!isStarted && (
-        <PlayerSelector
-          players={players}
-          setPlayers={setPlayers}
-          round={round}
-          setRound={setRound}
-          isStarted={isStarted}
-        />
-      )}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.innerContainer}>
+          {!isStarted && (
+            <PlayerSelector
+              players={players}
+              setPlayers={setPlayers}
+              round={round}
+              setRound={setRound}
+              isStarted={isStarted}
+            />
+          )}
 
-      {isFinished ? (
-        <ResultBoard players={players} onRestart={handleRestart} />
-      ) : (
-        <DiceBoard
-          players={players}
-          setPlayers={setPlayers}
-          round={round}
-          currentRound={currentRound}
-          setCurrentRound={setCurrentRound}
-          currentTurn={currentTurn}
-          setCurrentTurn={setCurrentTurn}
-          setIsFinished={setIsFinished}
-          isStarted={isStarted}
-          setIsStarted={setIsStarted}
-        />
-      )}
-    </View>
+          {isFinished ? (
+            <ResultBoard players={players} onRestart={handleRestart} />
+          ) : (
+            <DiceBoard
+              players={players}
+              setPlayers={setPlayers}
+              round={round}
+              currentRound={currentRound}
+              setCurrentRound={setCurrentRound}
+              currentTurn={currentTurn}
+              setCurrentTurn={setCurrentTurn}
+              setIsFinished={setIsFinished}
+              isStarted={isStarted}
+              setIsStarted={setIsStarted}
+            />
+          )}
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  scrollContainer: {
+    flexGrow: 1,
     backgroundColor: Colors.background,
+  },
+  innerContainer: {
+    flex: 1,
     paddingVertical: 24,
-    justifyContent: "space-between",
+    gap: 24,
   },
 });

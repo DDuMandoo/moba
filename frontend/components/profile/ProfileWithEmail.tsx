@@ -25,7 +25,7 @@ export default function ProfileWithEmail({ name, email, imageUri, size = 68 }: P
           {name}
           <Text style={[styles.suffix, { fontSize: size * 0.28 }]}> 님</Text>
         </Text>
-        <Text style={[styles.emailId, { fontSize: size * 0.3, marginTop: size*0.04 }]}>@{emailId}</Text>
+        <Text style={[styles.emailId, { fontSize: size * 0.25, marginTop: size*0.04 }]}>@{emailId}</Text>
       </View>
     </View>
   );

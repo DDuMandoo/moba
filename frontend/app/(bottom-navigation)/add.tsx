@@ -8,7 +8,7 @@ import {
   ScrollView,
   Dimensions,
   KeyboardAvoidingView,
-  SafeAreaView
+  Platform
 } from 'react-native';
 import { launchImageLibraryAsync, MediaTypeOptions } from 'expo-image-picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -77,6 +77,14 @@ const { draftAppointment } = useAppSelector((state) => state.appointment);
     }
   }, [selectedPlaceId, selectedPlaceName, selectedPlaceMemo]);
 
+  const resetForm = () => {
+    setName('');
+    setImage(null);
+    setDateTime(null);
+    setLocation(null);
+    setFriends([]);
+  };
+
   const handleSelectImage = async () => {
     const result = await launchImageLibraryAsync({
       mediaTypes: MediaTypeOptions.Images,
@@ -93,7 +101,6 @@ const { draftAppointment } = useAppSelector((state) => state.appointment);
         setImage(null);
       }
     } else {
-      console.log('🛑 이미지 선택 취소 또는 실패');
       setImage(null);
     }
   };
@@ -109,13 +116,18 @@ const { draftAppointment } = useAppSelector((state) => state.appointment);
       setAlertVisible(true);
       return;
     }
+    if (!location?.placeId) {
+      setAlertMessage('장소를 선택해주세요!');
+      setAlertVisible(true);
+      return;
+    }
     setConfirmVisible(true);
   };
 
   const handleConfirmSubmit = async () => {
     const payload = {
       name,
-      time: dateTime?.toISOString(),
+      time: dayjs(dateTime).format('YYYY-MM-DDTHH:mm:ss'),
       placeId: location?.placeId ?? null,
       // 약속 생성 페이지에서는 선택된 장소의 memo (혹은 placeName)를 그대로 사용
       memo: location?.memo || location?.placeName || '',
@@ -148,6 +160,7 @@ const { draftAppointment } = useAppSelector((state) => state.appointment);
         },
       });
       const appointmentId = res?.data?.result?.appointmentId;
+      resetForm();
       router.replace(`/promises/${appointmentId}`);
     } catch (err: any) {
       console.error('❌ 약속 생성 실패:', err);
@@ -157,8 +170,15 @@ const { draftAppointment } = useAppSelector((state) => state.appointment);
   };
 
   return (
-    <>
-      <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView
+    style={{ flex: 1 }}
+    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+  >
+    <ScrollView
+      contentContainerStyle={styles.scrollContainer}
+      keyboardShouldPersistTaps="handled"
+    >
         {/* 이미지 선택 */}
         <View style={styles.card}>
           <TouchableOpacity onPress={handleSelectImage} style={styles.imageBox} activeOpacity={0.8}>
@@ -239,7 +259,9 @@ const { draftAppointment } = useAppSelector((state) => state.appointment);
 
         {/* 장소 선택 */}
         <View style={styles.card}>
-          <Text style={styles.label}>장소 선택</Text>
+        <Text style={styles.label}>
+          장소 선택 <Text style={{ color: Colors.secondary }}>*</Text>
+        </Text>
           {location && (
             <View style={styles.selectedPlaceContainer}>
               <Ionicons name="location-outline" size={18} color={Colors.primary} />
@@ -307,11 +329,15 @@ const { draftAppointment } = useAppSelector((state) => state.appointment);
         data={{
           name,
           time: dateTime ? dayjs(dateTime).format('YYYY년 M월 D일 HH:mm') : '',
-          location: location?.memo || '',
+          location: location?.placeName
+            ? location.memo
+              ? `${location.placeName} - ${location.memo}`
+              : location.placeName
+            : '',
           participants: friends,
         }}
       />
-    </>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -326,7 +352,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: 12,
     padding: 16,
-    marginBottom: 20,
+    marginBottom: 10,
   },
   deleteIcon: {
     position: 'absolute',

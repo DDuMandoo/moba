@@ -18,6 +18,7 @@ import Colors from '@/constants/Colors';
 import { Button } from '@/components/ui/Button';
 import CustomAlert from '@/components/CustomAlert';
 import LoadingModal from '@/components/modal/LoadingModal';
+import { KeyboardAvoidingView, ScrollView } from 'react-native';
 
 const BASE_URL = Constants.expoConfig?.extra?.API_URL;
 
@@ -137,7 +138,15 @@ export default function SignupScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+    style={{ flex: 1 }}
+    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0} // 네비게이션 높이 따라 조절
+  >
+    <ScrollView
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+    >
 
       <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
         <View style={styles.imageCircle}>
@@ -238,6 +247,8 @@ export default function SignupScreen() {
         textColor={Colors.white}
       />
 
+    </ScrollView>
+
       <LoadingModal visible={loading} />
       <CustomAlert
         visible={!!alert}
@@ -245,16 +256,16 @@ export default function SignupScreen() {
         message={alert?.message}
         onClose={() => setAlert(null)}
       />
-    </View>
+  </KeyboardAvoidingView>
   );
 }
 
 // ✅ 스타일은 기존 유지
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    padding: '5%',
+    paddingBottom: 40,
     backgroundColor: Colors.background,
-    padding: '5%'
   },
   imagePicker: {
     alignItems: 'center',

@@ -16,6 +16,9 @@ import {
   GestureResponderEvent,
   PanResponder,
   PanResponderGestureState,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import Svg, { G, Path, Text as SvgText } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
@@ -35,6 +38,7 @@ export default function SvgRoulette() {
   const [items, setItems] = useState<string[]>([]);
   const [input, setInput] = useState('');
   const anglePerItem = 360 / (items.length || 1);
+  const inputRef = useRef<TextInput>(null);
 
   const spin = (velocity = 1) => {
     if (spinning || items.length < 2) return;
@@ -138,6 +142,10 @@ export default function SvgRoulette() {
     }
     setItems([...items, trimmed]);
     setInput('');
+
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
   };
 
   const removeItem = (index: number) => {
@@ -145,74 +153,80 @@ export default function SvgRoulette() {
   };
 
   return (
-    <View style={styles.container} {...panResponder.panHandlers}>
-      <View style={styles.arrow} />
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView contentContainerStyle={styles.container} {...panResponder.panHandlers}>
+        <View style={styles.arrow} />
 
-      <View style={styles.wheelWrapper}>
-        <Animated.View style={[{ transform: [{ rotate: interpolated }] }]}> 
-          <Svg width={SIZE} height={SIZE}>{renderSlices()}</Svg>
-        </Animated.View>
-        <Pressable style={styles.spinButton} onPress={() => spin()}>
-          <Image
-            source={require('@/assets/images/wonderCapybara.png')}
-            style={{ width: 48, height: 48 }}
-            resizeMode="contain"
-          />
-        </Pressable>
-      </View>
-
-      <View style={styles.inputRow}>
-        <TextInput
-          value={input}
-          onChangeText={setInput}
-          placeholder="무엇이든 입력해 보세요"
-          style={styles.input}
-          onSubmitEditing={addItem}
-        />
-        <Pressable onPress={addItem} style={styles.addButton}>
-          <Text style={styles.addText}>추가</Text>
-        </Pressable>
-      </View>
-
-      <FlatList
-        data={items}
-        keyExtractor={(item, index) => item + index}
-        contentContainerStyle={styles.itemList}
-        renderItem={({ item, index }) => (
-          <View style={styles.itemTag}>
-            <Text style={styles.itemText}>{item}</Text>
-            <Pressable onPress={() => removeItem(index)}>
-              <Text style={styles.itemRemove}>×</Text>
-            </Pressable>
-          </View>
-        )}
-        numColumns={4}
-        columnWrapperStyle={{ justifyContent: 'flex-start' }}
-        showsVerticalScrollIndicator={false}
-      />
-
-      <Modal visible={!!result} transparent animationType="fade">
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>🎉 결과 🎉</Text>
-            <Text style={styles.modalResult}>{result}</Text>
-            <Pressable style={styles.modalClose} onPress={() => setResult(null)}>
-              <Text style={styles.modalCloseText}>확인</Text>
-            </Pressable>
-          </View>
+        <View style={styles.wheelWrapper}>
+          <Animated.View style={[{ transform: [{ rotate: interpolated }] }]}> 
+            <Svg width={SIZE} height={SIZE}>{renderSlices()}</Svg>
+          </Animated.View>
+          <Pressable style={styles.spinButton} onPress={() => spin()}>
+            <Image
+              source={require('@/assets/images/wonderCapybara.png')}
+              style={{ width: 48, height: 48 }}
+              resizeMode="contain"
+            />
+          </Pressable>
         </View>
-      </Modal>
-    </View>
+
+        <View style={styles.inputRow}>
+          <TextInput
+            ref={inputRef}
+            value={input}
+            onChangeText={setInput}
+            placeholder="무엇이든 입력해 보세요"
+            style={styles.input}
+            onSubmitEditing={addItem}
+          />
+          <Pressable onPress={addItem} style={styles.addButton}>
+            <Text style={styles.addText}>추가</Text>
+          </Pressable>
+        </View>
+
+        <FlatList
+          data={items}
+          keyExtractor={(item, index) => item + index}
+          contentContainerStyle={styles.itemList}
+          renderItem={({ item, index }) => (
+            <View style={styles.itemTag}>
+              <Text style={styles.itemText}>{item}</Text>
+              <Pressable onPress={() => removeItem(index)}>
+                <Text style={styles.itemRemove}>×</Text>
+              </Pressable>
+            </View>
+          )}
+          numColumns={4}
+          columnWrapperStyle={{ justifyContent: 'flex-start' }}
+          showsVerticalScrollIndicator={false}
+        />
+
+        <Modal visible={!!result} transparent animationType="fade">
+          <View style={styles.modalBackdrop}>
+            <View style={styles.modalBox}>
+              <Text style={styles.modalTitle}>🎉 결과 🎉</Text>
+              <Text style={styles.modalResult}>{result}</Text>
+              <Pressable style={styles.modalClose} onPress={() => setResult(null)}>
+                <Text style={styles.modalCloseText}>확인</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.background,
     paddingTop: 60,
+    paddingBottom: 80,
   },
   wheelWrapper: {
     width: SIZE,

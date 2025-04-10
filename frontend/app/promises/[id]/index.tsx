@@ -299,7 +299,6 @@ export default function AppointmentDetailPage() {
         participants={appointment.participants}
         onSuccess={(newHost) => {
           setAppointment({ ...appointment, hostId: newHost.memberId });
-          console.log('방장 위임 성공:', newHost);
         }}
       />
 
@@ -393,7 +392,7 @@ const styles = StyleSheet.create({
   },
   whiteBox: {
     position: 'absolute',
-    top: TOP_IMAGE_HEIGHT / 2 - 20,
+    top: TOP_IMAGE_HEIGHT / 2 - 40,
     left: 0,
     right: 0,
     bottom: 0,
@@ -485,7 +484,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.grayLightText,
   },
   tab: {
-    paddingVertical: 4,
+    paddingVertical: 2,
     paddingHorizontal: 16,
     borderBottomWidth: 2,
     borderColor: 'transparent',

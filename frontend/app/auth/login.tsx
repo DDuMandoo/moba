@@ -8,30 +8,30 @@ import {
   Image,
   Keyboard,
   Platform,
+  KeyboardAvoidingView,
+  ScrollView,
+  SafeAreaView
 } from 'react-native';
 import { Button } from '@/components/ui/Button';
 import Colors from '@/constants/Colors';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import { saveTokens } from '@/app/axiosInstance';
-import Constants from 'expo-constants';
 import CustomAlert from '@/components/CustomAlert';
-import {getFcmToken} from '@/utils/fcmToken';
-import { useLocalSearchParams } from 'expo-router';
+import { getFcmToken } from '@/utils/fcmToken';
+import { login as kakaoLogin } from '@react-native-seoul/kakao-login';
 
-// const BASE_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_API_URL;
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
-
 
 export default function LoginScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState<{ title: string; message?: string } | null>(null);
-  const params = useLocalSearchParams();
 
   const showAlert = (title: string, message?: string) => {
     setAlert({ title, message });
@@ -42,143 +42,148 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     Keyboard.dismiss();
-  
-    console.log('📤 로그인 요청 전:', `${BASE_URL}/auth/signin`, email, password);
-  
+
     if (!isEmailValid(email)) {
-      console.log('❌ 이메일 형식 오류');
       showAlert('이메일 오류', '유효한 이메일 주소를 입력해주세요.');
       return;
     }
-  
+
     try {
       setLoading(true);
-      console.log('🚀 로그인 요청 시작');
-  
       const response = await axios.post(`${BASE_URL}/auth/signin`, { email, password }, {
         headers: { 'Content-Type': 'application/json' },
       });
-  
-      console.log('✅ 로그인 성공 응답:', response.data);
-  
+
       if (response.status === 200) {
         const { accessToken, refreshToken } = response.data.result;
         await saveTokens(accessToken, refreshToken);
 
-        console.log('💾 토큰 저장 완료');
-  
         const fcmToken = await getFcmToken();
         if (fcmToken) {
-          console.log('📮 서버로 FCM 토큰 전송 중...');
           await axios.post(`${BASE_URL}/fcm`, { token: fcmToken }, {
             headers: {
               Authorization: `Bearer ${accessToken}`,
               'Content-Type': 'application/json',
             },
           });
-          console.log('✅ FCM 토큰 서버 전송 완료');
-        } else {
-          console.warn('❗ FCM 토큰이 없어 서버에 전송되지 않았습니다');
         }
 
         const redirect = params.redirect;
         const redirectPath = Array.isArray(redirect) ? redirect[0] : redirect;
-        
-        // 허용된 경로거나 기본값이면 안전하게 대체
-        const fallbackPath = '/(bottom-navigation)' as const;
-        
-        router.replace(redirectPath && typeof redirectPath === 'string'
-          ? (redirectPath as any)  // 💡 타입 안정성보다 실행 우선 시 (문제가 되지 않음)
-          : fallbackPath
-        );
-        console.log('➡️ 리다이렉트:', redirectPath || fallbackPath);
+        const fallbackPath = '/(bottom-navigation)';
 
-        console.log('➡️ 라우팅 완료');
+        router.replace(
+          typeof redirectPath === 'string' ? (redirectPath as any) : '/(bottom-navigation)'
+        );
       } else {
-        console.log('⚠️ 로그인 실패 응답:', response.status);
         showAlert('로그인 실패', '이메일 혹은 비밀번호를 다시 확인해주세요!');
       }
     } catch (error: any) {
-      console.log('🧨 axios error:', JSON.stringify(error, null, 2));
       const message = error?.response?.data?.message || '서버 오류가 발생했습니다.';
       showAlert('로그인 실패', message);
     } finally {
-      console.log('🔚 로그인 요청 종료');
       setLoading(false);
     }
   };
-  
+
+  const handleKakaoLogin = async () => {
+    try {
+      const token = await kakaoLogin();
+      const kakaoAccessToken = token.accessToken;
+
+      const response = await axios.post(`${BASE_URL}/auth/social/kakao`, {
+        accessToken: kakaoAccessToken
+      }, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const { accessToken, refreshToken } = response.data.result;
+      await saveTokens(accessToken, refreshToken);
+
+      router.replace('/(bottom-navigation)');
+    } catch (err: any) {
+      showAlert('로그인 실패', err?.message || '카카오 로그인에 실패했습니다.');
+    }
+  };
 
   return (
-    <View style={styles.container}>
-      <Image source={require('@/assets/images/login_image.png')} style={styles.logo} />
-
-      <Text style={styles.label}>이메일</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="이메일을 입력해주세요"
-        placeholderTextColor={Colors.grayLightText}
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        autoCorrect={false}
-        returnKeyType="next"
-        onSubmitEditing={() => Keyboard.dismiss()}
-      />
-
-      <Text style={styles.label}>비밀번호</Text>
-      <View style={styles.passwordContainer}>
-        <TextInput
-          style={styles.passwordInput}
-          placeholder="비밀번호를 입력해주세요"
-          placeholderTextColor={Colors.grayLightText}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={!isPasswordVisible}
-          returnKeyType="done"
-          onSubmitEditing={handleLogin}
-        />
-        <TouchableOpacity
-          style={styles.eyeIcon}
-          onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.logo }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 40}
+        style={{ flex: 1 }}
+      >
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
         >
-          <Ionicons
-            name={isPasswordVisible ? 'eye' : 'eye-off'}
-            size={24}
-            color={Colors.grayDarkText}
+          <Image source={require('@/assets/images/login_image.png')} style={styles.logo} />
+
+          <Text style={styles.label}>이메일</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="이메일을 입력해주세요"
+            placeholderTextColor={Colors.grayLightText}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="next"
+            onSubmitEditing={() => Keyboard.dismiss()}
           />
-        </TouchableOpacity>
-      </View>
 
-      <Button.Large title="로그인" onPress={handleLogin} style={styles.loginButton} />
+          <Text style={styles.label}>비밀번호</Text>
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="비밀번호를 입력해주세요"
+              placeholderTextColor={Colors.grayLightText}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!isPasswordVisible}
+              returnKeyType="done"
+              onSubmitEditing={handleLogin}
+            />
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+            >
+              <Ionicons
+                name={isPasswordVisible ? 'eye' : 'eye-off'}
+                size={24}
+                color={Colors.grayDarkText}
+              />
+            </TouchableOpacity>
+          </View>
 
-      <Button.Large
-        title="카카오 로그인"
-        onPress={() => {
-          showAlert('알림', '카카오 로그인이 아직 준비 중입니다.');
-        }}
-        style={{ backgroundColor: '#FFDD00' }}
-        textColor={Colors.primary}
-      />
+          <Button.Large title="로그인" onPress={handleLogin} style={styles.loginButton} />
 
-      <View style={styles.footer}>
-        <TouchableOpacity onPress={() => router.push({ pathname: '/auth/forgot-password' })}>
-          <Text style={styles.footerText}>비밀번호 찾기</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push({ pathname: '/auth/signup' })}>
-          <Text style={styles.footerText}>회원가입</Text>
-        </TouchableOpacity>
-      </View>
+          <Button.Large
+            title="카카오 로그인"
+            onPress={handleKakaoLogin}
+            style={{ backgroundColor: '#FFDD00' }}
+            textColor={Colors.primary}
+          />
 
-      {/*알림 모달 */}
-      <CustomAlert
-        visible={!!alert}
-        title={alert?.title || ''}
-        message={alert?.message}
-        onClose={() => setAlert(null)}
-      />
-    </View>
+          <View style={styles.footer}>
+            <TouchableOpacity onPress={() => router.push('/auth/forgot-password')}>
+              <Text style={styles.footerText}>비밀번호 찾기</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/auth/signup')}>
+              <Text style={styles.footerText}>회원가입</Text>
+            </TouchableOpacity>
+          </View>
+
+          <CustomAlert
+            visible={!!alert}
+            title={alert?.title || ''}
+            message={alert?.message}
+            onClose={() => setAlert(null)}
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -192,8 +197,8 @@ const styles = StyleSheet.create({
     height: '100%'
   },
   logo: {
-    width: 240,
-    height: 240,
+    width: 250,
+    height: 250,
     alignSelf: 'center'
   },
   label: {

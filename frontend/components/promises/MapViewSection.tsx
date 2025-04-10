@@ -35,7 +35,7 @@ interface MapViewSectionProps {
   isEnded: boolean;
 }
 
-const NETLIFY_BASE_URL = 'https://illustrious-cactus-604d6c.netlify.app';
+const NETLIFY_BASE_URL = 'https://storied-chaja-c0f82a.netlify.app';
 
 export default function MapViewSection({
   appointmentId,

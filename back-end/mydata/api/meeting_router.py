@@ -6,4 +6,5 @@ router = APIRouter()
 
 @router.post("/group/analyze")
 def group_interest_analysis(request: TokenListRequest):
+    print("요청 받은 token들 : ",request)
     return analyze_group_interests(request.tokens)

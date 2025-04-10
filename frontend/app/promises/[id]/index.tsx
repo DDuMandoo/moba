@@ -57,11 +57,11 @@ export default function AppointmentDetailPage() {
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [copyAlertVisible, setCopyAlertVisible] = useState(false);
 
-  const handleShareLink = async () => {
-    const deepLink = Linking.createURL(`appointment/${appointment.appointmentId}`);
-    await Clipboard.setStringAsync(deepLink);
-    setCopyAlertVisible(true);
-  };
+  // const handleShareLink = async () => {
+  //   const deepLink = Linking.createURL(`appointment/${appointment.appointmentId}`);
+  //   await Clipboard.setStringAsync(deepLink);
+  //   setCopyAlertVisible(true);
+  // };
 
   const getAppointment = async () => {
     if (!id) return;

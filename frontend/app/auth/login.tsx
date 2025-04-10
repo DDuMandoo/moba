@@ -192,8 +192,8 @@ const styles = StyleSheet.create({
     height: '100%'
   },
   logo: {
-    width: 280,
-    height: 280,
+    width: 240,
+    height: 240,
     alignSelf: 'center'
   },
   label: {

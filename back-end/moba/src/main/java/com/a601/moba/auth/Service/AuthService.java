@@ -117,7 +117,7 @@ public class AuthService {
 
     //프론트에서 카카오 코드를 받고 POST 요청 보낼 때의 signin
 //    @Transactional
-//    public AuthResponse kakaoSignin(String code) {
+//    public AuthResponse kakaoSignin2(String code) {
 //        String kakaoAccessToken = kakaoOAuthClient.getAccessToken(code);
 //        KakaoUserResponse kakaoUser = kakaoOAuthClient.getUserInfo(kakaoAccessToken);
 //
@@ -132,12 +132,19 @@ public class AuthService {
 //            if (member.isDeleted()) {
 //                throw new AuthException(ErrorCode.ALREADY_DELETED_MEMBER);
 //            }
-//            if (member.getSocialId() == null) {
+//            // 기존 유저인데 소셜 ID가 없거나 다른 경우 갱신
+//            if (member.getSocialId() == null || !member.getSocialId().equals(socialId)) {
 //                member.updateSocialId(socialId);
 //            }
+//            member.updateName(name);
+//            member.updateProfileImage(image);
 //        } else {
-//            member = new Member(email, null, name, image);
-//            member.updateSocialId(socialId);
+//            member = Member.builder()
+//                    .email(email)
+//                    .name(name)
+//                    .profileImage(image)
+//                    .socialId(socialId)
+//                    .build();
 //            memberRepository.save(member);
 //        }
 //
@@ -148,6 +155,42 @@ public class AuthService {
 //        return new AuthResponse(accessToken, refreshToken);
 //    }
 
+    @Transactional
+    public AuthResponse kakaoSigninWithAccessToken(String kakaoAccessToken) {
+        KakaoUserResponse kakaoUser = kakaoOAuthClient.getUserInfo(kakaoAccessToken);
+
+        String email = kakaoUser.getKakaoAccount().getEmail();
+        String name = kakaoUser.getKakaoAccount().getProfile().getNickname();
+        String image = kakaoUser.getKakaoAccount().getProfile().getProfileImageUrl();
+        Long socialId = kakaoUser.getId();
+
+        Member member = memberRepository.findByEmail(email).orElse(null);
+
+        if (member != null) {
+            if (member.isDeleted()) {
+                throw new AuthException(ErrorCode.ALREADY_DELETED_MEMBER);
+            }
+            if (member.getSocialId() == null || !member.getSocialId().equals(socialId)) {
+                member.updateSocialId(socialId);
+            }
+            member.updateName(name);
+            member.updateProfileImage(image);
+        } else {
+            member = Member.builder()
+                    .email(email)
+                    .name(name)
+                    .profileImage(image)
+                    .socialId(socialId)
+                    .build();
+            memberRepository.save(member);
+        }
+
+        String accessToken = jwtProvider.generateAccessToken(email);
+        String refreshToken = jwtProvider.generateRefreshToken(email);
+        redisService.saveRefreshToken(email, refreshToken, jwtProvider.getExpirationTime(refreshToken));
+
+        return new AuthResponse(accessToken, refreshToken);
+    }
 
     private AuthResponse issueTokens(String email) {
         String accessToken = jwtProvider.generateAccessToken(email);

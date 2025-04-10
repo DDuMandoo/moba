@@ -3,6 +3,8 @@ package com.a601.moba.appointment.Service;
 import com.a601.moba.appointment.Entity.Appointment;
 import com.a601.moba.appointment.Entity.Place;
 import com.a601.moba.appointment.Repository.PlaceRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -57,13 +59,25 @@ public class PlaceRecommendationService {
 
     public List<Integer> getNearbyPlaces(Integer appointmentId) {
         String key = "appointment:" + appointmentId + ":nearby";
-        List<Integer> placeIds = listRedisTemplate.opsForValue().get(key);
-        return placeIds != null ? placeIds : List.of();
+        String json = stringRedisTemplate.opsForValue().get(key);
+
+        if (json == null) {
+            return List.of();
+        }
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(json, new TypeReference<List<Integer>>() {
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            return List.of();
+        }
     }
 
     // 추천 완료 여부 확인용 (선택적 활용)
     public boolean isRecommendationDone(Integer appointmentId) {
-        String key = "appointment:" + appointmentId + ":recommendation_status";
+        String key = "appointment:" + appointmentId + ":nearby_status";
         return "DONE".equals(stringRedisTemplate.opsForValue().get(key));
     }
 }

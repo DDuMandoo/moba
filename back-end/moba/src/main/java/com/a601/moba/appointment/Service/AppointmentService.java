@@ -14,10 +14,11 @@ import com.a601.moba.appointment.Controller.Response.AppointmentJoinResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentListItemResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentParticipantResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentRecommendResponse;
+import com.a601.moba.appointment.Controller.Response.AppointmentRecommendPlaceResponse;
+import com.a601.moba.appointment.Controller.Response.AppointmentRecommendResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentSummaryResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentUpdateResponse;
 import com.a601.moba.appointment.Controller.Response.GetLocationAppointmentResponse;
-import com.a601.moba.appointment.Controller.Response.SubcategoryScore;
 import com.a601.moba.appointment.Entity.Appointment;
 import com.a601.moba.appointment.Entity.AppointmentParticipant;
 import com.a601.moba.appointment.Entity.Place;
@@ -25,6 +26,9 @@ import com.a601.moba.appointment.Exception.AppointmentException;
 import com.a601.moba.appointment.Repository.AppointmentParticipantRepository;
 import com.a601.moba.appointment.Repository.AppointmentRepository;
 import com.a601.moba.appointment.Repository.PlaceRepository;
+import com.a601.moba.appointment.Service.Dto.RecommendedPlace;
+import com.a601.moba.appointment.Service.Dto.SubcategoryScore;
+import com.a601.moba.appointment.Util.DistanceUtils;
 import com.a601.moba.appointment.Util.InviteCodeGenerator;
 import com.a601.moba.auth.Exception.AuthException;
 import com.a601.moba.auth.Util.AuthUtil;
@@ -40,6 +44,7 @@ import com.a601.moba.wallet.Repository.WalletRepository;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -50,6 +55,8 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,6 +80,7 @@ public class AppointmentService {
     private final PlaceRepository placeRepository;
     private final NotificationService notificationService;
     private final PlaceRecommendationService placeRecommendationService;
+    private final RedisTemplate<String, List<Integer>> listRedisTemplate;
 
     @Value("${moba.mydata.base.url}")
     private String MYDATA_URL;
@@ -205,7 +213,6 @@ public class AppointmentService {
                 .build();
     }
 
-    @Transactional
     public AppointmentDetailResponse getDetail(Integer appointmentId) {
         Member member = authUtil.getCurrentMember();
 
@@ -216,12 +223,8 @@ public class AppointmentService {
                 .findByAppointmentAndMember(appointment, member)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED));
 
-        if (self.getState() == State.LEAVE || self.getState() == State.KICKED) {
+        if (self.getState() != State.JOINED) {
             throw new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED);
-        }
-
-        if (self.getState() == State.WAIT) {
-            self.updateState(State.JOINED);
         }
 
         // JOINED 상태의 참여자만 필터링
@@ -309,8 +312,6 @@ public class AppointmentService {
             imageUrl = s3Service.uploadFile(image);
         }
 
-        boolean placeChanged = appointment.getPlace() == null || !appointment.getPlace().getId().equals(place.getId());
-
         appointment.update(
                 request.name(),
                 imageUrl,
@@ -318,10 +319,6 @@ public class AppointmentService {
                 place,
                 request.memo()
         );
-
-        if (placeChanged) {
-            placeRecommendationService.processNearbyRecommendations(appointment);
-        }
 
         return AppointmentUpdateResponse.builder()
                 .appointmentId(appointment.getId())
@@ -584,10 +581,10 @@ public class AppointmentService {
                 .filter(Objects::nonNull)
                 .toList();
 
-        // 요청 객체
         Map<String, Object> requestBody = Map.of("tokens", tokens);
         RestTemplate restTemplate = new RestTemplate();
-        String url = MYDATA_URL + "/api/meeting/group/analyze";
+        String url = MYDATA_URL + "/meeting/group/analyze";
+
         ResponseEntity<Map> response = restTemplate.postForEntity(url, requestBody, Map.class);
 
         Map<String, Object> body = response.getBody();
@@ -604,20 +601,75 @@ public class AppointmentService {
 
         for (Map.Entry<String, List<Map<String, Object>>> entry : rawRecommended.entrySet()) {
             String category = entry.getKey();
-            List<SubcategoryScore> list = entry.getValue().stream()
+            List<SubcategoryScore> scores = entry.getValue().stream()
                     .map(m -> SubcategoryScore.builder()
                             .subcategory((String) m.get("subcategory"))
                             .score(Double.parseDouble(m.get("score").toString()))
-                            .build()
-                    ).toList();
-            parsedRecommended.put(category, list);
+                            .build())
+                    .toList();
+
+            parsedRecommended.put(category, scores);
         }
 
-        return AppointmentRecommendResponse.builder()
-                .validUserIds(validUserIds)
-                .invalidUserIds(invalidUserIds)
-                .recommendedSubcategories(parsedRecommended)
-                .build();
+        return new AppointmentRecommendResponse(validUserIds, invalidUserIds, parsedRecommended);
+    }
+
+    public AppointmentRecommendPlaceResponse getRecommendedPlace(Integer appointmentId, String category) {
+        Appointment appointment = getAppointment(appointmentId);
+        if (!placeRecommendationService.isRecommendationDone(appointmentId)) {
+            throw new AppointmentException(ErrorCode.APPOINTMENT_NOT_CALCULATE);
+        }
+
+        List<Integer> nearbyPlaceIds = placeRecommendationService.getNearbyPlaces(appointmentId);
+        if (nearbyPlaceIds.isEmpty()) {
+            throw new MydataException(ErrorCode.APPOINTMENT_NO_NEARBY_PLACE);
+        }
+
+        List<Place> places = placeRepository.findAllById(nearbyPlaceIds);
+
+        AppointmentRecommendResponse subcategoryResponse = getRecommendations(appointmentId);
+        Map<String, List<SubcategoryScore>> scoreMap = subcategoryResponse.recommendedSubcategories();
+        List<SubcategoryScore> targetSubScores = scoreMap.getOrDefault(category, List.of());
+        Map<String, Double> subcategoryScoreMap = new HashMap<>();
+        for (SubcategoryScore s : targetSubScores) {
+            subcategoryScoreMap.put(s.subcategory(), s.score());
+        }
+
+        List<RecommendedPlace> matchedPlaces = new ArrayList<>();
+        for (Place place : places) {
+            String sub = place.getSubCategory();
+            Double score = subcategoryScoreMap.get(sub);
+            if (score == null) {
+                continue;
+            }
+
+            RecommendedPlace rp = RecommendedPlace.builder()
+                    .placeId(place.getId())
+                    .name(place.getName())
+                    .latitude(place.getLatitude())
+                    .longitude(place.getLongitude())
+                    .subcategory(sub)
+                    .score(score)
+                    .reviewCount(place.getReviewCount())
+                    .distance(DistanceUtils.calculateDistance(place, appointment.getPlace()))
+                    .build();
+
+            matchedPlaces.add(rp);
+        }
+
+        matchedPlaces.sort(Comparator
+                .comparing(RecommendedPlace::reviewCount, Comparator.reverseOrder())
+                .thenComparing(RecommendedPlace::score, Comparator.reverseOrder())
+                .thenComparing(RecommendedPlace::distance));
+
+        Map<String, List<RecommendedPlace>> result = new HashMap<>();
+        result.put(category, matchedPlaces);
+
+        return new AppointmentRecommendPlaceResponse(
+                subcategoryResponse.validUserIds(),
+                subcategoryResponse.invalidUserIds(),
+                result
+        );
     }
 
 }

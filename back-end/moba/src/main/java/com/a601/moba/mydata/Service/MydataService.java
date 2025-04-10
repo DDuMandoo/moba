@@ -37,6 +37,7 @@ public class MydataService {
 
     public ReadMydataResponse read() {
         Member member = authUtil.getCurrentMember();
+        log.info("🔵 read 시작 for user {}", member.getId());
 
         // mydata용 access token이 있을 때
         if (member.getMydataToken() != null) {
@@ -46,7 +47,7 @@ public class MydataService {
             }
             // access token이 만료 됐을 때
             else {
-                throw new MydataException(ErrorCode.MYDATA_ACCESS_FAILED);
+                throw new MydataException(ErrorCode.PLACE_NEARBY_EMPTY);
             }
         }
 
@@ -66,7 +67,11 @@ public class MydataService {
 
     private ReadMydataResponse callMydataInfo(Member member) {
 
+        log.info("🔵 Info 요청 시작 for user {}", member.getId());
+
         String accessToken = member.getMydataToken();
+
+        log.info("🔵 Info 엑세스 토큰 : {}", accessToken);
 
         RestTemplate restTemplate = new RestTemplate();
 
@@ -92,6 +97,7 @@ public class MydataService {
     }
 
     private ReadMydataResponse callMydataInit(Member member) {
+        log.info("🟢 Init 요청 시작 for user {}", member.getId());
 
         RestTemplate restTemplate = new RestTemplate();
 
@@ -105,6 +111,7 @@ public class MydataService {
             throw new MydataException(ErrorCode.MYDATA_INIT_FAILED);
         }
         String accessToken = (String) body.get("access_token");
+        log.info("토큰@@@@@@@@@@" + accessToken);
         Map<String, Object> result = (Map<String, Object>) body.get("result");
 
         MydataBase data = parseRecommendationResult(result);

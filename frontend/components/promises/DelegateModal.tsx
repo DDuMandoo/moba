@@ -46,9 +46,6 @@ const DelegateModal = ({
   );
 
   const handleConfirm = async () => {
-    console.log('delegate to:', selectedMember?.memberId);
-    console.log('appointmentId:', appointmentId);
-    console.log('currentHostId:', currentHostId);
     if (!selectedMember) return;
     setLoading(true);
     setErrorMsg(null);

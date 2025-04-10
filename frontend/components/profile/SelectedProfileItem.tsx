@@ -14,7 +14,6 @@ interface Props {
 const SelectedProfileItem = ({ name, image, onRemove, size = 60 }: Props) => {
   const imageSize = size * 0.8;
   const fontSize = size * 0.22;
-  console.log(name, image)
   const resolvedSource =
     image && typeof image === 'string' && image.trim() !== ''
       ? { uri: image }

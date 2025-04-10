@@ -223,7 +223,7 @@ export default function DiceBoard({
 }
 
 const styles = StyleSheet.create({
-  wrapper: { flex: 1, backgroundColor: Colors.background, paddingTop: 24 },
+  wrapper: { flex: 1, backgroundColor: Colors.background, paddingTop: 10 },
   rowBody: {
     flexDirection: 'row',
     flex: 1,

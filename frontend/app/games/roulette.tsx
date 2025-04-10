@@ -38,6 +38,7 @@ export default function SvgRoulette() {
   const [items, setItems] = useState<string[]>([]);
   const [input, setInput] = useState('');
   const anglePerItem = 360 / (items.length || 1);
+  const inputRef = useRef<TextInput>(null);
 
   const spin = (velocity = 1) => {
     if (spinning || items.length < 2) return;
@@ -141,6 +142,10 @@ export default function SvgRoulette() {
     }
     setItems([...items, trimmed]);
     setInput('');
+
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
   };
 
   const removeItem = (index: number) => {
@@ -170,6 +175,7 @@ export default function SvgRoulette() {
 
         <View style={styles.inputRow}>
           <TextInput
+            ref={inputRef}
             value={input}
             onChangeText={setInput}
             placeholder="무엇이든 입력해 보세요"

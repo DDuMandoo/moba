@@ -29,8 +29,6 @@ export function useNotificationNavigation() {
       const link = response?.notification?.request?.content?.data?.link;
       const screenPath = parseDeepLink(link);
       if (screenPath) {
-        console.log('[Initial DeepLink]', screenPath);
-        // 네비게이션이 준비된 후 실행
         InteractionManager.runAfterInteractions(() => {
           router.push(screenPath as never);
         });
@@ -41,7 +39,6 @@ export function useNotificationNavigation() {
       const link = response.notification.request.content.data.link;
       const screenPath = parseDeepLink(link);
       if (screenPath) {
-        console.log('[Clicked Notification DeepLink]', screenPath);
         router.push(screenPath as never);
       }
     });

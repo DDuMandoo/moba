@@ -51,7 +51,6 @@ export const createAppointment = createAsyncThunk<
     const res = await axios.post('/appointments', formData); // ✅ headers X
     return res.data as AppointmentResponse;
   } catch (err: any) {
-    console.log('❌ 약속 생성 실패:', err.response?.data);
     return rejectWithValue(err.response?.data?.message || '약속 생성 실패');
   }
 });

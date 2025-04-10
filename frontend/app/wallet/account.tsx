@@ -25,10 +25,8 @@ export default function AccountPage() {
   const fetchAccounts = async () => {
     try {
       const res = await axiosInstance.get('/wallets/account');
-      console.log('📦 서버 응답 전체:', res.data);
 
       const accounts = res.data.result?.accounts ?? [];
-      console.log('📥 불러온 계좌 목록:', accounts);
 
       dispatch(setAccountList(accounts));
     } catch (e) {
@@ -82,10 +80,6 @@ export default function AccountPage() {
             };
 
             const isLast = index === accounts.length - 1;
-
-            // 디버깅용 로그
-            console.log('💳 계좌:', acc);
-            console.log('🏦 매칭된 은행:', bank);
 
             return (
               <View

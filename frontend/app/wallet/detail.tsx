@@ -77,12 +77,12 @@ export default function WalletDetailPage() {
       />
 
       {/* 지갑 상태 */}
-      <View style={{ alignItems: 'center', width: '100%', marginTop: 24 }}>
+      <View style={{ alignItems: 'center', width: '100%', marginTop: 0 }}>
         <WalletStatus />
       </View>
 
       {/* 기능 버튼 3개 */}
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 24 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
         <FeatureButton
           iconName="send"
           label="송금"

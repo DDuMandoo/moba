@@ -27,20 +27,13 @@ export default function CompletedPage() {
 
   const fetchDutchpayInfo = async () => {
     try {
-      console.log('[GET 요청 시작]', dutchpayId);
 
       const { data } = await axios.get(`/dutchpays/${dutchpayId}/demand`);
-
-      console.log('[GET 응답 데이터]', data);
-      console.log('[응답 result]', data.result);
-      console.log('[응답 participants]', data.result.participants);
 
       setTotalPrice(data.result.totalPrice);
       setParticipants(data.result.participants);
     } catch (error: any) {
-      console.log('[GET 에러]', error);
       if (error.response) {
-        console.log('[GET 에러 응답]', error.response.data);
       }
       Alert.alert('불러오기 실패', '정산 정보를 가져오지 못했어요.');
     } finally {

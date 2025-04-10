@@ -29,10 +29,8 @@ export default function ChargePage() {
       try {
         const res = await axiosInstance.get('/wallets/account');
         const accounts = res.data.result?.accounts ?? [];
-        console.log('💳 [ChargePage] 계좌 목록 불러옴:', accounts);
         dispatch(setAccountList(accounts));
       } catch (err) {
-        console.error('❌ [ChargePage] 계좌 불러오기 실패:', err);
       }
     };
 
@@ -47,18 +45,8 @@ export default function ChargePage() {
   const isAmountValid = amount >= 10000 && amount <= 1000000;
   const isReadyToCharge = isAmountValid && !!selectedAccountId;
 
-  useEffect(() => {
-    console.log('🟢 [ChargePage] 충전 버튼 조건:', {
-      amount,
-      isAmountValid,
-      selectedAccountId,
-      enabled: isReadyToCharge,
-    });
-  }, [amount, selectedAccountId]);
-
   const handleCharge = () => {
     if (isReadyToCharge) {
-      console.log('🚀 [ChargePage] 충전 버튼 클릭됨');
       setModalVisible(true);
     }
   };
@@ -76,7 +64,6 @@ export default function ChargePage() {
         <ChargeSourceList
           selectedAccountId={selectedAccountId}
           onSelectAccount={(id) => {
-            console.log('✅ 계좌 선택됨:', id);
             dispatch(selectAccount(id));
           }}
         />
@@ -101,7 +88,6 @@ export default function ChargePage() {
       >
         <ChargeConfirmModal
           onClose={() => {
-            console.log('🟢 [ChargePage] 충전 완료, 지갑 금액 갱신 요청');
             setModalVisible(false);
             dispatch(fetchWalletBalance());
           }}

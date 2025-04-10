@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { ScrollView, View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ScrollView, View, Text, ActivityIndicator, StyleSheet, RefreshControl } from 'react-native';
 import WalletStatus from '@/components/WalletStatus';
 import Colors from '@/constants/Colors';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
@@ -10,10 +10,17 @@ import AppointmentCalendarSection from '@/components/promises/AppointmentCalende
 export default function WalletDetailPage() {
   const dispatch = useAppDispatch();
   const { profile, isLoading, isError } = useAppSelector((state) => state.user);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     dispatch(fetchUserProfile());
   }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await dispatch(fetchUserProfile());
+    setRefreshing(false);
+  };
 
   if (isLoading || !profile?.email) {
     return (
@@ -25,7 +32,13 @@ export default function WalletDetailPage() {
   }
 
   return (
-    <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+    <ScrollView
+      style={styles.scrollView}
+      contentContainerStyle={styles.scrollContent}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
       <ProfileHeader
         name={profile.name}
         image={profile.image}
@@ -64,6 +77,6 @@ const styles = StyleSheet.create({
   walletStatusWrapper: {
     alignItems: 'center',
     width: '100%',
-    marginTop: 24,
+    marginTop: 0,
   },
 });

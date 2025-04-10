@@ -109,14 +109,20 @@ export default function SelectBankScreen() {
 
       console.log('✅ 인증 성공:', res.data);
       Alert.alert('인증 완료', 'SMS 인증이 완료되었습니다!');
-      setShowModal(false);
-
-      // ✅ 인증 완료 후 지갑 페이지로 이동
+      handleCloseModal();
       router.replace('/wallet/detail');
     } catch (error: any) {
       console.error('❌ 인증 실패:', error?.response?.data || error);
       Alert.alert('인증 실패', error?.response?.data?.message ?? '인증에 실패했습니다.');
     }
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setPhoneNumber('');
+    setCodeInputs(Array(6).fill(''));
+    setTimeLeft(0);
+    setHasRequestedSms(false);
   };
 
   const isAllSelected = selectedBanks.length === banks.length;
@@ -209,6 +215,7 @@ export default function SelectBankScreen() {
         </View>
       </ScrollView>
 
+      {/* 인증하기 버튼 */}
       <TouchableOpacity
         disabled={isDisabled}
         style={{
@@ -221,9 +228,7 @@ export default function SelectBankScreen() {
           borderRadius: 12,
           alignItems: 'center',
         }}
-        onPress={() => {
-          setShowModal(true)
-        }}
+        onPress={() => setShowModal(true)}
       >
         <Text
           style={{
@@ -236,11 +241,12 @@ export default function SelectBankScreen() {
         </Text>
       </TouchableOpacity>
 
+      {/* 인증 모달 */}
       <Modal
         visible={showModal}
         animationType="none"
         transparent
-        onRequestClose={() => setShowModal(false)}
+        onRequestClose={handleCloseModal}
       >
         <View
           style={{
@@ -251,10 +257,7 @@ export default function SelectBankScreen() {
           }}
         >
           <View style={{ backgroundColor: 'white', borderRadius: 16, padding: 20 }}>
-            <TouchableOpacity
-              style={{ alignSelf: 'flex-end' }}
-              onPress={() => setShowModal(false)}
-            >
+            <TouchableOpacity style={{ alignSelf: 'flex-end' }} onPress={handleCloseModal}>
               <Ionicons name="close" size={24} color="black" />
             </TouchableOpacity>
 
@@ -283,6 +286,7 @@ export default function SelectBankScreen() {
                 style={{ flex: 1, paddingVertical: 10 }}
               />
               <TouchableOpacity
+                onPress={handleSendSms}
                 style={{
                   paddingHorizontal: 12,
                   paddingVertical: 6,
@@ -294,12 +298,11 @@ export default function SelectBankScreen() {
               </TouchableOpacity>
             </View>
 
-            <View
-              style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 12 }}
-            >
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 12 }}>
               {Array.from({ length: 6 }).map((_, idx) => (
                 <TextInput
                   key={idx}
+                  ref={(el) => (inputRefs.current[idx] = el)}
                   maxLength={1}
                   keyboardType="numeric"
                   value={codeInputs[idx]}
@@ -319,11 +322,13 @@ export default function SelectBankScreen() {
 
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
               <Text>남은 시간: {formatTime(timeLeft)}</Text>
-              <TouchableOpacity onPress={() => {
-                // 재전송 처리
-                setTimeLeft(600); // 시간 초기화
-              }}>
-                <Text style={{ color: Colors.primary, fontWeight: 'bold' }}>
+              <TouchableOpacity onPress={handleSendSms} disabled={!hasRequestedSms}>
+                <Text
+                  style={{
+                    color: hasRequestedSms ? Colors.primary : Colors.gray200,
+                    fontWeight: 'bold',
+                  }}
+                >
                   인증번호 재전송
                 </Text>
               </TouchableOpacity>

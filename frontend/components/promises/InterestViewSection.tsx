@@ -94,10 +94,14 @@ export default function CommonInterestSection() {
   const subs = useMemo(
     () =>
       (interestData[selectedTab] ?? []).map(
-        (item: { subcategory: string; score: number }) => ({
-          category: item.subcategory,
-          ratio: item.score,
-        })
+        (item: { subcategory: string; score: number }) => {
+          const ratio =
+            item.score === 100 ? 100 : Math.round(item.score * 0.95 * 10) / 10;
+          return {
+            category: item.subcategory,
+            ratio,
+          };
+        }
       ),
     [interestData, selectedTab]
   );

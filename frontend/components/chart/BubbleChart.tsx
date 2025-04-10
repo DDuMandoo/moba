@@ -10,7 +10,7 @@ interface CenterCategory {
 
 interface SubItem {
   category: string;
-  ratio: number;
+  ratio: number; // 퍼센트 (0~100)
 }
 
 interface Props {
@@ -30,7 +30,14 @@ export default function BubbleChart({ center, subs }: Props) {
   const radius = 90;
   const angleStep = (2 * Math.PI) / topSubs.length;
 
-  const scaleSize = (ratio: number) => 14 + Math.sqrt(ratio) * 1.2;
+  // ✅ 극한 과장 버전 (ratio⁵)
+  const scaleSize = (ratio: number) => {
+    const minR = 12;
+    const maxR = 28;
+    const normalized = ratio / 100;
+    const exaggerated = Math.pow(normalized, 10);
+    return minR + exaggerated * (maxR - minR);
+  };
 
   const colorPalette = [
     '#FFC5C5', '#F8D7A3', '#B4E2D3', '#A7C7E7', '#E2B2FC',
@@ -58,10 +65,10 @@ export default function BubbleChart({ center, subs }: Props) {
           const angle = angleStep * index;
           const x = centerX + radius * Math.cos(angle);
           const y = centerY + radius * Math.sin(angle);
-          const r = scaleSize(item.ratio);
+          const r = scaleSize(item.ratio); // ✅ 극단적 차이 적용
+
           const fillColor = colorPalette[index % colorPalette.length];
 
-          // 선 시작점: 중심 원 테두리 기준
           const angleToPoint = Math.atan2(y - centerY, x - centerX);
           const lineStartX = centerX + centerR * Math.cos(angleToPoint);
           const lineStartY = centerY + centerR * Math.sin(angleToPoint);
@@ -95,7 +102,7 @@ export default function BubbleChart({ center, subs }: Props) {
                   : item.category}
               </SvgText>
 
-              {/* 점수 텍스트 */}
+              {/* 퍼센트 텍스트 */}
               <SvgText
                 x={x}
                 y={y + 4}

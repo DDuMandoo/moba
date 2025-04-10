@@ -7,6 +7,7 @@ interface UserProfile {
   image: string;
   email: string;
   memberId: number;
+  balance: number;
 }
 
 interface UserState {

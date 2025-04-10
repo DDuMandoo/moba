@@ -16,7 +16,7 @@ def analyze_group_interests(tokens: list):
             if result:
                 results.append(result)
         except Exception:
-            invalid_user_ids.append(token)
+            invalid_user_ids.append(user_id)
 
     # 대분류 설정
     major_categories = ["음식", "카페,디저트", "문화,여가", "술집", "운동"]

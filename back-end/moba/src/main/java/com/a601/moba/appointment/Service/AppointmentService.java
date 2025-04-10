@@ -14,7 +14,6 @@ import com.a601.moba.appointment.Controller.Response.AppointmentJoinResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentListItemResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentParticipantResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentRecommendResponse;
-import com.a601.moba.appointment.Controller.Response.AppointmentRecommendResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentSummaryResponse;
 import com.a601.moba.appointment.Controller.Response.AppointmentUpdateResponse;
 import com.a601.moba.appointment.Controller.Response.GetLocationAppointmentResponse;
@@ -50,8 +49,8 @@ import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -216,8 +215,12 @@ public class AppointmentService {
                 .findByAppointmentAndMember(appointment, member)
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED));
 
-        if (self.getState() != State.JOINED) {
+        if (self.getState() == State.LEAVE || self.getState() == State.KICKED) {
             throw new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED);
+        }
+
+        if (self.getState() == State.WAIT) {
+            self.updateState(State.JOINED);
         }
 
         // JOINED 상태의 참여자만 필터링

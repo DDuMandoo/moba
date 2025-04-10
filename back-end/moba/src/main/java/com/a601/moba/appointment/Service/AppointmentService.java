@@ -309,6 +309,8 @@ public class AppointmentService {
             imageUrl = s3Service.uploadFile(image);
         }
 
+        boolean placeChanged = appointment.getPlace() == null || !appointment.getPlace().getId().equals(place.getId());
+
         appointment.update(
                 request.name(),
                 imageUrl,
@@ -316,6 +318,10 @@ public class AppointmentService {
                 place,
                 request.memo()
         );
+
+        if (placeChanged) {
+            placeRecommendationService.processNearbyRecommendations(appointment);
+        }
 
         return AppointmentUpdateResponse.builder()
                 .appointmentId(appointment.getId())

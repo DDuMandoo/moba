@@ -7,10 +7,12 @@ import {
   StyleSheet,
   Dimensions,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import axiosInstance from '@/app/axiosInstance';
 import Colors from '@/constants/Colors';
+import DefaultAvatar from '@/assets/images/defaultprofile.png'; // ✅ 기본 이미지 import
 
 interface Transaction {
   name: string;
@@ -31,33 +33,32 @@ interface ApiResponse {
 const getTransactionEndpoint = (filter: 'ALL' | 'WITHDRAW' | 'DEPOSIT') => {
   switch (filter) {
     case 'WITHDRAW':
-      return '/api/wallets/transaction/withdraw';
+      return '/wallets/transaction/withdraw';
     case 'DEPOSIT':
-      return '/api/wallets/transaction/deposit';
+      return '/wallets/transaction/deposit';
     default:
-      return '/api/wallets/transaction';
+      return '/wallets/transaction';
   }
 };
 
-const fetchTransactions = async (filter: 'ALL' | 'WITHDRAW' | 'DEPOSIT'): Promise<Transaction[]> => {
+const fetchTransactions = async (
+  filter: 'ALL' | 'WITHDRAW' | 'DEPOSIT'
+): Promise<Transaction[]> => {
   const endpoint = getTransactionEndpoint(filter);
-  const res = await axios.get<ApiResponse>(endpoint, {
-    headers: {
-      Authorization: 'Bearer YOUR_ACCESS_TOKEN',
-      'Content-Type': 'application/json',
-    },
-    params: {
-      size: 50,
-    },
+  const res = await axiosInstance.get<ApiResponse>(endpoint, {
+    params: { size: 50 },
   });
-
   return res.data.result.transactions || [];
 };
 
 export default function TransactionHistory() {
   const [filter, setFilter] = useState<'ALL' | 'DEPOSIT' | 'WITHDRAW'>('ALL');
 
-  const { data: transactions = [], isLoading, isError, refetch } = useQuery({
+  const {
+    data: transactions = [],
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ['transactions', filter],
     queryFn: () => fetchTransactions(filter),
   });
@@ -76,8 +77,10 @@ export default function TransactionHistory() {
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.background }}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
-        {/* 상단 설명 및 필터 */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 24 }}
+      >
         <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
           <Text style={styles.title}>내 지갑 세부 내역</Text>
           <Text style={styles.subtitle}>내가 보낸 돈과 받은 돈 내역을 확인할 수 있어요.</Text>
@@ -98,11 +101,12 @@ export default function TransactionHistory() {
           </View>
         </View>
 
-        {/* 리스트 */}
         <View style={{ paddingHorizontal: 20 }}>
           <View style={styles.whiteWrapper}>
             <View style={styles.whiteBox}>
-              {transactions.length === 0 ? (
+              {isLoading ? (
+                <ActivityIndicator size="large" color={Colors.primary} />
+              ) : transactions.length === 0 ? (
                 <View style={styles.emptyBox}>
                   <Text style={styles.emptyText}>거래 내역이 없습니다.</Text>
                 </View>
@@ -111,10 +115,9 @@ export default function TransactionHistory() {
                   <View style={styles.itemBox} key={idx}>
                     <View style={styles.itemLeft}>
                       <Image
-                        source={{
-                          uri: item.image ?? 'https://placekitten.com/60/60',
-                        }}
+                        source={item.image ? { uri: item.image } : DefaultAvatar} // ✅ 수정된 부분
                         style={styles.avatar}
+                        resizeMode="cover"
                       />
                       <View>
                         <Text style={styles.name}>{item.name}</Text>
@@ -141,7 +144,6 @@ export default function TransactionHistory() {
 }
 
 const styles = StyleSheet.create({
-  // ... 기존과 동일
   title: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -184,7 +186,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   itemBox: {
-    backgroundColor: Colors.white,
     paddingVertical: 16,
     paddingHorizontal: 8,
     borderBottomWidth: 1,

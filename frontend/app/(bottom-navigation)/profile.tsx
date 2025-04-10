@@ -27,7 +27,7 @@ export default function MyPageScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.user.profile);
-  const [appointments, setAppointments] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<any[] | null>(null);
   const [summary, setSummary] = useState({ totalAttendanceCount: 0, totalSpent: 0 });
   const [selectedTab, setSelectedTab] = useState<typeof tabs[number]>('진행중/예정');
   const [tabLayouts, setTabLayouts] = useState<{ x: number; width: number }[]>([]);
@@ -77,7 +77,7 @@ export default function MyPageScreen() {
     }, [])
   );
 
-  const filteredPromises = appointments.filter((p) => {
+  const filteredPromises = (appointments ?? []).filter((p) => {
     if (selectedTab === '전체') return true;
     if (selectedTab === '진행중/예정') return !p.isEnded;
     if (selectedTab === '종료') return p.isEnded;
@@ -111,7 +111,7 @@ export default function MyPageScreen() {
     });
   };
   
-  if (!user || appointments.length === 0) {
+  if (!user || appointments === null) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={Colors.primary} />
@@ -119,7 +119,6 @@ export default function MyPageScreen() {
       </View>
     );
   }
-  
 
   return (
     <View style={{ flex: 1 }}>

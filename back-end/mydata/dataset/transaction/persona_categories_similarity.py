@@ -6,16 +6,13 @@ from gensim.models import KeyedVectors
 from sklearn.metrics.pairwise import cosine_similarity
 from tqdm import tqdm
 
-# ✅ 1. 현재 스크립트 경로 기준 설정
 base_dir = os.path.dirname(os.path.abspath(__file__))
 
-# ✅ 2. FastText 벡터 로드
 model_path = os.path.join(base_dir, "cc.ko.300.kv")
 print("📦 Gensim KeyedVectors 로딩 중...")
 model = KeyedVectors.load(model_path)
 print("✅ 모델 로딩 완료!")
 
-# ✅ 3. 페르소나 설명 정의
 persona_texts = {
     'A1': "10대 학생 학원 분식 패스트푸드 SNS 트렌드 또래문화 소액결제",
     'A2': "20대 직장인 자취 혼밥 배달 점심 식사 회사 가성비",
@@ -45,20 +42,16 @@ def clean_and_tokenize(text):
     tokens = text.split()
     return tokens
 
-# ✅ 4. 문장을 벡터로 변환하는 함수
 def sentence_vector(sentence, model):
     tokens = clean_and_tokenize(sentence)
     vectors = [model[word] for word in tokens if word in model]
     return np.mean(vectors, axis=0) if vectors else np.zeros(model.vector_size)
 
-# ✅ 5. 페르소나 벡터화
 persona_vecs = {k: sentence_vector(v, model) for k, v in persona_texts.items()}
 
-# ✅ 6. 소분류 데이터 불러오기
 csv_path = os.path.join(base_dir, "categories.csv")
-df = pd.read_csv(csv_path, encoding="cp949")  # or "utf-8" if needed
+df = pd.read_csv(csv_path, encoding="cp949")
 
-# ✅ 7. 유사도 기반 매핑
 results = []
 
 print("🔍 소분류별 페르소나 매핑 중...")
@@ -79,7 +72,6 @@ for _, row in tqdm(df.iterrows(), total=len(df)):
         'Top5': top5[4][0], 'Sim5': round(top5[4][1], 3),
     })
 
-# ✅ 8. 결과 저장
 output_path = os.path.join(base_dir, "persona_mapped_fasttext.csv")
 pd.DataFrame(results).to_csv(output_path, index=False, encoding="utf-8")
-print(f"📁 결과 저장 완료: {output_path}")
+print(f"결과 저장 완료: {output_path}")

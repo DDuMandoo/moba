@@ -26,7 +26,6 @@ public class PlaceRecommendationService {
     private final RedisTemplate<String, List<Integer>> listRedisTemplate;
     private final StringRedisTemplate stringRedisTemplate;
 
-    @Async
     @Transactional
     public void processNearbyRecommendations(Appointment appointment) {
         Place basePlace = appointment.getPlace();

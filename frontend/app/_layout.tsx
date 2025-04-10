@@ -70,6 +70,8 @@ export default function RootLayout() {
             <Stack.Screen name="promises" options={{ headerShown: false }} />
             <Stack.Screen name="wallet" options={{ headerShown: false }} />
             <Stack.Screen name="games" options={{ headerShown: false }} />
+            <Stack.Screen name="wallet/detail" options={{ headerShown: false }} />
+
             <Stack.Screen
               name="chat"
               options={{

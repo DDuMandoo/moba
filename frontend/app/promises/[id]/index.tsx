@@ -57,11 +57,11 @@ export default function AppointmentDetailPage() {
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [copyAlertVisible, setCopyAlertVisible] = useState(false);
 
-  const handleShareLink = async () => {
-    const deepLink = Linking.createURL(`appointment/${appointment.appointmentId}`);
-    await Clipboard.setStringAsync(deepLink);
-    setCopyAlertVisible(true);
-  };
+  // const handleShareLink = async () => {
+  //   const deepLink = Linking.createURL(`appointment/${appointment.appointmentId}`);
+  //   await Clipboard.setStringAsync(deepLink);
+  //   setCopyAlertVisible(true);
+  // };
 
   const getAppointment = async () => {
     if (!id) return;
@@ -141,9 +141,9 @@ export default function AppointmentDetailPage() {
           <Ionicons name="menu" size={24} color={Colors.primary} />
         </TouchableOpacity>
           <View style={styles.headerRightButtons}>
-          <TouchableOpacity style={styles.iconButton} onPress={handleShareLink}>
+          {/* <TouchableOpacity style={styles.iconButton} onPress={handleShareLink}>
             <Entypo name="share" size={24} color={Colors.primary} />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
             <TouchableOpacity style={styles.iconButton} onPress={() => setLeaveAlertVisible(true)}>
               <Ionicons name="log-out-outline" size={24} color={Colors.primary} />
             </TouchableOpacity>
@@ -186,9 +186,13 @@ export default function AppointmentDetailPage() {
             <View style={[styles.detailRow, { flexWrap: 'wrap' }]}>
               <FontAwesome5 name="map-marker-alt" size={18} color={Colors.primary} style={{ marginRight: 2 }} />
               {appointment.placeName ? (
-                <Text style={styles.detailText}>
+                <Text
+                  style={styles.detailText}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
                   {appointment.placeName}
-                  {appointment.memo ? `\n${appointment.memo}` : ''}
+                  {appointment.memo ? ` - ${appointment.memo}` : ''}
                 </Text>
               ) : (
                 <Text style={{ fontStyle: 'italic', color: Colors.grayLightText, fontSize: 14 }}>
@@ -389,7 +393,7 @@ const styles = StyleSheet.create({
   },
   whiteBox: {
     position: 'absolute',
-    top: TOP_IMAGE_HEIGHT / 2,
+    top: TOP_IMAGE_HEIGHT / 2 - 20,
     left: 0,
     right: 0,
     bottom: 0,
@@ -400,25 +404,25 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   fixedHeader: {
-    paddingBottom: 10,
+    paddingBottom: 7,
     backgroundColor: Colors.white,
   },
   infoBox: {
     paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingTop: 10,
     backgroundColor: Colors.white,
   },
   titleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 5,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '500',
+    fontSize: 22,
+    fontWeight: '600',
     color: Colors.primary,
-    marginBottom: 4,
+    // marginBottom: 4,
   },
   hostButtons: {
     flexDirection: 'row',
@@ -428,17 +432,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   detailText: {
-    fontSize: 16,
+    fontSize: 14,
     color: Colors.primary,
     marginBottom: 1,
     padding: 1
   },
   profileImageBox: {
-    width: 26,
-    height: 26,
+    width: 24,
+    height: 24,
     borderRadius: 8,
     overflow: 'hidden',
     backgroundColor: '#ddd',
@@ -481,7 +485,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.grayLightText,
   },
   tab: {
-    paddingVertical: 8,
+    paddingVertical: 4,
     paddingHorizontal: 16,
     borderBottomWidth: 2,
     borderColor: 'transparent',

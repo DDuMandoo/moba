@@ -52,41 +52,46 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ✅ 응답에서 401이면 Refresh 시도
+// ✅ 응답에서 4203이면 Refresh 시도
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    console.log('❌ Axios 응답 에러:', {
-      url: error?.config?.url,
-      status: error?.response?.status,
-      message: error?.response?.data?.message,
-      code: error?.response?.data?.code,
-    }); // 🔥 여기에 찍어라
-    const originalRequest = error.config;
+    const originalRequest = error.config as any; // 또는 CustomAxiosRequestConfig
+
+    if (!originalRequest || typeof originalRequest !== 'object') {
+      return Promise.reject(error);
+    }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
+
       try {
         const refreshToken = await getRefreshToken();
         if (!refreshToken) throw new Error('No refresh token');
 
         const res = await axios.post(`${API_URL}/auth/reissuance`, {}, {
           headers: {
-            Authorization: refreshToken,
-            'Content-Type': 'application/json'
-          }
+            Authorization: `Bearer ${refreshToken}`,
+            'Content-Type': 'application/json',
+          },
         });
 
         const { accessToken, refreshToken: newRefreshToken } = res.data.result;
         await saveTokens(accessToken, newRefreshToken);
 
-        // ✅ 재시도 시에는 새 accessToken으로 설정
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        return axiosInstance(originalRequest);
-      } catch (err) {
-        console.error('🔴 토큰 갱신 실패', err);
+        return axios(originalRequest); // 중요: interceptor 타면 다시 꼬일 수 있음
+      } catch (err: any) {
+        const code = err?.response?.data?.code;
+
+        if (code === 4203) {
+          console.error('🔴 리프레시 토큰 만료됨 → 로그인 이동');
+        } else {
+          console.error('🔴 토큰 갱신 실패', err);
+        }
+
         await clearTokens();
-        router.replace('/'); // 로그인 페이지 등으로 이동
+        router.replace('/');
         return Promise.reject(err);
       }
     }

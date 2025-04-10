@@ -1,4 +1,4 @@
-package com.keon211.frontend
+package com.keon2111.frontend
 
 import android.app.Application
 import android.content.res.Configuration

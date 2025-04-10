@@ -243,12 +243,10 @@ const { draftAppointment } = useAppSelector((state) => state.appointment);
           {location && (
             <View style={styles.selectedPlaceContainer}>
               <Ionicons name="location-outline" size={18} color={Colors.primary} />
-              <View style={{ marginLeft: 4 }}>
-                <Text style={styles.selectedPlaceText}>{location.placeName}</Text>
-                {location.memo && (
-                  <Text style={styles.selectedPlaceText}>{location.memo}</Text>
-                )}
-              </View>
+              <Text style={styles.selectedPlaceText}>
+                {location.placeName}
+                {location.memo ? ` - ${location.memo}` : ''}
+              </Text>
             </View>
           )}
           <TouchableOpacity

@@ -127,7 +127,7 @@ export default function AppointmentSidebar({
               <GameIcon
                 label="사다리 타기"
                 source={require('@/assets/images/game/ladderGame.png')}
-                onPress={() => router.push(`/promises/${appointmentId}/games/ladder`)}
+                onPress={() => router.push(`/games/ladder`)}
               />
             </View>
 

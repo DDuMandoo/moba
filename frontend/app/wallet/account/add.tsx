@@ -33,20 +33,14 @@ export default function AccountAddPage() {
     const formattedAccount = accountNumber.trim();
 
     try {
-      console.log('📤 계좌 등록 요청:', {
-        account: formattedAccount,
-        bank: selectedBank,
-      });
 
       await axiosInstance.post('/wallets/account', {
         account: formattedAccount,
         bank: selectedBank,
       });
 
-      console.log('✅ 계좌 등록 성공, 인증 모달 오픈');
       setShowVerifyModal(true);
     } catch (error: any) {
-      console.log('❌ 계좌 등록 실패:', error?.response?.data);
       setShowErrorModal(true); // ✅ 모달 열기
     }
   };

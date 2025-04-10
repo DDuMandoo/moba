@@ -101,7 +101,6 @@ const { draftAppointment } = useAppSelector((state) => state.appointment);
         setImage(null);
       }
     } else {
-      console.log('🛑 이미지 선택 취소 또는 실패');
       setImage(null);
     }
   };

@@ -12,10 +12,8 @@ export default function IndexPage() {
     const checkToken = async () => {
       const token = await getAccessToken();
       if (token) {
-        console.log('토큰있음')
         router.replace('/(bottom-navigation)');
       } else {
-        console.log('토큰없음')
         router.replace('/auth/login');
       }
     };

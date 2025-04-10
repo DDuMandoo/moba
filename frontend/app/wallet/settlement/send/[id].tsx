@@ -23,12 +23,10 @@ export default function SettlementPinPage() {
 
   // ✅ 정산 정보 불러오기
   useEffect(() => {
-    console.log('[🧪 쿼리 파라미터]', dutchpayId);
     
     const fetchInfo = async () => {
       try {
         const { data } = await axiosInstance.get(`/dutchpays/${dutchpayId}/receipt`);
-        console.log('[📦 정산 데이터 응답]', JSON.stringify(data, null, 2)); // 👈 꼭 찍기
         const info = data.result;
   
         // 임시 fallback 처리
@@ -36,7 +34,6 @@ export default function SettlementPinPage() {
         setHostImage(info.hostImage ?? null);
         setPrice(info.price ?? 0);
       } catch (err) {
-        console.log('[❌ 정산 정보 에러]', err);
         Alert.alert('오류', '정산 정보를 불러오지 못했어요.');
         router.back();
       }
@@ -49,19 +46,13 @@ export default function SettlementPinPage() {
       const password = pin.join('');
   
       setTimeout(async () => {
-        try {
-          console.log('[🔐 입력된 비밀번호]', password);
-          
+        try {          
           const authRes = await axiosInstance.post('/wallets/auth', { password });
-          console.log('[✅ 비밀번호 인증 응답]', JSON.stringify(authRes.data, null, 2));
   
           if (authRes.data.isSuccess) {
-            // ✅ 정산 PATCH 요청
-            console.log('[📦 PATCH 요청 시작]', `/dutchpays/${dutchpayId}/transfer`);
-  
+
             try {
               const transferRes = await axiosInstance.patch(`/dutchpays/${dutchpayId}/transfer`);
-              console.log('[✅ 정산 완료 처리 응답]', JSON.stringify(transferRes.data, null, 2));
   
               if (transferRes.data.isSuccess) {
                 router.replace({
@@ -75,7 +66,6 @@ export default function SettlementPinPage() {
               console.error('[❌ 정산 완료 처리 에러]', err);
   
               if (err.response) {
-                console.log('[📛 에러 응답]', JSON.stringify(err.response.data, null, 2));
                 Alert.alert('에러', err.response.data.message ?? '정산 완료 중 오류가 발생했어요.');
               } else {
                 Alert.alert('에러', '정산 완료 중 알 수 없는 오류가 발생했어요.');
@@ -86,7 +76,6 @@ export default function SettlementPinPage() {
             throw new Error('비밀번호 인증 실패');
           }
         } catch (err) {
-          console.log('[❌ 비밀번호 인증 실패]', err);
           Alert.alert('비밀번호가 틀렸습니다.');
           setPin([]);
         }

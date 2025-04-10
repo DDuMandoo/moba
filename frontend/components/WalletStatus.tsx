@@ -39,11 +39,6 @@ export default function WalletStatus() {
     }
   }, []);
 
-  // 💳 잔액 변경 시 콘솔 확인
-  useEffect(() => {
-    console.log('💰 [WalletStatus] 잔액 상태 변경됨:', balance);
-  }, [balance]);
-
   const formattedBalance = balance.toLocaleString('ko-KR');
 
   return (

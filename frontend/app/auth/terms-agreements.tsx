@@ -199,7 +199,7 @@ export default function TermsAgreementScreen() {
       <TouchableOpacity style={[styles.agreeRow, { marginBottom: 5 }]} onPress={toggleAll}>
         <Ionicons
           name={allAgreed ? 'checkmark-circle' : 'ellipse-outline'}
-          size={26}
+          size={24}
           color={allAgreed ? Colors.primary : Colors.logo}
         />
         <Text style={styles.agreeText}>전체동의</Text>
@@ -284,35 +284,35 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background
   },
   section: {
-    marginBottom: 10,
-    marginTop: 16
+    marginBottom: 5,
+    marginTop: 10
   },
   agreeRowWrapper: {
-    marginBottom: 10
+    marginBottom: 7
   },
   agreeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 4,
     marginBottom: 2
   },
   agreeText: {
     flex: 1,
-    fontSize: 20,
+    fontSize: 16,
     color: Colors.black
   },
   agreeBox: {
-    height: 200,
+    height: 180,
     backgroundColor: Colors.white,
     borderRadius: 10,
     borderColor: Colors.grayLightText,
     borderWidth: 1,
     padding: 12,
-    marginBottom:20
+    marginBottom: 16
   },
   agreeDetail: {
-    fontSize: 16,
-    lineHeight: 20,
+    fontSize: 14,
+    lineHeight: 16,
     color: Colors.black
   },
   divider: {

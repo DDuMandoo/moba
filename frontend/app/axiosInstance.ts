@@ -7,14 +7,10 @@ import { router } from 'expo-router';
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 
-console.log('🌐 API_URL from Constants:', API_URL);
-
 const ACCESS_KEY = 'accessToken';
 const REFRESH_KEY = 'refreshToken';
 
-export const saveTokens = async (accessToken: string, refreshToken: string) => {
-  console.log('💾 저장할 access:', accessToken);
-  console.log('💾 저장할 refresh:', refreshToken);  
+export const saveTokens = async (accessToken: string, refreshToken: string) => { 
   await SecureStore.setItemAsync(ACCESS_KEY, accessToken);
   await SecureStore.setItemAsync(REFRESH_KEY, refreshToken);
 };
@@ -66,7 +62,6 @@ axiosInstance.interceptors.response.use(
 
       try {
         const refreshToken = await getRefreshToken();
-        console.log('🐛 서버로 보낼 refreshToken:', refreshToken);
         if (!refreshToken) throw new Error('No refresh token');
 
         const res = await axios.post(`${API_URL}/auth/reissuance`, {}, {

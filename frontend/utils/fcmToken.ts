@@ -15,12 +15,10 @@ export const getFcmToken = async () => {
 
   // FCM 토큰 가져오기
   const token = await messaging().getToken();
-  console.log('📡 FCM Token:', token);
 
   // Android의 경우 foreground 메시지 처리
   if (Platform.OS === 'android') {
     messaging().setBackgroundMessageHandler(async remoteMessage => {
-      console.log('백그라운드 메시지:', remoteMessage);
     });
   }
 

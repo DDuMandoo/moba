@@ -209,9 +209,6 @@ const MenuSplitSection = forwardRef<MenuSplitSectionRef, Props>(
           },
         });
     
-        // ✅ 콘솔 로그로 서버 응답 확인
-        console.log('📦 OCR 서버 응답:', data);
-    
         const results = data?.result;
     
         if (!Array.isArray(results) || results.length === 0) {
@@ -229,9 +226,6 @@ const MenuSplitSection = forwardRef<MenuSplitSectionRef, Props>(
         setMenuItems((prev) => [...prev, ...newItems]);
       } catch (err: any) {
         console.error('❌ OCR 업로드 실패:', err);
-    
-        // ✅ 실패 응답도 확인
-        console.log('❌ 서버 오류 응답:', err?.response?.data);
     
         const message =
           err?.response?.data?.message || err?.message || '잠시 후 다시 시도해주세요.';

@@ -138,7 +138,6 @@ export default function SelectBankScreen() {
           alignItems: 'center',
         }}
         onPress={() => {
-          console.log('선택된 은행:', selectedBanks);
           setShowModal(true)
         }}
       >
@@ -205,10 +204,6 @@ export default function SelectBankScreen() {
                   borderRadius: 6,
                   backgroundColor: Colors.grayBackground,
                 }}
-                onPress={() => {
-                  // 중복 확인 로직 (추후 추가 가능)
-                  console.log('전화번호 중복 확인');
-                }}
               >
                 <Text style={{ color: Colors.grayDarkText, fontWeight: 'bold' }}>중복확인</Text>
               </TouchableOpacity>
@@ -238,7 +233,6 @@ export default function SelectBankScreen() {
               <Text>남은 시간: {formatTime(timeLeft)}</Text>
               <TouchableOpacity onPress={() => {
                 // 재전송 처리
-                console.log('인증번호 재전송');
                 setTimeLeft(600); // 시간 초기화
               }}>
                 <Text style={{ color: Colors.primary, fontWeight: 'bold' }}>

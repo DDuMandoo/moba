@@ -64,26 +64,19 @@ export default function ForgotPasswordScreen() {
 
   const handleCheckEmail = async () => {
     if (!isEmailValid(email)) {
-      console.log('❌ 유효하지 않은 이메일 형식:', email);
       return showAlert('이메일 오류', '올바른 이메일 주소를 입력해주세요.');
     }
-    console.log(BASE_URL);
     try {
-      console.log('🔍 이메일 중복 확인 시작:', email);
       setLoadingVisible(true);
   
       const checkRes = await axiosInstance.post(`${BASE_URL}/auth/email`, { email });
-      console.log('✅ 중복 확인 응답:', checkRes.data);
   
       if (!checkRes.data.result) {
-        console.log('⚠️ 가입되지 않은 이메일:', email);
         showAlert('회원이 아닙니다', '가입된 이메일이 아닙니다. 회원가입을 진행해주세요.');
         return;
       }
   
-      console.log('📨 인증번호 전송 시도');
       const sendRes = await axiosInstance.post(`${BASE_URL}/emails/send`, { email });
-      console.log('📬 인증번호 전송 응답:', sendRes.data);
   
       if (sendRes.status === 200 && sendRes.data.isSuccess) {
         showAlert('인증번호 발송', '이메일로 인증번호를 전송했습니다.');
@@ -91,7 +84,6 @@ export default function ForgotPasswordScreen() {
         setIsEmailVerified(false);
         startTimer();
       } else {
-        console.log('❌ 인증번호 발송 실패 상태:', sendRes.status);
         showAlert('오류', '인증번호 발송에 실패했습니다.');
       }
     } catch (err: any) {

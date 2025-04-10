@@ -22,28 +22,11 @@ export default function SettlementHistoryPage() {
 
   const fetchHistory = async () => {
     try {
-      console.log('[📤 API 요청 시작] /dutchpays/receipt');
 
       const { data } = await axios.get('/dutchpays/receipt');
 
-      console.log('[✅ 정산 내역 응답 전체]', JSON.stringify(data, null, 2));
-
-      if (!data.result || data.result.length === 0) {
-        console.log('[⚠️ 응답은 성공했지만 result가 비어 있음]');
-      }
-
       const mapped = data.result.map((item: any, index: number) => {
         const participantList = item.participants ?? [];
-      
-        console.log(`[🔍 항목 ${index + 1}]`, {
-          dutchpayId: item.dutchpayId,
-          appointmentId: item.appointmentId,
-          title: item.appointmentName,
-          time: item.time,
-          amount: item.price,
-          settled: item.settled,
-          participantsCount: participantList.length,
-        });
       
         return {
           dutchpayId: item.dutchpayId,
@@ -57,14 +40,8 @@ export default function SettlementHistoryPage() {
         };
       });
 
-      console.log('[📦 최종 매핑된 데이터]', mapped);
       setHistoryList(mapped);
     } catch (e: any) {
-      console.log('[❌ 정산 내역 에러]', e);
-
-      if (e.response) {
-        console.log('[❌ 서버 응답 에러]', JSON.stringify(e.response.data, null, 2));
-      }
 
       Alert.alert('불러오기 실패', '정산 내역을 가져오지 못했어요.');
     }

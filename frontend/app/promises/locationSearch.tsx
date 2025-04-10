@@ -31,7 +31,7 @@ interface PlaceItem {
   kakaoUrl: string;
 }
 
-const NETLIFY_BASE_URL = 'https://peaceful-dolphin-9ef226.netlify.app';
+const NETLIFY_BASE_URL = 'https://storied-chaja-c0f82a.netlify.app';
 
 export default function PlaceSearchPage() {
   const router = useRouter();
@@ -57,12 +57,10 @@ export default function PlaceSearchPage() {
 
   
   useEffect(() => {
-    console.log('🚀 appointmentId:', appointmentId, 'mode:', mode);
   }, [appointmentId, mode]);
 
   const fetchPlaces = async (keyword: string, cursorId?: number) => {
     if (!keyword.trim()) {
-      console.log('🚫 검색어 없음');
       return;
     }
     try {

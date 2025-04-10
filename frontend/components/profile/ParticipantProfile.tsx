@@ -31,7 +31,6 @@ export const ParticipantProfile = ({ item, onPress, isHost = false }: Participan
       UIManager.measure(
         nodeHandle,
         (x, y, width, height, pageX, pageY) => {
-          console.log('Measured:', pageX, pageY, width, height);
           onPress(item.name, pageX, pageY, width, height);
         }
       );

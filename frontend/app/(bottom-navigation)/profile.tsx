@@ -6,7 +6,9 @@ import {
   ScrollView,
   TouchableOpacity,
   Animated,
-  LayoutChangeEvent
+  LayoutChangeEvent,
+  RefreshControl,
+  ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
@@ -31,6 +33,7 @@ export default function MyPageScreen() {
   const [tabLayouts, setTabLayouts] = useState<{ x: number; width: number }[]>([]);
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const underlineX = useRef(new Animated.Value(0)).current;
   const underlineWidth = useRef(new Animated.Value(0)).current;
@@ -49,6 +52,13 @@ export default function MyPageScreen() {
     } catch (err) {
       console.error('❌ 데이터 불러오기 실패', err);
     }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchSummaryAndAppointments();
+    dispatch(fetchUserProfile()); // 혹시 user 정보도 갱신 필요할 수 있음
+    setRefreshing(false);
   };
 
   useEffect(() => {
@@ -100,10 +110,25 @@ export default function MyPageScreen() {
       return copy;
     });
   };
+  
+  if (!user || appointments.length === 0) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+        <Text style={styles.loadingText}>로딩 중...</Text>
+      </View>
+    );
+  }
+  
 
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView style={styles.container}>
+      <ScrollView
+        style={styles.container}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         {/* 상단 섹션 */}
         <View style={styles.topSection}>
           <View style={styles.profileBox}>
@@ -267,5 +292,17 @@ const styles = StyleSheet.create({
   promiseList: {
     gap: 1,
     marginBottom: 20
-  }
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: Colors.text,
+  },
+  
 });

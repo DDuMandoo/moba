@@ -1,8 +1,15 @@
 def analyze_group_interests(tokens: list):
     from mydata.utils.jwt_utils import verify_access_token
     from mydata.db.recommend_repository import get_latest_recommendation
+    from jose import jwt
+    import os
+    from dotenv import load_dotenv
 
-    
+    load_dotenv()
+
+    SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+    ALGORITHM = "HS256"
+
     valid_user_ids = []
     invalid_user_ids = []
     results = []
@@ -15,8 +22,13 @@ def analyze_group_interests(tokens: list):
             result = get_latest_recommendation(user_id)
             if result:
                 results.append(result)
+
         except Exception:
-            invalid_user_ids.append(user_id)
+            try:
+                payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+                invalid_user_ids.append(int(payload["sub"]))
+            except Exception:
+                continue
 
     # 대분류 설정
     major_categories = ["음식", "카페,디저트", "문화,여가", "술집", "운동"]

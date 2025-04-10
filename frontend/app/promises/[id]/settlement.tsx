@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   headerWrapper: {
-    paddingTop: 28,
+    paddingTop: 20,
     paddingHorizontal: 20,
     backgroundColor: Colors.background,
     gap: 20,
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '800',
     fontFamily: Fonts.bold,
     color: Colors.primary,
@@ -406,13 +406,13 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
   },
   tabActiveText: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '600',
     color: Colors.primary,
     fontFamily: Fonts.bold,
   },
   tabInactiveText: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '600',
     color: Colors.grayDarkText,
     fontFamily: Fonts.bold,

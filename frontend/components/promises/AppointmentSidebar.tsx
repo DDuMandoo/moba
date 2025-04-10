@@ -161,6 +161,10 @@ function GameIcon({
   );
 }
 
+const { width: screenWidth } = Dimensions.get('window');
+  const galleryImageWidth = screenWidth * 0.19;
+  const galleryImageHeight = galleryImageWidth;
+
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
@@ -175,7 +179,7 @@ const styles = StyleSheet.create({
     left: 0,
     width: SIDEBAR_WIDTH,
     backgroundColor: Colors.background,
-    paddingTop: 60,
+    paddingTop: 50,
     zIndex: 40,
   },
   header: {
@@ -186,14 +190,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginVertical: 12,
+    marginVertical: 6,
     color: Colors.text,
     paddingLeft: 15
   },
   gallerySection: {
     backgroundColor: '#EDE4D9',
     paddingVertical: 12,
-    marginBottom: 16,
+    marginBottom: 4,
     height: 110,
     justifyContent: 'center',
     alignItems: 'center',
@@ -213,8 +217,8 @@ const styles = StyleSheet.create({
     gap: 3,
   },  
   galleryImage: {
-    width: 85,
-    height: 85,
+    width: galleryImageWidth,
+    height: galleryImageHeight,
     borderRadius: 8,
     marginRight: 8,
   },
@@ -225,7 +229,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   iconGrid: {
-    gap: 16,
+    gap: 8,
     marginTop: 10
   },
   iconRowCenter: {
@@ -236,7 +240,6 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     alignItems: 'center',
-    
     gap: 6,
   },
   gameImage: {

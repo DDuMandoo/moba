@@ -146,12 +146,12 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: Colors.text,
-    marginBottom: 16,
+    marginBottom: 5,
   },
   subtitle: {
     fontSize: 14,
     color: Colors.grayDarkText,
-    marginBottom: 28,
+    marginBottom: 20,
   },
   filterRow: {
     flexDirection: 'row',

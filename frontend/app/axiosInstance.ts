@@ -13,6 +13,8 @@ const ACCESS_KEY = 'accessToken';
 const REFRESH_KEY = 'refreshToken';
 
 export const saveTokens = async (accessToken: string, refreshToken: string) => {
+  console.log('💾 저장할 access:', accessToken);
+  console.log('💾 저장할 refresh:', refreshToken);  
   await SecureStore.setItemAsync(ACCESS_KEY, accessToken);
   await SecureStore.setItemAsync(REFRESH_KEY, refreshToken);
 };
@@ -64,6 +66,7 @@ axiosInstance.interceptors.response.use(
 
       try {
         const refreshToken = await getRefreshToken();
+        console.log('🐛 서버로 보낼 refreshToken:', refreshToken);
         if (!refreshToken) throw new Error('No refresh token');
 
         const res = await axios.post(`${API_URL}/auth/reissuance`, {}, {
@@ -77,7 +80,7 @@ axiosInstance.interceptors.response.use(
         await saveTokens(accessToken, newRefreshToken);
 
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        return axios(originalRequest); // 중요: interceptor 타면 다시 꼬일 수 있음
+        return axiosInstance(originalRequest); // 중요: interceptor 타면 다시 꼬일 수 있음
       } catch (err: any) {
         const code = err?.response?.data?.code;
 
@@ -88,7 +91,7 @@ axiosInstance.interceptors.response.use(
         }
 
         await clearTokens();
-        router.replace('/');
+        router.replace('/auth/login');
         return Promise.reject(err);
       }
     }

@@ -29,15 +29,15 @@ const Medium = (props: ButtonProps) => (
 );
 
 const MidSmall = (props: ButtonProps) => (
-  <RoundedButtonBase widthRatio={0.425} heightRatio={0.048} radius={12} fontSize={20} {...props} />
+  <RoundedButtonBase widthRatio={0.425} heightRatio={0.048} radius={12} fontSize={18} {...props} />
 );
 
 const Small = (props: ButtonProps) => (
-  <RoundedButtonBase widthRatio={0.384} heightRatio={0.048} radius={12} fontSize={20} {...props} />
+  <RoundedButtonBase widthRatio={0.384} heightRatio={0.048} radius={12} fontSize={18} {...props} />
 );
 
 const Mini = (props: ButtonProps) => (
-  <RoundedButtonBase widthRatio={0.2} heightRatio={0.034} radius={10} fontSize={20} {...props} />
+  <RoundedButtonBase widthRatio={0.2} heightRatio={0.034} radius={10} fontSize={18} {...props} />
 );
 
 const Tiny = (props: ButtonProps) => (

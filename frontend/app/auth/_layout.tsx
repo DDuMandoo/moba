@@ -21,6 +21,7 @@ export default function AuthLayout() {
       <Stack.Screen name="terms-agreements" options={{ title: '약관 동의' }} />
       <Stack.Screen name="forgot-password" options={{ title: '비밀번호 찾기' }} />
       <Stack.Screen name="profile-edit" options={{ title: '프로필 수정' }} />
+      <Stack.Screen name="login" options={{ headerShown: false }} />
     </Stack>
   );
 }

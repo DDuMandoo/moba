@@ -32,7 +32,7 @@ interface Props {
 
 export default function SettingOverlay({ visible, onClose, onEditProfile }: Props) {
   const dispatch = useDispatch();
-  const { notification, location } = useSelector((state: RootState) => state.permissions);
+  const { notification, location, gallery } = useSelector((state: RootState) => state.permissions);
   const [logoutAlert, setLogoutAlert] = useState(false);
 
   const slideAnim = useRef(new Animated.Value(SCREEN_WIDTH)).current;
@@ -57,12 +57,12 @@ export default function SettingOverlay({ visible, onClose, onEditProfile }: Prop
 
   const handleToggleNotification = () => {
     dispatch(toggleNotification());
-    savePermissions({ notification: !notification, location });
+    savePermissions({ notification: !notification, location, gallery });
   };
 
   const handleToggleLocation = () => {
     dispatch(toggleLocation());
-    savePermissions({ notification, location: !location });
+    savePermissions({ notification, location: !location, gallery});
   };
 
   const handleEditProfile = () => {
@@ -76,7 +76,6 @@ export default function SettingOverlay({ visible, onClose, onEditProfile }: Prop
     } catch (err) {
       console.warn('🚫 로그아웃 실패:', err);
     } finally {
-      await clearTokens();
       router.replace('/auth/login');
     }
   };

@@ -205,6 +205,7 @@ public class AppointmentService {
                 .build();
     }
 
+    @Transactional
     public AppointmentDetailResponse getDetail(Integer appointmentId) {
         Member member = authUtil.getCurrentMember();
 

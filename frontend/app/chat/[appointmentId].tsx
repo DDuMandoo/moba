@@ -126,7 +126,7 @@ export default function ChatPage() {
 
   const connectStomp = () => {
     const client = new Client({
-      webSocketFactory: () => new SockJS('http://j12a601.p.ssafy.io/api/ws/chat'),
+      webSocketFactory: () => new SockJS('https://j12a601.p.ssafy.io/api/ws/chat'),
       reconnectDelay: 5000,
       heartbeatIncoming: 10000,
       heartbeatOutgoing: 10000,

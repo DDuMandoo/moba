@@ -77,6 +77,14 @@ const { draftAppointment } = useAppSelector((state) => state.appointment);
     }
   }, [selectedPlaceId, selectedPlaceName, selectedPlaceMemo]);
 
+  const resetForm = () => {
+    setName('');
+    setImage(null);
+    setDateTime(null);
+    setLocation(null);
+    setFriends([]);
+  };
+
   const handleSelectImage = async () => {
     const result = await launchImageLibraryAsync({
       mediaTypes: MediaTypeOptions.Images,
@@ -115,7 +123,7 @@ const { draftAppointment } = useAppSelector((state) => state.appointment);
   const handleConfirmSubmit = async () => {
     const payload = {
       name,
-      time: dateTime?.toISOString(),
+      time: dayjs(dateTime).format('YYYY-MM-DDTHH:mm:ss'),
       placeId: location?.placeId ?? null,
       // 약속 생성 페이지에서는 선택된 장소의 memo (혹은 placeName)를 그대로 사용
       memo: location?.memo || location?.placeName || '',
@@ -148,6 +156,7 @@ const { draftAppointment } = useAppSelector((state) => state.appointment);
         },
       });
       const appointmentId = res?.data?.result?.appointmentId;
+      resetForm();
       router.replace(`/promises/${appointmentId}`);
     } catch (err: any) {
       console.error('❌ 약속 생성 실패:', err);

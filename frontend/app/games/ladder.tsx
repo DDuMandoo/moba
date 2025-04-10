@@ -10,6 +10,8 @@ import {
   Dimensions,
   Modal,
   Image,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
 import Colors from '@/constants/Colors';
@@ -65,7 +67,6 @@ export default function GhostLegGame() {
     const height = vSpacing * 10;
     const lines: JSX.Element[] = [];
 
-    // vertical lines
     for (let i = 0; i < count; i++) {
       lines.push(
         <Line
@@ -81,7 +82,6 @@ export default function GhostLegGame() {
       );
     }
 
-    // horizontal lines (more realistically placed)
     for (let y = 1; y < 10; y++) {
       const used: number[] = [];
       const tries = Math.floor(Math.random() * (count - 1));
@@ -113,81 +113,87 @@ export default function GhostLegGame() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.wrapper}>
-      <Text style={styles.title}>사다리 수 ({count})</Text>
-      <View style={styles.row}>
-        {[...Array(MAX)].map((_, i) => (
-          <Pressable
-            key={i}
-            style={[styles.countBtn, count === i + 1 && styles.countActive]}
-            onPress={() => {
-              setCount(i + 1);
-              setNames(Array(i + 1).fill(''));
-              setResults(Array(i + 1).fill(''));
-              setStarted(false);
-              setVisible(false);
-            }}
-          >
-            <Text>{i + 1}</Text>
-          </Pressable>
-        ))}
-      </View>
-
-      <Text style={styles.title}>참가자 이름</Text>
-      <View style={styles.iconRow}>
-        {names.map((_, i) => (
-          <Image key={i} source={Icon} style={styles.icon} />
-        ))}
-      </View>
-      {names.map((name, i) => (
-        <TextInput
-          key={i}
-          style={styles.input}
-          placeholder={`참가자 ${i + 1}`}
-          value={name}
-          onChangeText={(v) => handleChangeName(i, v)}
-          editable={!started}
-        />
-      ))}
-
-      <Text style={styles.title}>결과 (아래)</Text>
-      {results.map((res, i) => (
-        <TextInput
-          key={i}
-          style={styles.input}
-          placeholder={`결과 ${i + 1}`}
-          value={res}
-          onChangeText={(v) => handleChangeResult(i, v)}
-          editable={!started}
-        />
-      ))}
-
-      {started && renderLadder()}
-
-      <Pressable
-        style={[styles.button, count < 2 && styles.disabled]}
-        onPress={handleStart}
-        disabled={count < 2}
-      >
-        <Text style={styles.buttonText}>게임 시작</Text>
-      </Pressable>
-
-      <Modal visible={visible} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>🎉 결과 🎉</Text>
-            {mapping.map((to, i) => (
-              <Text key={i} style={styles.modalText}>
-                {names[i] || `참가자 ${i + 1}`} → {results[to] || '???'}
-              </Text>
-            ))}
-            <Pressable style={styles.closeButton} onPress={handleReset}>
-              <Text style={styles.buttonText}>닫기</Text>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+    >
+      <ScrollView contentContainerStyle={styles.wrapper} keyboardShouldPersistTaps="handled">
+        <Text style={styles.title}>사다리 수 ({count})</Text>
+        <View style={styles.row}>
+          {[...Array(MAX)].map((_, i) => (
+            <Pressable
+              key={i}
+              style={[styles.countBtn, count === i + 1 && styles.countActive]}
+              onPress={() => {
+                setCount(i + 1);
+                setNames(Array(i + 1).fill(''));
+                setResults(Array(i + 1).fill(''));
+                setStarted(false);
+                setVisible(false);
+              }}
+            >
+              <Text>{i + 1}</Text>
             </Pressable>
-          </View>
+          ))}
         </View>
-      </Modal>
-    </ScrollView>
+
+        <Text style={styles.title}>참가자 이름</Text>
+        <View style={styles.iconRow}>
+          {names.map((_, i) => (
+            <Image key={i} source={Icon} style={styles.icon} />
+          ))}
+        </View>
+        {names.map((name, i) => (
+          <TextInput
+            key={i}
+            style={styles.input}
+            placeholder={`참가자 ${i + 1}`}
+            value={name}
+            onChangeText={(v) => handleChangeName(i, v)}
+            editable={!started}
+          />
+        ))}
+
+        <Text style={styles.title}>결과 (아래)</Text>
+        {results.map((res, i) => (
+          <TextInput
+            key={i}
+            style={styles.input}
+            placeholder={`결과 ${i + 1}`}
+            value={res}
+            onChangeText={(v) => handleChangeResult(i, v)}
+            editable={!started}
+          />
+        ))}
+
+        {started && renderLadder()}
+
+        <Pressable
+          style={[styles.button, count < 2 && styles.disabled]}
+          onPress={handleStart}
+          disabled={count < 2}
+        >
+          <Text style={styles.buttonText}>게임 시작</Text>
+        </Pressable>
+
+        <Modal visible={visible} transparent animationType="fade">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalBox}>
+              <Text style={styles.modalTitle}>🎉 결과 🎉</Text>
+              {mapping.map((to, i) => (
+                <Text key={i} style={styles.modalText}>
+                  {names[i] || `참가자 ${i + 1}`} → {results[to] || '???'}
+                </Text>
+              ))}
+              <Pressable style={styles.closeButton} onPress={handleReset}>
+                <Text style={styles.buttonText}>닫기</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

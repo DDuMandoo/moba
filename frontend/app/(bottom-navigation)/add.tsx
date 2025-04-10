@@ -8,7 +8,7 @@ import {
   ScrollView,
   Dimensions,
   KeyboardAvoidingView,
-  SafeAreaView
+  Platform
 } from 'react-native';
 import { launchImageLibraryAsync, MediaTypeOptions } from 'expo-image-picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -157,8 +157,15 @@ const { draftAppointment } = useAppSelector((state) => state.appointment);
   };
 
   return (
-    <>
-      <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView
+    style={{ flex: 1 }}
+    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+  >
+    <ScrollView
+      contentContainerStyle={styles.scrollContainer}
+      keyboardShouldPersistTaps="handled"
+    >
         {/* 이미지 선택 */}
         <View style={styles.card}>
           <TouchableOpacity onPress={handleSelectImage} style={styles.imageBox} activeOpacity={0.8}>
@@ -311,7 +318,7 @@ const { draftAppointment } = useAppSelector((state) => state.appointment);
           participants: friends,
         }}
       />
-    </>
+    </KeyboardAvoidingView>
   );
 }
 

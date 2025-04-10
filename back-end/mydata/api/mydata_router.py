@@ -42,4 +42,5 @@ def get_user_data(authorization: str = Header(...)):
     if not result:
         raise HTTPException(status_code=4040, detail="분석 결과가 없습니다.")
 
-    return convert_mongo_document(result)
+    return {"result": convert_mongo_document(result)}
+

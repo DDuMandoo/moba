@@ -1,4 +1,4 @@
-package com.a601.moba.appointment.Controller.Response;
+package com.a601.moba.appointment.Service.Dto;
 
 import lombok.Builder;
 

@@ -63,9 +63,12 @@ public enum ErrorCode {
     INVALID_APPOINTMENT_TIME(4413, BAD_REQUEST, "아직 약속 시간 10분 전이 아닙니다"),
     APPOINTMENT_NOT_HOST(4414, BAD_REQUEST, "약속방 방장만 가능한 기능입니다"),
     APPOINTMENT_LENGTH_NOT_MATCH(4415, BAD_REQUEST, "수정할 장소의 개수가 기존의 장소들의 개수와 같아야 합니다"),
+    APPOINTMENT_NOT_CALCULATE(4416, BAD_REQUEST, "약속 좌표와 거리 계산이 진행 중 입니다."),
+    APPOINTMENT_NO_NEARBY_PLACE(4417, NOT_FOUND, "약속 좌표와 가까운 장소 데이터가 없습니다."),
 
     // ================= 장소 관련 에러 (4450번대) ==================
     PLACE_NOT_FOUND(4450, NOT_FOUND, "해당 장소를 찾을 수 없습니다"),
+    PLACE_NEARBY_EMPTY(4451, NOT_FOUND, "근처 장소를 조회하지 못했습니다."),
 
     // ================= 지갑 관련 에러 (4500번대) ==================
     INVALID_WALLET(4500, BAD_REQUEST, "존재하지 않는 지갑입니다"),

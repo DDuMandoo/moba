@@ -22,7 +22,7 @@ public class JwtProvider {
 
     public String generateAccessToken(String email) {
         // 30분
-        long ACCESS_EXPIRATION_TIME = 1000 * 60 * 30;
+        long ACCESS_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 7;
         return Jwts.builder()
                 .setSubject(email)
                 .setExpiration(new Date(System.currentTimeMillis() + ACCESS_EXPIRATION_TIME))

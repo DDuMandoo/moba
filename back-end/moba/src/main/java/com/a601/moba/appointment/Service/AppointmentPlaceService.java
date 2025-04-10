@@ -139,7 +139,7 @@ public class AppointmentPlaceService {
                 .orElseThrow(() -> new AppointmentException(ErrorCode.APPOINTMENT_NOT_FOUND));
 
         boolean isParticipant = appointmentParticipantRepository
-                .existsByAppointmentAndMemberAndState(appointment, member, State.JOINED);
+                .existsByAppointmentAndMember(appointment, member);
 
         if (!isParticipant) {
             throw new AppointmentException(ErrorCode.APPOINTMENT_ACCESS_DENIED);

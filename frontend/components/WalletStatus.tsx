@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: Colors.white,
-    padding: 24,
+    padding: '5%',
     borderRadius: 12,
     width: '80%',
   },
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: Fonts.extraBold,
     color: Colors.text,
-    marginBottom: 12,
+    marginBottom: 15,
   },
   modalDescription: {
     fontSize: 16,

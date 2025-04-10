@@ -169,7 +169,7 @@ export default function ForgotPasswordScreen() {
           onPress={handleCheckEmail}
           disabled={isEmailVerified}
         >
-          <Text style={styles.inlineButtonText}>중복확인</Text>
+          <Text style={styles.inlineButtonText}>인증번호 전송</Text>
         </TouchableOpacity>
       </View>
 

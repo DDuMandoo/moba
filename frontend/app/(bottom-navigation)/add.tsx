@@ -117,6 +117,11 @@ const { draftAppointment } = useAppSelector((state) => state.appointment);
       setAlertVisible(true);
       return;
     }
+    if (!location?.placeId) {
+      setAlertMessage('장소를 선택해주세요!');
+      setAlertVisible(true);
+      return;
+    }
     setConfirmVisible(true);
   };
 
@@ -255,7 +260,9 @@ const { draftAppointment } = useAppSelector((state) => state.appointment);
 
         {/* 장소 선택 */}
         <View style={styles.card}>
-          <Text style={styles.label}>장소 선택</Text>
+        <Text style={styles.label}>
+          장소 선택 <Text style={{ color: Colors.secondary }}>*</Text>
+        </Text>
           {location && (
             <View style={styles.selectedPlaceContainer}>
               <Ionicons name="location-outline" size={18} color={Colors.primary} />
@@ -323,7 +330,11 @@ const { draftAppointment } = useAppSelector((state) => state.appointment);
         data={{
           name,
           time: dateTime ? dayjs(dateTime).format('YYYY년 M월 D일 HH:mm') : '',
-          location: location?.memo || '',
+          location: location?.placeName
+            ? location.memo
+              ? `${location.placeName} - ${location.memo}`
+              : location.placeName
+            : '',
           participants: friends,
         }}
       />
@@ -342,7 +353,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: 12,
     padding: 16,
-    marginBottom: 20,
+    marginBottom: 10,
   },
   deleteIcon: {
     position: 'absolute',

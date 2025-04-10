@@ -77,7 +77,7 @@ export default function SettingOverlay({ visible, onClose, onEditProfile }: Prop
       console.warn('🚫 로그아웃 실패:', err);
     } finally {
       await clearTokens();
-      router.replace('/auth/login');
+      router.replace('/');
     }
   };
 

@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginTop: 30
+    marginTop: 10
   },
   cancel: {
     fontSize: 16,

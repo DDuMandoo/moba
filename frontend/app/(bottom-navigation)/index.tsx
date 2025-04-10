@@ -64,6 +64,6 @@ const styles = StyleSheet.create({
   walletStatusWrapper: {
     alignItems: 'center',
     width: '100%',
-    marginTop: 24,
+    marginTop: 0,
   },
 });

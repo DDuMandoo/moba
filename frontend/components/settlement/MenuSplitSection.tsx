@@ -9,6 +9,8 @@ import {
   Platform,
   Image,
   StyleSheet,
+  ActivityIndicator,
+  Modal,
 } from 'react-native';
 import Colors from '@/constants/Colors';
 import Fonts from '@/constants/Fonts';
@@ -61,6 +63,7 @@ const MenuSplitSection = forwardRef<MenuSplitSectionRef, Props>(
     const [totalAmount, setTotalAmount] = useState('0');
     const [selectedMenuId, setSelectedMenuId] = useState<string | null>(null);
     const [participantList, setParticipantList] = useState<Participant[]>([]);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
       if (!participants) return;
@@ -199,6 +202,7 @@ const MenuSplitSection = forwardRef<MenuSplitSectionRef, Props>(
       } as any);
     
       try {
+        setLoading(true);
         const { data } = await axios.post(`/dutchpays/ocr`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
@@ -232,6 +236,8 @@ const MenuSplitSection = forwardRef<MenuSplitSectionRef, Props>(
         const message =
           err?.response?.data?.message || err?.message || '잠시 후 다시 시도해주세요.';
         Alert.alert('영수증 인식 실패', message);
+      } finally {
+        setLoading(false);
       }
     };
     
@@ -269,6 +275,17 @@ const MenuSplitSection = forwardRef<MenuSplitSectionRef, Props>(
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
+        {loading && (
+        <Modal transparent animationType="fade">
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.3)' }}>
+            <Image
+              source={require('@/assets/animations/loading.gif')}
+              style={{ width: 500, height: 500 }}
+              resizeMode="contain"
+            />
+          </View>
+        </Modal>
+      )}
         <View style={styles.header}>
           <Text style={styles.totalText}>총 금액: {totalAmount}원</Text>
           <TouchableOpacity style={styles.photoButton} onPress={handleReceiptCapture}>

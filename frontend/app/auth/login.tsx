@@ -9,7 +9,8 @@ import {
   Keyboard,
   Platform,
   KeyboardAvoidingView,
-  ScrollView
+  ScrollView,
+  SafeAreaView
 } from 'react-native';
 import { Button } from '@/components/ui/Button';
 import Colors from '@/constants/Colors';
@@ -106,81 +107,83 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 40}
-      style={{ flex: 1 }}
-    >
-      <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
+    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.logo }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 40}
+        style={{ flex: 1 }}
       >
-        <Image source={require('@/assets/images/login_image.png')} style={styles.logo} />
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Image source={require('@/assets/images/login_image.png')} style={styles.logo} />
 
-        <Text style={styles.label}>이메일</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="이메일을 입력해주세요"
-          placeholderTextColor={Colors.grayLightText}
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoCorrect={false}
-          returnKeyType="next"
-          onSubmitEditing={() => Keyboard.dismiss()}
-        />
-
-        <Text style={styles.label}>비밀번호</Text>
-        <View style={styles.passwordContainer}>
+          <Text style={styles.label}>이메일</Text>
           <TextInput
-            style={styles.passwordInput}
-            placeholder="비밀번호를 입력해주세요"
+            style={styles.input}
+            placeholder="이메일을 입력해주세요"
             placeholderTextColor={Colors.grayLightText}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!isPasswordVisible}
-            returnKeyType="done"
-            onSubmitEditing={handleLogin}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="next"
+            onSubmitEditing={() => Keyboard.dismiss()}
           />
-          <TouchableOpacity
-            style={styles.eyeIcon}
-            onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-          >
-            <Ionicons
-              name={isPasswordVisible ? 'eye' : 'eye-off'}
-              size={24}
-              color={Colors.grayDarkText}
+
+          <Text style={styles.label}>비밀번호</Text>
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="비밀번호를 입력해주세요"
+              placeholderTextColor={Colors.grayLightText}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!isPasswordVisible}
+              returnKeyType="done"
+              onSubmitEditing={handleLogin}
             />
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+            >
+              <Ionicons
+                name={isPasswordVisible ? 'eye' : 'eye-off'}
+                size={24}
+                color={Colors.grayDarkText}
+              />
+            </TouchableOpacity>
+          </View>
 
-        <Button.Large title="로그인" onPress={handleLogin} style={styles.loginButton} />
+          <Button.Large title="로그인" onPress={handleLogin} style={styles.loginButton} />
 
-        <Button.Large
-          title="카카오 로그인"
-          onPress={handleKakaoLogin}
-          style={{ backgroundColor: '#FFDD00' }}
-          textColor={Colors.primary}
-        />
+          <Button.Large
+            title="카카오 로그인"
+            onPress={handleKakaoLogin}
+            style={{ backgroundColor: '#FFDD00' }}
+            textColor={Colors.primary}
+          />
 
-        <View style={styles.footer}>
-          <TouchableOpacity onPress={() => router.push('/auth/forgot-password')}>
-            <Text style={styles.footerText}>비밀번호 찾기</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push('/auth/signup')}>
-            <Text style={styles.footerText}>회원가입</Text>
-          </TouchableOpacity>
-        </View>
+          <View style={styles.footer}>
+            <TouchableOpacity onPress={() => router.push('/auth/forgot-password')}>
+              <Text style={styles.footerText}>비밀번호 찾기</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/auth/signup')}>
+              <Text style={styles.footerText}>회원가입</Text>
+            </TouchableOpacity>
+          </View>
 
-        <CustomAlert
-          visible={!!alert}
-          title={alert?.title || ''}
-          message={alert?.message}
-          onClose={() => setAlert(null)}
-        />
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <CustomAlert
+            visible={!!alert}
+            title={alert?.title || ''}
+            message={alert?.message}
+            onClose={() => setAlert(null)}
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -194,8 +197,8 @@ const styles = StyleSheet.create({
     height: '100%'
   },
   logo: {
-    width: 240,
-    height: 240,
+    width: 250,
+    height: 250,
     alignSelf: 'center'
   },
   label: {

@@ -219,17 +219,18 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 14,
-    marginBottom: 20,
+    marginBottom: 15,
     elevation: 2
   },
   summaryRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 8
+    gap: 5,
+    marginBottom: 4
   },
   summaryText: {
-    fontSize: 18,
+    fontSize: 16,
+    marginBottom: 2,
     color: Colors.black,
     flexShrink: 1
   },
@@ -248,7 +249,7 @@ const styles = StyleSheet.create({
   },
   tabWrapper: {
     position: 'relative',
-    marginBottom: 16
+    marginBottom: 10
   },
   tabBar: {
     flexDirection: 'row',
@@ -264,7 +265,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold'
   },
   promiseList: {
-    gap: 2,
+    gap: 1,
     marginBottom: 20
   }
 });

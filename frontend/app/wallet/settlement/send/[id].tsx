@@ -228,8 +228,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   keypadButton: {
-    width: 72,
-    height: 72,
+    width: 65,
+    height: 65,
     borderRadius: 36,
     backgroundColor: Colors.white,
     justifyContent: 'center',

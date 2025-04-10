@@ -47,8 +47,8 @@ export default function AppointmentConfirmModal({
           </TouchableOpacity>
 
           <ScrollView contentContainerStyle={styles.contentWrapper}>
-            <Text style={styles.title}>약속 생성 확인</Text>
-            <Text style={styles.subtitle}>다음 내용으로 약속을 생성하시겠습니까?</Text>
+            <Text style={styles.title}>약속 정보 확인</Text>
+            <Text style={styles.subtitle}>입력하신 내용이 맞는지 확인해주세요.</Text>
 
             {/* 약속명 */}
             <View style={styles.section}>
@@ -99,7 +99,12 @@ export default function AppointmentConfirmModal({
                 <Ionicons name="location-outline" size={18} color={Colors.secondary} style={styles.icon} />
                 <Text style={styles.sectionTitle}>장소</Text>
               </View>
-              <Text style={styles.value}>{data.location || <Text style={styles.empty}>선택한 장소가 없습니다.</Text>}</Text>
+              <Text style={styles.value}>{data.location ? (
+                <Text style={styles.value}>{data.location}</Text>
+              ) : (
+                <Text style={styles.empty}>선택한 장소가 없습니다.</Text>
+              )}
+              </Text>
             </View>
           </ScrollView>
 

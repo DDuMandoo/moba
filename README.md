@@ -7,14 +7,15 @@
 ---
 ## 👥 팀원
 
-| 프로필 | 이름 | 역할 | GitHub |
-|:--:|:--|:--|:--|
-| <img src="https://avatars.githubusercontent.com/swoolee97" width="60"/> | **이승우 (팀장)** | 백엔드 총괄, API 설계 | [@swoolee97](https://github.com/swoolee97) |
-| <img src="https://avatars.githubusercontent.com/kjh-0523" width="60"/> | **김지호** | 마이데이터 분석, 백엔드 | [@kjh-0523](https://github.com/kjh-0523) |
-| <img src="https://avatars.githubusercontent.com/DDuMandoo" width="60"/> | **오준수** | 실시간 채팅, LLM 통합 | [@DDuMandoo](https://github.com/DDuMandoo) |
-| <img src="https://avatars.githubusercontent.com/imewuzin" width="60"/> | **임유진** | 프론트엔드, UI/UX, 채팅/아카이빙 화면 | [@imewuzin](https://github.com/imewuzin) |
-| <img src="https://avatars.githubusercontent.com/cup-wan" width="60"/> | **박경완** | 마이데이터, 백엔드 | [@cup-wan](https://github.com/cup-wan) |
-| <img src="https://avatars.githubusercontent.com/seul1230" width="60"/> | **조예슬** | 인프라, Elastic/Kibana, SMTP | [@seul1230](https://github.com/seul1230) |
+
+| 프로필 | 이름 | GitHub | 역할  |
+| --- | --- | --- | --- |
+| <img src="https://avatars.githubusercontent.com/DDuMandoo" width="60"/> | 오준수 | [@DDuMandoo](https://github.com/DDuMandoo) | 팀장. 백엔드. 실시간 채팅 풀스택 개발 |
+| <img src="https://avatars.githubusercontent.com/cup-wan" width="60"/> | 박경완 | [@cup-wan](https://github.com/cup-wan) | 백엔드. 마이데이터 생성 및 분석 |
+| <img src="https://avatars.githubusercontent.com/kjh-0523" width="60"/> | 김지호 | [@kjh-0523](https://github.com/kjh-0523) | 백엔드. 마이데이터 생성 및 분석 |
+| <img src="https://avatars.githubusercontent.com/seunggeuncho" width="60"/> | 조승근 |[@seunggeuncho](https://github.com/seunggeuncho) | 인프라 구축. 푸시 알림 기능 개발 |
+| <img src="https://avatars.githubusercontent.com/nikcabe" width="60"/> |서건호 | [@nikcabe](https://github.com/nikcabe) | 프론트엔드. 정산 관리 페이지 담당 |
+| <img src="https://avatars.githubusercontent.com/imewuzin" width="60"/> | 임유진| [@imewuzin](https://github.com/imewuzin) | 프론트엔드. 마이페이지, 약속 생성·관리 페이지, 실시간 위치 표시 담당 |
 
 ---
 
